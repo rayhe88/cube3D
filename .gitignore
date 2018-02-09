@@ -16,5 +16,11 @@
 # .nfs files are created when an open file is removed but is still being accessed
 .nfs*
 
+# Con esto no subo archivos que tienen que ver con la compilacion
+*.o
+*.xyz
+*.cube
+*.cub
+*.log
 
 # End of https://www.gitignore.io/api/linux
