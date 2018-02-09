@@ -1,0 +1,10 @@
+>> INPUT
+ureaI.cube
+>> OUTPUT
+urea
+>> TASK
+nci
+>> POLY
+2
+>> NCI PROP
+3.0 1.5

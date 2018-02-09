@@ -1,0 +1,10 @@
+>> INPUT
+../proof/ureaI.cube
+>> OUTPUT
+ureaI
+>> TASK
+CRIT
+>> POLY
+2
+>> NCI PROP
+3.0 1.5
