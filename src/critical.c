@@ -427,9 +427,9 @@ int refineCritical( dataCube data1, int pol,int *idx,
   }
   printf(" Possible critical points : %10d\n",count);
 
-  int contador;
+  //int contador;
   int i;
-  double num;
+  //double num;
   printf("=====================================================\n");
   printf(" %4d\n",count);
   printf(" Posibles puntos \n");
@@ -437,11 +437,9 @@ int refineCritical( dataCube data1, int pol,int *idx,
     printf(" POS  % 10.6lf % 10.6lf % 10.6lf\n",xyzInp[3*i]*fac,
                                                 xyzInp[3*i+1]*fac,
                                                 xyzInp[3*i+2]*fac);
-
-
   printf("=====================================================\n");
 
-  nu = 0; i = 0;
+  /*nu = 0; i = 0;
 
   for(mu=0;mu<count;mu++){
     contador = 0;
@@ -466,8 +464,20 @@ int refineCritical( dataCube data1, int pol,int *idx,
 
   }
 
+  */
+  i = deleteRepeated(count, xyzInp,xyzOut);
   printf(" Despues : %d\n",i);
   count = i;
+
+
+  printf("=====================================================\n");
+  printf(" %4d\n",count);
+  printf(" Posibles puntos Despues\n");
+  for(i=0;i<count;i++)
+    printf(" POS  % 10.6lf % 10.6lf % 10.6lf\n",xyzOut[3*i]*fac,
+                                                xyzOut[3*i+1]*fac,
+                                                xyzOut[3*i+2]*fac);
+  printf("=====================================================\n");
 
   free(aux);
   free(xyzInp);
@@ -644,4 +654,43 @@ int refineCritical( dataCube data1, int pol,int *idx,
   
   
   return 0;
+}
+
+int deleteRepeated(int n, double *arrayInp, double *arrayOut){
+
+  int i,j,k,m;
+  int cont;
+  double vecAux[3*n];
+  double tmp[3];
+
+  j=m=0;
+  for(i=0;i<n;i++){
+    cont = 0;
+    tmp[0]     = arrayInp[3*i];
+    tmp[1]     = arrayInp[3*i+1];
+    tmp[2]     = arrayInp[3*i+2];
+    vecAux[3*j]   = tmp[0];
+    vecAux[3*j+1] = tmp[1];
+    vecAux[3*j+2] = tmp[2];
+    j++;
+    for(k=0;k<j;k++)
+      if( fabs(vecAux[3*k]   - tmp[0]) < 1.E-6 && 
+          fabs(vecAux[3*k+1] - tmp[1]) < 1.E-6 && 
+          fabs(vecAux[3*k+2] - tmp[2]) < 1.E-6 ){
+        cont++;
+      }   
+    if( cont == 1){ 
+      arrayOut[3*m  ] = tmp[0];
+      arrayOut[3*m+1] = tmp[1];
+      arrayOut[3*m+2] = tmp[2];
+      m++;
+    }   
+
+
+  }
+  printf(" Entraron : %d \n",n);
+  printf(" Salieron : %d \n",m);
+
+  return m;
+
 }

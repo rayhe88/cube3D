@@ -23,9 +23,9 @@
 
  int getIndex(char,int,double,double,double);
 
- int getCube(int*,double,double,double,double*,double*,int*,int*,int*);
+ int deleteRepeated(int, double*,double*);
 
- //int loadField(int,int,int,int,int,double*,double*);
+ int getCube(int*,double,double,double,double*,double*,int*,int*,int*);
 
  int signature(double*,int*,int*);
 

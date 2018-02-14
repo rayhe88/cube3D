@@ -98,7 +98,6 @@ int main(int argc, char* argv[]){
         for(kp = k-1; kp <= k+1; kp++){
           f[nu]  = field[IDX(ip,jp,kp,npy,npz)];
           printf(" %4d %4d %4d | %6d ",ip,jp,kp,IDX(ip,jp,kp,npy,npz));
-          //printf(" %4ld %4ld %4ld | %6ld ",(long)ip,(long)jp,(long)kp,(long)IDX(ip,jp,kp,npy,npz));
           printf("  f[%3d] = % 20.10lf\n",nu,f[nu]);
           nu++;
         }

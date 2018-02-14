@@ -1,10 +1,12 @@
 >> INPUT
-../proof/ureaI.cube
+../proof/ureaII.cube
 >> OUTPUT
-ureaI
+ureaII
 >> TASK
 CRIT
 >> POLY
 2
 >> NCI PROP
 3.0 1.5
+>> PERIODIC
+yes
