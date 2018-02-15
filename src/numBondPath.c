@@ -50,8 +50,9 @@ int myIsNanInf_V3(double vec[3]){
 
 }
 
-int bondPath(int poly,int nna, int nato, int nCrit,int *type,double *coor, double *coorCrit,int *pts, 
-             double *min,double *hvec, double *field,double *matT,const char* name){
+int bondPath(int poly,int nna, int nato, int nCrit,int *type,int *bonding,
+             double *coor,double *coorCrit,int *pts,double *min,double *hvec, 
+             double *field,double *matT,const char* name){
   int i,j,k,id[3],itmp,iterap,iteran;
   int attractors, amico;
   int nucleo1,nucleo2;
@@ -315,6 +316,8 @@ int bondPath(int poly,int nna, int nato, int nCrit,int *type,double *coor, doubl
       }
 
       printf(" --> Punto critico %3d  Une : %2d %2d\n",bp,nucleo1+1,nucleo2+1);
+      bonding[2*(bp-1)  ] = nucleo1+1;
+      bonding[2*(bp-1)+1] = nucleo2+1;
 
     }
 
@@ -474,8 +477,9 @@ int getData(int poly,int *pts, int *id,double x,double y, double z,double *min, 
 }
 
   
-int logFile(int poly,int nato, int nCrit,int *type,double *coor, double *coorCrit,int *pts, 
-             double *min,double *hvec, double *field,double *matT,const char* name){
+int logFile(int poly,int nato, int nCrit,int *type,int *bonding,double *coor,
+            double *coorCrit,int *pts,double *min,double *hvec,double *field,
+            double *matT,const char* name){
 
   int i,j;
   char logname[128];
@@ -753,6 +757,7 @@ int logFile(int poly,int nato, int nCrit,int *type,double *coor, double *coorCri
 
 
         fprintf(log,"\n   Critical Point  %7d of type (3,-1)\n\n",j+1);
+        fprintf(log,"   Between the nucleous : %2d and %2d\n",bonding[2*j],bonding[2*j+1]);
         fprintf(log,"   Coordinates [A]    % 12.8E  % 12.8E  % 12.8E \n\n",
                 vecOut[0],vecOut[1],vecOut[2]);
 

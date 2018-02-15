@@ -534,11 +534,6 @@ int refineCritical( dataCube data1, int pol,int *idx,
       difcoor = inCube(x,y,z,limits);
     }
 
-
-
-
-
-
     flag = !inCube(x,y,z,limits);
 
     if( flag == 1){
@@ -574,7 +569,8 @@ int refineCritical( dataCube data1, int pol,int *idx,
   
      double ngrad = getNorm(val[1],val[2],val[3]);
 
-     if( (fabs(val[0]) > CUTRHO) && ( ngrad < 1.E-5) && (rij > 0) ){
+     if( (fabs(val[0]) > CUTRHO) && ( ngrad < TOLNRM) && (rij > 0) ){
+     //if( (fabs(val[0]) > CUTRHO) && ( ngrad < 1.E-5) && (rij > 0) ){
 
       if( s == -3 ){
         type[k] = -4;
@@ -594,9 +590,9 @@ int refineCritical( dataCube data1, int pol,int *idx,
       }
       k++;
     }
-    }
-
   }
+
+}
 
   
   int ncrit;
@@ -643,9 +639,17 @@ int refineCritical( dataCube data1, int pol,int *idx,
     fprintf(out," % 10.6lf % 10.6lf % 10.6lf\n",vecTmp[0],vecTmp[1],vecTmp[2]);
 
   }
+
   fclose(out);
-  logFile (pol,data1.natm,ncrit,type,coor,coorCrit,data1.pts,data1.min,hvec,field,matT,name);
-  bondPath(pol,ncp,data1.natm,ncrit,type,coor,coorCrit,data1.pts,data1.min,hvec,field,matT,name);
+  
+  int *bonding;
+  createArrayInt(2*bcp,&bonding,"bonding");
+
+  bondPath(pol,ncp,data1.natm,ncrit,type,bonding,coor,coorCrit,data1.pts,data1.min,hvec,field,matT,name);
+
+  logFile (pol,data1.natm,ncrit,type,bonding,coor,coorCrit,data1.pts,data1.min,hvec,field,matT,name);
+
+
   printf("=====================================================\n");
 
   free(coef);

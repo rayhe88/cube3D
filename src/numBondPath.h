@@ -9,8 +9,8 @@
  int myIsNanInf(double);
  int myIsNanInf_V3(double*);
 
- int logFile(int,int,int,int*,double*,double*,int*,double*,double*,double*,double*,const char *);
- int bondPath(int,int,int,int,int*,double*,double*,int*,double*,double*,double*,double*,const char *);
+ int logFile(int,int,int,int*,int*,double*,double*,int*,double*,double*,double*,double*,const char *);
+ int bondPath(int,int,int,int,int*,int*,double*,double*,int*,double*,double*,double*,double*,const char *);
 
  int SortCoordinates(int,int*,double*);
 

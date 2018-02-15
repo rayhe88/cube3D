@@ -17,7 +17,7 @@
  //#define TOLDIS 0.075
  #define TOLDIS 0.001
 
- #define MAXITER 30
+ #define MAXITER 50
 
  #define CUTRHO 0.005
 

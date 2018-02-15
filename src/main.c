@@ -18,6 +18,7 @@ int main(int argc, char* argv[]){
 
   int pol;
   int task;
+  int bound;
   double dg[2];
   char namefld[120];
   char nameout[120];
@@ -31,7 +32,7 @@ int main(int argc, char* argv[]){
   dataCube data1;
   dataCube auxdata;
 
-  readInput(namefld,nameout,&task,&pol,dg,argv[1]);
+  readInput(namefld,nameout,&task,&pol,&bound,dg,argv[1]);
 
   printf("=====================================================\n");
   printf("     Name field  : %s\n",namefld);
