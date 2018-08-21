@@ -13,17 +13,17 @@ CFLAGS := -c -Wunused
 LIB := -lm -llapacke -llapack
 
 OBJS := main.o\
-		  file.o\
+	file.o\
         array.o\
-		  analys.o\
-		  tableP.o\
-		  matvec.o\
-		  lectura.o\
-		  critical.o\
-		  mathTools.o\
-		  pruebaCoef.o\
-		  numBondPath.o\
-		  lagrangePol.o
+	analys.o\
+	tableP.o\
+	matvec.o\
+	lectura.o\
+	critical.o\
+	mathTools.o\
+	pruebaCoef.o\
+	numBondPath.o\
+	lagrangePol.o
 
 $(PRO) : $(OBJS)
 	$(CC) -o $(EXE) $(OBJS) $(LIB)
