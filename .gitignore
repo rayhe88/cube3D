@@ -18,9 +18,12 @@
 
 # Con esto no subo archivos que tienen que ver con la compilacion
 *.o
+# Con esto no subo archivos de ejecucion
 *.xyz
 *.cube
 *.cub
 *.log
+garbage
+
 
 # End of https://www.gitignore.io/api/linux
