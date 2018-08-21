@@ -61,7 +61,7 @@ int getCoeff(int poly,double *hvec, double x0,double y0, double z0,double *f, do
       y = y0 + j*hy;
       for( k = min; k <= max; k++){
         z = z0 + k*hz;
-
+        //printf(" I :%4d J: %4d K: %4d\n",i,j,k);
         for(m=0; m<p ; m++){
           facx = pow(x,m);
           for(n=0; n<p ; n++){

@@ -465,8 +465,8 @@ int getData(int poly,int *pts, int *id,double x,double y, double z,double *min, 
     z1 = min[2] + indk*hvec[2];
     loadField(poly,indi,indj,indk,npx,npy,npz,field,fun);
 
-    coefficients(hvec[0],hvec[1],hvec[2],x1,y1,z1,fun,coef);
-    //getCoeff(poly,hvec,x1,y1,z1,fun,coef);
+    //coefficients(hvec[0],hvec[1],hvec[2],x1,y1,z1,fun,coef);
+    getCoeff(poly,hvec,x1,y1,z1,fun,coef);
 
     id[0] = indi; id[1] = indj; id[2] = indk;
   }
@@ -681,6 +681,7 @@ int logFile(int poly,int nato, int nCrit,int *type,int *bonding,double *coor,
         matHH[0][0] = val[4]; matHH[0][1] = val[5]; matHH[0][2] = val[6];
         matHH[1][0] = val[5]; matHH[1][1] = val[7]; matHH[1][2] = val[8];
         matHH[2][0] = val[6]; matHH[2][1] = val[8]; matHH[2][2] = val[9];
+        fprintf(log," Det H % 10.6E\n",determinant3(matHH));
 
         jacobi(matHH,eigenVal,eigenVec);
 	     sortJacobi(eigenVal);
@@ -750,6 +751,8 @@ int logFile(int poly,int nato, int nCrit,int *type,int *bonding,double *coor,
         matHH[0][0] = val[4]; matHH[0][1] = val[5]; matHH[0][2] = val[6];
         matHH[1][0] = val[5]; matHH[1][1] = val[7]; matHH[1][2] = val[8];
         matHH[2][0] = val[6]; matHH[2][1] = val[8]; matHH[2][2] = val[9];
+
+        fprintf(log," Det H % 10.6E\n",determinant3(matHH));
 
         jacobi(matHH,eigenVal,eigenVec);
 	     sortJacobi(eigenVal);
@@ -826,6 +829,7 @@ int logFile(int poly,int nato, int nCrit,int *type,int *bonding,double *coor,
         matHH[1][0] = val[5]; matHH[1][1] = val[7]; matHH[1][2] = val[8];
         matHH[2][0] = val[6]; matHH[2][1] = val[8]; matHH[2][2] = val[9];
 
+        fprintf(log," Det H % 10.6E\n",determinant3(matHH));
         jacobi(matHH,eigenVal,eigenVec);
 	     sortJacobi(eigenVal);
         l1 = eigenVal[0]; l2 = eigenVal[1]; l3 = eigenVal[2];
@@ -895,6 +899,7 @@ int logFile(int poly,int nato, int nCrit,int *type,int *bonding,double *coor,
         matHH[1][0] = val[5]; matHH[1][1] = val[7]; matHH[1][2] = val[8];
         matHH[2][0] = val[6]; matHH[2][1] = val[8]; matHH[2][2] = val[9];
 
+        fprintf(log," Det H % 10.6E\n",determinant3(matHH));
         jacobi(matHH,eigenVal,eigenVec);
 	     sortJacobi(eigenVal);
         l1 = eigenVal[0]; l2 = eigenVal[1]; l3 = eigenVal[2];

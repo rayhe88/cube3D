@@ -18,6 +18,7 @@
  #define TOL 1E-09 /**< Tolerance in the diagonalization by the method of Jacobi.*/
  #define NMAX 10   /**< Max number of iterations in the method of Jacobi.*/
 
+ double determinant3 (double matA[3][3]);
  double mayor( double matAA[][N], int *p, int *q);
  int jacobi(double matAA[][N], double valores[], double eigenvectors[][N]);
 

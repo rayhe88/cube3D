@@ -3,10 +3,8 @@
 >> OUTPUT
 ureaII
 >> TASK
-CRIT
+nci
 >> POLY
 2
 >> NCI PROP
 3.0 1.5
->> PERIODIC
-no

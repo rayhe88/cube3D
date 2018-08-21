@@ -94,9 +94,36 @@ int main(int argc, char* argv[]){
     z1  = data1.min[2] + k*hz;
 
     nu = 0;
-    for(ip = i-1; ip <= i+1; ip++)
-      for(jp = j-1; jp <= j+1; jp++)
-        for(kp = k-1; kp <= k+1; kp++){
+
+    int imin,imax;
+
+    switch(pol){
+    case 1: imin = -1; 
+            imax =  0; break;
+    case 2: imin = -1; 
+            imax =  1; break;
+    case 3: imin = -2; 
+            imax =  1; break;
+    case 4: imin = -2; 
+            imax =  2; break;
+    case 5: imin = -3; 
+            imax =  2; break;
+    case 6: imin = -3; 
+            imax =  3; break;
+    case 7: imin = -4; 
+            imax =  3; break;
+    case 8: imin = -4; 
+            imax =  4; break;
+    case 9: imin = -5; 
+            imax =  4; break;
+    case 10: imin = -5; 
+            imax =  5; break;
+    }
+ 
+
+    for(ip = i+imin; ip <= i+imax; ip++)
+      for(jp = j+imin; jp <= j+imax; jp++)
+        for(kp = k+imin; kp <= k+imax; kp++){
           f[nu]  = field[IDX(ip,jp,kp,npy,npz)];
           printf(" %4d %4d %4d | %6d ",ip,jp,kp,IDX(ip,jp,kp,npy,npz));
           printf("  f[%3d] = % 20.10lf\n",nu,f[nu]);

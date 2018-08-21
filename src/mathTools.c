@@ -1,5 +1,15 @@
 #include "mathTools.h"
 
+double determinant3( double matA[3][3]){
+
+  double det;
+
+  det  = matA[0][0]*(matA[1][1]*matA[2][2] - matA[1][2]*matA[2][1]);
+  det += matA[0][1]*(matA[1][2]*matA[2][0] - matA[1][0]*matA[2][2]);
+  det += matA[0][2]*(matA[1][0]*matA[2][2] - matA[1][1]*matA[2][0]);
+  
+  return det;
+}
 
 double mayor( double matAA[][N], int *p, int *q){
   int i, j;

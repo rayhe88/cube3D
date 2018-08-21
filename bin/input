@@ -1,9 +1,9 @@
 >> INPUT
-../proof/ureaII.cube
+dimeroElf.cube
 >> OUTPUT
-ureaII
+elfCrit
 >> TASK
-CRIT
+Crit
 >> POLY
 2
 >> NCI PROP

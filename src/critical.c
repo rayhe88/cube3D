@@ -115,17 +115,17 @@ int findCritical(int i, int j, int k, int *pts, int *idx,
    double hmax;
    double x0,x2,y0,y2,z0,z2;
    double limits[6];
-   //double hvec[3];
+   double hvec[3];
 
-   //hvec[0] = hx;
-   //hvec[1] = hy;
-   //hvec[2] = hz;
+   hvec[0] = hx;
+   hvec[1] = hy;
+   hvec[2] = hz;
 
    ncy = pts[1] - 1;
    ncz = pts[2] - 1;
 
-   coefficients(hx,hy,hz,x1,y1,z1,f,c);
-   //getCoeff(2,hvec,x1,y1,z1,f,c);
+   //coefficients(hx,hy,hz,x1,y1,z1,f,c);
+   getCoeff(2,hvec,x1,y1,z1,f,c);
 
    limits[0] = x1 - hx;
    limits[1] = x1 + hx;
@@ -351,8 +351,6 @@ double hessGrad(double *x, double *y, double *z,double *ngrad,double *val){
   (*y) = t2*vx + t4*vy + t5*vz;
   (*z) = t3*vx + t5*vy + t6*vz;
 
-  
-  
   return dis;
 }
 
@@ -518,8 +516,8 @@ int refineCritical( dataCube data1, int pol,int *idx,
 
     limitsMacro(pol,indi,indj,indk,data1,limits);
 
-    coefficients(hvec[0],hvec[1],hvec[2],x1,y1,z1,fun,coef);
-//    getCoeff(pol,hvec,x1,y1,z1,fun,coef);
+    //coefficients(hvec[0],hvec[1],hvec[2],x1,y1,z1,fun,coef);
+    getCoeff(pol,hvec,x1,y1,z1,fun,coef);
 
     iter=0;  norm = 1.E3;  difcoor=0;
 

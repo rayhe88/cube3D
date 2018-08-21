@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include <math.h>
 
-
 #ifndef _STRUCT_H_
   #define _STRUCT_H_
 
@@ -13,13 +12,13 @@
   typedef struct{
 
     int natm;
+    int npt;
     int pts[3];
     double min[3];
     double hvec[3];
     double mvec[9];
-    int npt;
-} dataCube;
 
+  } dataCube;
 
 
 #endif

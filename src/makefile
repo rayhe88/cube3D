@@ -1,7 +1,7 @@
 # AUTH Raymundo Hernandez Esparza
 # DATE March 2017
-# REVI March 2017
-# REQU no-requirements
+# REVI August 2018
+# REQU lapacke / lapack
 #
 
 
