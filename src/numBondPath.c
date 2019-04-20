@@ -1,331 +1,336 @@
-#include <stdio.h>
-#include <stdlib.h>
+/** 
+ * @file   numBondPath.c
+ * @brief
+ * @author Raymundo Hernández-Esparza.
+ * @date   August 2018.
+ */
 
 #include "file.h"
 #include "array.h"
-#include "analys.h"
-#include "matvec.h"
-#include "critical.h"
+#include "fields.h"
+#include "jacobi.h"
+#include "findCrit.h"
 #include "mathTools.h"
-#include "pruebaCoef.h"
 #include "numBondPath.h"
-#include "lagrangePol.h"
+#include "lagrange2.h"
+#include "utils.h"
 #include "tableP.h"
+#include "transU.h"
 
-#define TOLERANCE 0.01
-#define MAXPTS 800
+#include <omp.h>
 
-int isInsideCube(double vecIn[3],double minmax[6]){
+void getKnRungeKuta( double k[3], double val[10]){
+  double norm;
 
+  norm = getNorm(val[1],val[2],val[3]);
 
-  if( vecIn[0] < minmax[0] ) return 1;
-  if( vecIn[0] > minmax[1] ) return 1;
-  if( vecIn[1] < minmax[2] ) return 1;
-  if( vecIn[1] > minmax[3] ) return 1;
-  if( vecIn[2] < minmax[4] ) return 1;
-  if( vecIn[2] > minmax[5] ) return 1;
-
-  return 0;
-}
-
-int myIsNanInf(double val){
-
-  int ret=0;
-
-  ret += isnan(val);
-  ret += isinf(val);
-
-  return ret;
-}
-
-int myIsNanInf_V3(double vec[3]){
-
-  int ret = 0;
-  
-  ret += myIsNanInf(vec[0]);
-  ret += myIsNanInf(vec[1]);
-  ret += myIsNanInf(vec[2]);
-
-  return ret;
+  k[0] = val[1]/norm;
+  k[1] = val[2]/norm;
+  k[2] = val[3]/norm;
 
 }
 
-int bondPath(int poly,int nna, int nato, int nCrit,int *type,int *bonding,
-             double *coor,double *coorCrit,int *pts,double *min,double *hvec, 
-             double *field,double *matT,const char* name){
-  int i,j,k,id[3],itmp,iterap,iteran;
-  int attractors, amico;
-  int nucleo1,nucleo2;
-  char tmpname[120];
-  double *coorAttr;
-  double *coef,val[10];
-  double matHH[3][3];
-  double eigenVec[3][3];
-  double eigenVal[3],norm,dist,difmin,rij;
-  double v1,v2,v3;
+
+int bondPath( int bcp, dataCritP *bondCrit, int ncp, dataCritP *nnucCrit,int *bonding,
+              dataCube cube, dataRun param, double min0,const double *matU, char *name){
+
+
+  int i,j,k,step;
+  int iterp,itern,amico;
+  int attractors;
+  int nucleo1,nucleo2,itmp;
   double x,y,z;
-  double xn,yn,zn;
+  double xc,yc,zc;
   double x0,y0,z0;
-  double k1x,k1y,k1z;
-  double k2x,k2y,k2z;
-  double ex0,ey0,ez0;
-  double xatm,yatm,zatm;
-  double xcrit,ycrit,zcrit;
-  double fac = 0.52917;
-  double vecIn[3],vecOut[3];
-  double minmax[6];
+  double xn,yn,zn;
+  double ratm[3],rn[3],rij;
+  double dist,norm,difmin;
+  double val[10];
+  double matH[9],eval[3],evec[9];
+  double v1,v2,v3;
+  char nameOut[128],tmpname[128];
+
+  double k1[3],k3[3],k4[3],k6[3];
+  double a3 = 0.300*BPATH_EPS;
+  double a4 = 0.600*BPATH_EPS;
+  double a6 = 0.875*BPATH_EPS;
+  double c1 = 0.097883598;
+  double c3 = 0.40257649;
+  double c4 = 0.21043771;
+  double c6 = 0.289102202;
+
+  double *coorAttr;
   FILE *tmp;
+  FILE *out;
+  sprintf(nameOut,"%sBPath.xyz",name);
 
-  int size = pow(poly+1,3);
+  tmpFile(&tmp,".c3dBpath_",tmpname,"w+");
 
-
-  minmax[0] = min[0]; minmax[1] = min[0] + pts[0]*hvec[0];
-  minmax[2] = min[1]; minmax[3] = min[1] + pts[1]*hvec[1];
-  minmax[4] = min[2]; minmax[5] = min[2] + pts[2]*hvec[2];
-
-  createArrayDou(size,&coef,"Coef");
-
-
-  tmpFile(&tmp,".bpath_",tmpname,"w+");
-
-  attractors = nna + nato;
+  attractors = ncp + cube.natm;
 
   createArrayDou(3*attractors,&coorAttr,"BP01");
 
-  for(i=0;i<nato;i++){
-    coorAttr[3*i]   = coor[3*i];
-    coorAttr[3*i+1] = coor[3*i+1];
-    coorAttr[3*i+2] = coor[3*i+2];
+  for(i=0;i<cube.natm;i++){
+    coorAttr[3*i]   = cube.coor[3*i];
+    coorAttr[3*i+1] = cube.coor[3*i+1];
+    coorAttr[3*i+2] = cube.coor[3*i+2];
   }
-  for(j=0;j<nna;j++){
-    coorAttr[3*i]   = coorCrit[3*j];
-    coorAttr[3*i+1] = coorCrit[3*j+1];
-    coorAttr[3*i+2] = coorCrit[3*j+2];
+  for(j=0;j<ncp;j++){
+    coorAttr[3*i]   = nnucCrit[j].x;
+    coorAttr[3*i+1] = nnucCrit[j].y;
+    coorAttr[3*i+2] = nnucCrit[j].z;
     i++;
   }
-  int bp=0;
-  for(i=0; i < nCrit; i++){
-    if( type[i] == -3 ){
-      bp++;
-      nucleo1 = nucleo2 = 0;
+
+  printBar(stdout);
+
+#pragma omp parallel private(i,nucleo1,nucleo2,xc,yc,zc,val,matH,eval,evec,    \
+                             v1,v2,v3,norm,xn,yn,zn,rn,iterp,itern,dist,x0,y0, \
+                             z0,k1,k3,k4,k6,x,y,z,amico,difmin,step,ratm,rij)\
+                     shared(bcp,bondCrit,cube,param,matU,min0,a3,a4,a6,c1,c3,  \
+                            c4,c6,attractors,coorAttr)
+{
+
+#pragma omp single 
+{
+  printf("  Number of threads in bond path  : %6d\n",omp_get_num_threads());
+}
+#pragma omp barrier 
 
 
-      xcrit = coorCrit[3*i];
-      ycrit = coorCrit[3*i+1];
-      zcrit = coorCrit[3*i+2];
+#pragma omp for schedule (dynamic) 
+  for(i=0; i < bcp; i++){
+    nucleo1 = nucleo2 = 0;
 
-      id[0] = 0; id[1] = 0; id[2] = 0;
-      getData(poly,pts,id,xcrit,ycrit,zcrit,min,hvec,field,coef);
-      NumericalCrit02(xcrit,ycrit,zcrit,coef,val);
-      //evalPol2(poly,xcrit,ycrit,zcrit,coef,val);
+    xc = bondCrit[i].x;
+    yc = bondCrit[i].y;
+    zc = bondCrit[i].z;
 
-      matHH[0][0] = val[4]; matHH[0][1] = val[5]; matHH[0][2] = val[6];
-      matHH[1][0] = val[5]; matHH[1][1] = val[7]; matHH[1][2] = val[8];
-      matHH[2][0] = val[6]; matHH[2][1] = val[8]; matHH[2][2] = val[9];
+    numCritical02(xc,yc,zc,cube,param,matU,min0,val);
 
-      jacobi(matHH,eigenVal,eigenVec);
+    matH[0] = val[4]; matH[1] = val[7]; matH[2] = val[8];
+    matH[3] = val[7]; matH[4] = val[5]; matH[5] = val[9];
+    matH[6] = val[8]; matH[7] = val[9]; matH[8] = val[6];
 
-      v1 = eigenVec[0][0];  v2 = eigenVec[0][1];  v3 = eigenVec[0][2]; 
+    JacobiNxN(matH,eval,evec);
+/*  The 3rd eigenvector is taken */
+    v1 = evec[6];  v2 = evec[7];  v3 = evec[8]; 
 
-      norm = getNorm(v1,v2,v3);
+    norm = getNorm(v1,v2,v3);
+    v1 /= norm; v2 /= norm; v3 /= norm;
 
-      xn = xcrit + (v1*0.02)/norm;
-      yn = ycrit + (v2*0.02)/norm;
-      zn = zcrit + (v3*0.02)/norm;
-
-      iterap = 0; dist = 4.;
-
-      id[0] = 0; id[1] = 0; id[2] = 0;
-
-      while( iterap < MAXPTS && dist > 0 ){
-        x0 = xn;
-        y0 = yn;
-        z0 = zn;
-
-        getData(poly,pts,id,x0,y0,z0,min,hvec,field,coef);
-        //evalPol2(poly,x0,y0,z0,coef,val);
-        NumericalCrit02(x0,y0,z0,coef,val);
-
-        ex0 = val[1]; 
-        ey0 = val[2]; 
-        ez0 = val[3];
-
-        norm = getNorm(ex0,ey0,ez0);
-
-        k1x = ex0/norm;
-        k1y = ey0/norm;
-        k1z = ez0/norm;
-
-        x  = x0 + 0.01*k1x;
-        y  = y0 + 0.01*k1y;
-        z  = z0 + 0.01*k1z;
-
-        getData(poly,pts,id,x,y,z,min,hvec,field,coef);
-        //evalPol2(poly,x,y,z,coef,val);
-        NumericalCrit02(x,y,z,coef,val);
-
-        ex0 = val[1]; 
-        ey0 = val[2]; 
-        ez0 = val[3];
-
-        norm = getNorm(ex0,ey0,ez0);
-
-        k2x = ex0/norm;
-        k2y = ey0/norm;
-        k2z = ez0/norm;
-
-        xn = x0 + 0.02*k2x;
-        yn = y0 + 0.02*k2y;
-        zn = z0 + 0.02*k2z;
-
-        amico = 0;
-        difmin = 1.E4;
+    xn = xc + 0.02*v1;
+    yn = yc + 0.02*v2;
+    zn = zc + 0.02*v3;
 
 
-        for(k=0; k < attractors; k++){
-          xatm = coorAttr[3*k];
-          yatm = coorAttr[3*k+1];
-          zatm = coorAttr[3*k+2];
+    step = iterp= 0; dist = 6.;
 
-          rij = distance(xn,xatm,yn,yatm,zn,zatm);
+    rn[0] = xn; rn[1] = yn; rn[2] = zn;
+    perfectCube ( param.pbc,rn,cube.min,cube.max);
+    xn = rn[0]; yn = rn[1]; zn = rn[2];
+    
+    while( iterp < MAXPTS && dist > 0 ){
+      x0 = xn;
+      y0 = yn;
+      z0 = zn;
 
-          if( rij < difmin){
-            difmin = rij;
-            nucleo1 = k;
-          }
-          if( rij <= TOLERANCE){
-            amico = 1;
-            nucleo1 = k;
-          }
+      numCritical01(x0,y0,z0,cube,param,matU,min0,val);
+      getKnRungeKuta(k1,val);
 
-        }// end for k
+      x  = x0 + a3;
+      y  = y0 + a3;
+      z  = z0 + a3;
 
-        if( amico == 0 ){
-          iterap++;
-          dist = 4.;
-          vecIn[0] = xn*fac; vecIn[1] = yn*fac; vecIn[2] = zn*fac;
+      numCritical01(x,y,z,cube,param,matU,min0,val);
+      getKnRungeKuta(k3,val);
 
-          if( isInsideCube(vecIn,minmax) == 0 ){
-            matVecProduct(vecIn,matT,vecOut);
-          
-            if( myIsNanInf_V3(vecOut) == 0 )
-              fprintf(tmp," BP%04d  % 10.6lf   % 10.6lf  % 10.6lf\n",i+1-nna,vecOut[0],vecOut[1],vecOut[2]);
-          }
+      x = x0 + a4;
+      y = y0 + a4;
+      z = z0 + a4;
 
-        }else{
-          dist = -1.;
+      numCritical01(x,y,z,cube,param,matU,min0,val);
+      getKnRungeKuta(k4,val);
+
+      x = x0 + a6;
+      y = y0 + a6;
+      z = z0 + a6;
+
+      numCritical01(x,y,z,cube,param,matU,min0,val);
+      getKnRungeKuta(k6,val);
+
+      xn = x0 + BPATH_EPS*(c1*k1[0] + c3*k3[0] + c4*k4[0] + c6*k6[0]);
+      yn = y0 + BPATH_EPS*(c1*k1[1] + c3*k3[1] + c4*k4[1] + c6*k6[1]);
+      zn = z0 + BPATH_EPS*(c1*k1[2] + c3*k3[2] + c4*k4[2] + c6*k6[2]);
+
+      amico = 0;
+      difmin = 1.E4;
+
+      rn[0] = xn; rn[1] = yn; rn[2] = zn;
+      perfectCube ( param.pbc,rn,cube.min,cube.max);
+      xn = rn[0]; yn = rn[1]; zn = rn[2];
+//      if( inMacroCube(xn,yn,zn,cube.min,cube.max) != 0 )
+//        break;
+
+      step++;
+
+      for(k=0; k < attractors; k++){
+        ratm[0] = coorAttr[3*k];
+        ratm[1] = coorAttr[3*k+1];
+        ratm[2] = coorAttr[3*k+2];
+
+        rij = distance(ratm,rn);
+
+        if( rij < difmin){
+          difmin = rij;
+          nucleo1 = k;
         }
-      }//end while
+        if( rij <= TOL_DIST_ATM){
+          amico = 1;
+        }
+
+      }// end for k
+
+      if( amico == 0 ){
+        iterp++;
+        dist = 6.;
+        if( step == NSTEP ){
+          if( myIsNanInf_V3(rn) == 0 ){
+            itrans00(rn,matU);
+            fprintf(tmp," BP%04d  % 10.6lf   % 10.6lf  % 10.6lf\n",
+                            i+1,rn[0]*B2A,rn[1]*B2A,rn[2]*B2A);
+          }
+          step = 0;
+        }
+      }else{
+        dist = -1.;
+      }
+    }//end while
 
 
  // At this moment we change the direction
-      norm = getNorm(v1,v2,v3);
+    xn = xc - 0.02*v1; //original 0.02
+    yn = yc - 0.02*v2;
+    zn = zc - 0.02*v3;
 
-      xn = xcrit - (v1*0.02)/norm;
-      yn = ycrit - (v2*0.02)/norm;
-      zn = zcrit - (v3*0.02)/norm;
+    rn[0] = xn; rn[1] = yn; rn[2] = zn;
+    perfectCube ( param.pbc,rn,cube.min,cube.max);
+    xn = rn[0]; yn = rn[1]; zn = rn[2];
 
-      iteran = 0; dist = 4.;
-   
-      id[0] = 0; id[1] = 0; id[2] = 0;
-      while( iteran < MAXPTS && dist > 0 ){
-        x0 = xn;
-        y0 = yn;
-        z0 = zn;
+    step = itern = 0; dist = 6.;
 
-        getData(poly,pts,id,x0,y0,z0,min,hvec,field,coef);
+    while( itern < MAXPTS && dist > 0. ){
+      x0 = xn;
+      y0 = yn;
+      z0 = zn;
 
-        NumericalCrit02(x0,y0,z0,coef,val);
-        //evalPol2(poly,x0,y0,z0,coef,val);
+      numCritical01(x0,y0,z0,cube,param,matU,min0,val);
+      getKnRungeKuta(k1,val);
 
-        ex0 = val[1]; 
-        ey0 = val[2]; 
-        ez0 = val[3];
+      x  = x0 - a3;
+      y  = y0 - a3;
+      z  = z0 - a3;
 
-        norm = getNorm(ex0,ey0,ez0);
+      numCritical01(x,y,z,cube,param,matU,min0,val);
+      getKnRungeKuta(k3,val);
 
-        k1x = ex0/norm;
-        k1y = ey0/norm;
-        k1z = ez0/norm;
+      x  = x0 - a4;
+      y  = y0 - a4;
+      z  = z0 - a4;
 
-        x  = x0 - 0.01*k1x;
-        y  = y0 - 0.01*k1y;
-        z  = z0 - 0.01*k1z;
+      numCritical01(x,y,z,cube,param,matU,min0,val);
+      getKnRungeKuta(k4,val);
 
-        getData(poly,pts,id,x,y,z,min,hvec,field,coef);
-        NumericalCrit02(x,y,z,coef,val);
-        //evalPol2(poly,x,y,z,coef,val);
+      x  = x0 - a6;
+      y  = y0 - a6;
+      z  = z0 - a6;
 
-        ex0 = val[1]; 
-        ey0 = val[2]; 
-        ez0 = val[3];
+      numCritical01(x,y,z,cube,param,matU,min0,val);
+      getKnRungeKuta(k6,val);
 
-        norm = getNorm(ex0,ey0,ez0);
+      xn = x0 + BPATH_EPS*(c1*k1[0] + c3*k3[0] + c4*k4[0] + c6*k6[0]);
+      yn = y0 + BPATH_EPS*(c1*k1[1] + c3*k3[1] + c4*k4[1] + c6*k6[1]);
+      zn = z0 + BPATH_EPS*(c1*k1[2] + c3*k3[2] + c4*k4[2] + c6*k6[2]);
 
+      rn[0] = xn; rn[1] = yn; rn[2] = zn;
+      perfectCube ( param.pbc,rn,cube.min,cube.max);
+      xn = rn[0]; yn = rn[1]; zn = rn[2];
+      step++;
 
-        k2x = ex0/norm;
-        k2y = ey0/norm;
-        k2z = ez0/norm;
+      //if( inMacroCube(xn,yn,zn,cube.min,cube.max) != 0 )
+      //  break;
 
-        xn = x0 + 0.02*k2x;
-        yn = y0 + 0.02*k2y;
-        zn = z0 + 0.02*k2z;
+      amico = 0;
+      difmin = 1.E4;
 
-        amico = 0;
-        difmin = 1.E4;
+      for(k=0; k < attractors; k++){
+        ratm[0] = coorAttr[3*k];
+        ratm[1] = coorAttr[3*k+1];
+        ratm[2] = coorAttr[3*k+2];
 
-        for(k=0; k < attractors; k++){
-          xatm = coorAttr[3*k];
-          yatm = coorAttr[3*k+1];
-          zatm = coorAttr[3*k+2];
+        rij = distance(rn,ratm);
 
-          rij = distance(xn,xatm,yn,yatm,zn,zatm);
-
-          if( rij < difmin){
-            difmin = rij;
-            nucleo2 = k;
-          }
-          if( rij <= TOLERANCE){
-            amico = 1;
-            nucleo2 = k;
-          }
-
-        }// end for k
-
-        if( amico == 0 ){
-          iteran++;
-          dist = 4.;
-          vecIn[0] = xn*fac; vecIn[1] = yn*fac; vecIn[2] = zn*fac;
-
-          if( isInsideCube(vecIn,minmax) == 0 ){
-            matVecProduct(vecIn,matT,vecOut);
-            if( myIsNanInf_V3(vecOut) == 0 )
-              fprintf(tmp," BP%04d  % 10.6lf   % 10.6lf  % 10.6lf\n",i+1-nna,vecOut[0],vecOut[1],vecOut[2]);
-          }
-        }else{
-          dist = -1;
+        if( rij < difmin){
+          difmin = rij;
+          nucleo2 = k;
         }
-      }//end while
+        if( rij <= TOL_DIST_ATM){
+          amico = 1;
+        }
 
+      }// end for k
 
+      if( amico == 0 ){
+        itern++;
+        dist = 6.;
 
-      if( nucleo1 > nucleo2){
-        itmp = nucleo1;
-        nucleo1 = nucleo2;
-        nucleo2 = itmp;
+        if( step == NSTEP ){
+          if( myIsNanInf_V3(rn) == 0 ){
+            itrans00(rn,matU);
+            fprintf(tmp," BP%04d  % 10.6lf   % 10.6lf  % 10.6lf\n",
+                          i+1,rn[0]*B2A,rn[1]*B2A,rn[2]*B2A);
+          }
+         step = 0;
+        }
+        //}
+      }else{
+        dist = -1.;
       }
+    }//end while
 
-      printf(" --> Punto critico %3d  Une : %2d %2d\n",bp,nucleo1+1,nucleo2+1);
-      bonding[2*(bp-1)  ] = nucleo1+1;
-      bonding[2*(bp-1)+1] = nucleo2+1;
 
+
+    if( nucleo1 > nucleo2){
+      itmp = nucleo1;
+      nucleo1 = nucleo2;
+      nucleo2 = itmp;
     }
 
+    bonding[2*i  ] = nucleo1;
+    bonding[2*i+1] = nucleo2;
 
   }//fin for
+}//fin OMP
 
+  printBar(stdout);
+  printBanner("Connectivity of Attractors by BCP",stdout);
+  char symb1[6],symb2[6];
+  for( i = 0; i < bcp ; i++ ){
 
-  free(coef);
+    nucleo1 = bonding[2*i];
+    nucleo2 = bonding[2*i+1];
+
+    if( nucleo1 < cube.natm )
+      getAtomicSymbol(cube.zatm[nucleo1],4,symb1);
+    else
+      strcpy(symb1,"NNA");
+    if( nucleo2 < cube.natm )
+      getAtomicSymbol(cube.zatm[nucleo2],4,symb2);
+    else
+      strcpy(symb2,"NNA");
+  
+    printf("     Critical point %4d between  : %3d %-4s %3d %-4s\n",i+1,nucleo1+1,symb1,nucleo2+1,symb2);
+  }
 
   rewind(tmp);
 
@@ -338,12 +343,8 @@ int bondPath(int poly,int nna, int nato, int nCrit,int *type,int *bonding,
   }
   rewind(tmp);
 
-  char namebpath[128];
-  FILE *out;
 
-  sprintf(namebpath,"%sBPath.xyz",name);
-
-  openFile(&out,namebpath,"w+");
+  openFile(&out,nameOut,"w+");
 
   fprintf(out," %10d\n",npoints);
   fprintf(out," Bond path file in Aangstrom\n");
@@ -357,607 +358,376 @@ int bondPath(int poly,int nna, int nato, int nCrit,int *type,int *bonding,
   fclose(out);
 
   remove(tmpname);
-  printf(" Terminamos de imprimir los bondPaths\n");
-  printf(" En el archivo [%s]\n",namebpath);
+  printBar(stdout);
+  printf("  File %s was generated\n",nameOut);
   return 0;
 }
 
-int SortCoordinates(int ncrit, int *type, double *coorcrit){
-  int i,j,k;
-  int *typeOrd;
-  double *sort;
 
-  createArrayInt( ncrit, &typeOrd, "tipo");
-  createArrayDou( 3*ncrit, &sort, "coordenadas");
-
-  for( i=0, j=0; i < ncrit; i++){
-    if ( type[i] == -4 ) {// alias para NNACP
-      typeOrd[j]  = type[i];
-      sort[3*j]   = coorcrit[3*i];
-      sort[3*j+1] = coorcrit[3*i+1];
-      sort[3*j+2] = coorcrit[3*i+2];
-      j++;
-    }
-
-  }
-
-  for( i=0; i < ncrit; i++){
-    if ( type[i] == -3 ) {// alias para BCP
-      typeOrd[j]  = type[i];
-      sort[3*j]   = coorcrit[3*i];
-      sort[3*j+1] = coorcrit[3*i+1];
-      sort[3*j+2] = coorcrit[3*i+2];
-      j++;
-    }
-  }
-
-  for( i=0; i < ncrit; i++){
-    if ( type[i] == -2 ) {// alias para RCP
-      typeOrd[j]  = type[i];
-      sort[3*j]   = coorcrit[3*i];
-      sort[3*j+1] = coorcrit[3*i+1];
-      sort[3*j+2] = coorcrit[3*i+2];
-      j++;
-    }
-  }
-
-  for( i=0; i < ncrit; i++){
-    if ( type[i] == -1 ) {// alias para CCP
-      typeOrd[j]  = type[i];
-      sort[3*j]   = coorcrit[3*i];
-      sort[3*j+1] = coorcrit[3*i+1];
-      sort[3*j+2] = coorcrit[3*i+2];
-      j++;
-    }
-  }
-
-  for( i=0; i < ncrit; i++){
-    if ( type[i] == 0 ) {// alias para dummy
-      typeOrd[j]  = type[i];
-      sort[3*j]   = coorcrit[3*i];
-      sort[3*j+1] = coorcrit[3*i+1];
-      sort[3*j+2] = coorcrit[3*i+2];
-      j++;
-    }
-  }
- 
-  k=0;
-  for( i=0; i < ncrit; i++){
-    type[i] = typeOrd[i];
-    if( type[i] > -5 && type[i] < 0)
-      k++;
-    j = 3*i;
-    coorcrit[j] = sort[j];
-    coorcrit[j+1] = sort[j+1];
-    coorcrit[j+2] = sort[j+2];
-
-  }
- 
-
- free(sort);
- free(typeOrd);
- return k;
-}
-
-int getData(int poly,int *pts, int *id,double x,double y, double z,double *min, double *hvec,double *field, double *coef){
+int perfectCube ( int bcp, double *r, double *min, double *max){
   
-  int indi,indj,indk;
-  int npx,npy,npz,flag;
-  double x1,y1,z1;
-  double *fun;
+  if( bcp == YES ){
+    double dx = fabs( max[0] - min[0]);
+    double dy = fabs( max[1] - min[1]);
+    double dz = fabs( max[2] - min[2]);
 
-  int size =  pow(poly+1,3);
+    if ( r[0] <= min[0] )
+      r[0] += dx;
+    if ( r[0] > max[0] )
+      r[0] -= dx;
+        
+    if ( r[1] <= min[1] )
+      r[1] += dy;
+    if ( r[1] > max[1] )
+      r[1] -= dy;
 
-  createArrayDou(size,&fun,"func");
-  npx = pts[0];
-  npy = pts[1];
-  npz = pts[2];
-
-  getCube(pts,x,y,z,min,hvec,&indi,&indj,&indk);
-  flag  = fabs(indi-id[0]);
-  flag += fabs(indj-id[1]);
-  flag += fabs(indk-id[2]);
-
-
-  if( flag != 0){
-    x1 = min[0] + indi*hvec[0];
-    y1 = min[1] + indj*hvec[1];
-    z1 = min[2] + indk*hvec[2];
-    loadField(poly,indi,indj,indk,npx,npy,npz,field,fun);
-
-    //coefficients(hvec[0],hvec[1],hvec[2],x1,y1,z1,fun,coef);
-    getCoeff(poly,hvec,x1,y1,z1,fun,coef);
-
-    id[0] = indi; id[1] = indj; id[2] = indk;
+    if ( r[2] <= min[2] )
+      r[2] += dz;
+    if ( r[2] > max[2] )
+      r[2] -= dz;
   }
 
-
-  free(fun);
   return 0;
+
 }
 
-  
-int logFile(int poly,int nato, int nCrit,int *type,int *bonding,double *coor,
-            double *coorCrit,int *pts,double *min,double *hvec,double *field,
-            double *matT,const char* name){
-
-  int i,j;
-  char logname[128];
-  double factor = 0.52917;
-  FILE *log;
-  int ncc,nrc,nbc,nna;
-  int ntyp[5];
-
-  double *coef;
-  double vecIn[3],vecOut[3];
-
-
-
-  sprintf(logname,"%sCrit.log",name);
-  openFile(&log,logname,"w+");
-   
-  ncc = nrc = nbc = nna = 0;
-
-  for(i=0;i<nCrit;i++){
-    if( type[i] == -1 ) ncc++;
-    if( type[i] == -2 ) nrc++;
-    if( type[i] == -3 ) nbc++;
-    if( type[i] == -4 ) nna++;
-  }
-  ntyp[0] = ncc;
-  ntyp[1] = nrc;
-  ntyp[2] = nbc;
-  ntyp[3] = nna;
-  ntyp[4] = nato;
-
-
-  int size = pow(poly+1,3);
+int logFile( int bcp, int rcp, int ccp, int ncp, dataCritP *bondCrit,
+             dataCritP *ringCrit, dataCritP *cageCrit, dataCritP *nnucCrit,
+             dataCube cube, dataRun param, double min0, int *bonding, const double *matU, char *name){
+  int i;
+  int at1,at2;
+  char nameOut[128];
+  char symb1[6],symb2[6];
   double x,y,z;
-  int id[3];
-  double val[10];
-  char symb[4];
+  double fun, lap, val[10];
+  double l1,l2,l3, matH[9];
+  double eval[3];
+  double r[3];
+  double kinG,kinK,virial,eneH;
+  double ngrad;
+  FILE *out;
+
+  sprintf(nameOut,"%sCritP.log",name);
+  openFile(&out,nameOut,"w+");
+
+  printLog1(bcp,rcp,ccp,ncp,cube.natm,out);
 
 
-  createArrayDou(size,&coef,"Coef");
-
-  printLog1(log,ntyp);
-
-
-  id[0] = 0; id[1] = 0; id[2] = 0;
-  for(i=0; i < nato; i++){
-    x = coor[3*i];
-    y = coor[3*i+1];
-    z = coor[3*i+2];
-
-    getData(poly,pts,id,x,y,z,min,hvec,field,coef);
-    NumericalCrit02(x,y,z,coef,val);
-
-    vecIn[0] = x*factor;
-    vecIn[1] = y*factor;
-    vecIn[2] = z*factor;
-    matVecProduct(vecIn,matT,vecOut);
-
-    getAtomicSymbol(zatm[i],4,symb);
-
-
-
-    fprintf(log,"%5d  %5s",i+1,symb);
-
-    fprintf(log," % 10.6lf % 10.6lf % 10.6lf % 14.8lf % 16.7lf\n",vecOut[0],vecOut[1],vecOut[2],val[0],val[4]+val[7]+val[9]);
-
+  /////////////// IMPRIMIMOS INFORMACION DE LOS NUCLEOS //////////
+  for(i=0; i < cube.natm; i++){
+    x = cube.coor[3*i];
+    y = cube.coor[3*i+1];
+    z = cube.coor[3*i+2];
+    numCritical02(x,y,z,cube,param,matU,min0,val);
+    fun = val[0];
+    lap = getLap(val);
+    getAtomicSymbol(cube.zatm[i],4,symb1);
+    fprintf(out,"%5d  %5s",i+1,symb1);
+    r[0] = x*B2A; r[1] = y*B2A; r[2] = z*B2A;
+    itrans00(r,matU);
+    fprintf(out," % 10.6lf % 10.6lf % 10.6lf % 14.8lf % 16.7lf\n",r[0],r[1],r[2],fun,lap);
   }
 
-
-  if( nna > 0 ) lineDiv(log);
-
-  for(i=0; i < nCrit; i++){
-
-    if( type[i] == -4 ){
-      x = coorCrit[3*i];
-      y = coorCrit[3*i+1];
-      z = coorCrit[3*i+2];
-
-      id[0] = 0; id[1] = 0; id[2] = 0;
-      getData(poly,pts,id,x,y,z,min,hvec,field,coef);
-      NumericalCrit02(x,y,z,coef,val);
-
-      vecIn[0] = x*factor;
-      vecIn[1] = y*factor;
-      vecIn[2] = z*factor;
-      matVecProduct(vecIn,matT,vecOut);
-
-      fprintf(log,"%5d  %5s",nato+i+1,"NNACP");
-      fprintf(log," % 10.6lf % 10.6lf % 10.6lf % 14.8lf % 16.7lf\n",vecOut[0],vecOut[1],vecOut[2],val[0],val[4]+val[7]+val[9]);
-    }
+  //// IMPRIMIMOS INFORMACION DE LOS ATTRACTORES NO NUCLEARES //////
+  if( ncp > 0 ) {
+    printBar82(out);
+    centraMess("Non nuclear Attractor Critical Points",out);
+    printBar82(out);
   }
 
-  lineDiv(log);
-  centraMess("Bond, Ring and Cage critical points",log);
-
-  if( nbc > 0 ) lineDiv(log);
-  for(i=0,j=0; i < nCrit; i++){
-
-    if( type[i] == -3 ){
-      x = coorCrit[3*i];
-      y = coorCrit[3*i+1];
-      z = coorCrit[3*i+2];
-
-      id[0] = 0; id[1] = 0; id[2] = 0;
-      getData(poly,pts,id,x,y,z,min,hvec,field,coef);
-      NumericalCrit02(x,y,z,coef,val);
-
-      vecIn[0] = x*factor;
-      vecIn[1] = y*factor;
-      vecIn[2] = z*factor;
-      matVecProduct(vecIn,matT,vecOut);
-
-      fprintf(log,"%5d  %5s",j+1,"BCP  ");
-      fprintf(log," % 10.6lf % 10.6lf % 10.6lf % 14.8lf % 16.7lf\n",vecOut[0],vecOut[1],vecOut[2],val[0],val[4]+val[7]+val[9]);
-      j++;
-    }
+  for(i=0;i<ncp;i++){
+    x = nnucCrit[i].x;
+    y = nnucCrit[i].y;
+    z = nnucCrit[i].z;
+    numCritical02(x,y,z,cube,param,matU,min0,val);
+    fun = val[0];
+    lap = getLap(val);
+    fprintf(out,"%5d  %5s",i+1,"NNACP");
+    r[0] = x*B2A; r[1] = y*B2A; r[2] = z*B2A;
+    itrans00(r,matU);
+    fprintf(out," % 10.6lf % 10.6lf % 10.6lf % 14.8lf % 16.7lf\n",r[0],r[1],r[2],fun,lap);
+  }
+  //// IMPRIMIMOS INFORMACION DE LOS DEMAS PUNTOS CRITICOS//////
+  printBar82(out);
+  centraMess("Bond, Ring and Cage critical points",out);
+  printBar82(out);
+  for(i=0;i<bcp;i++){
+    x = bondCrit[i].x;
+    y = bondCrit[i].y;
+    z = bondCrit[i].z;
+    numCritical02(x,y,z,cube,param,matU,min0,val);
+    fun = val[0];
+    lap = getLap(val);
+    fprintf(out,"%5d  %5s",i+1,"BCP");
+    r[0] = x*B2A; r[1] = y*B2A; r[2] = z*B2A;
+    itrans00(r,matU);
+    fprintf(out," % 10.6lf % 10.6lf % 10.6lf % 14.8lf % 16.7lf\n",r[0],r[1],r[2],fun,lap);
   }
 
-  if( nrc > 0 ) lineDiv(log);
-  for(i=0,j=0; i < nCrit; i++){
-
-    if( type[i] == -2 ){
-      x = coorCrit[3*i];
-      y = coorCrit[3*i+1];
-      z = coorCrit[3*i+2];
-
-      id[0] = 0; id[1] = 0; id[2] = 0;
-      getData(poly,pts,id,x,y,z,min,hvec,field,coef);
-      NumericalCrit02(x,y,z,coef,val);
-
-      vecIn[0] = x*factor;
-      vecIn[1] = y*factor;
-      vecIn[2] = z*factor;
-      matVecProduct(vecIn,matT,vecOut);
-
-      fprintf(log,"%5d  %5s",j+1,"RCP  ");
-      fprintf(log," % 10.6lf % 10.6lf % 10.6lf % 14.8lf % 16.7lf\n",vecOut[0],vecOut[1],vecOut[2],val[0],val[4]+val[7]+val[9]);
-      j++;
-    }
+  if( rcp > 0 ) 
+    printBar82(out);
+  for(i=0;i<rcp;i++){
+    x = ringCrit[i].x;
+    y = ringCrit[i].y;
+    z = ringCrit[i].z;
+    numCritical02(x,y,z,cube,param,matU,min0,val);
+    fun = val[0];
+    lap = getLap(val);
+    fprintf(out,"%5d  %5s",i+1,"RCP");
+    r[0] = x*B2A; r[1] = y*B2A; r[2] = z*B2A;
+    itrans00(r,matU);
+    fprintf(out," % 10.6lf % 10.6lf % 10.6lf % 14.8lf % 16.7lf\n",r[0],r[1],r[2],fun,lap);
+  }
+  if( ccp > 0 ) 
+    printBar82(out);
+  for(i=0;i<ccp;i++){
+    x = cageCrit[i].x;
+    y = cageCrit[i].y;
+    z = cageCrit[i].z;
+    numCritical02(x,y,z,cube,param,matU,min0,val);
+    fun = val[0];
+    lap = getLap(val);
+    fprintf(out,"%5d  %5s",i+1,"CCP");
+    r[0] = x*B2A; r[1] = y*B2A; r[2] = z*B2A;
+    itrans00(r,matU);
+    fprintf(out," % 10.6lf % 10.6lf % 10.6lf % 14.8lf % 16.7lf\n",r[0],r[1],r[2],fun,lap);
   }
 
-  if( ncc > 0 ) lineDiv(log);
-  for(i=0,j=0; i < nCrit; i++){
+  /////////////////////////////////////////INFORMACION DETALLADA 
+  if( ncp > 0 ){
+    printBar82(out);
+    centraMess("No-nuclear Attractor Critical Points",out);
+    for(i=0;i<ncp;i++){
+      printBar82(out);
+      x = nnucCrit[i].x;
+      y = nnucCrit[i].y;
+      z = nnucCrit[i].z;
+      numCritical02(x,y,z,cube,param,matU,min0,val);
 
-    if( type[i] == -1 ){
-      x = coorCrit[3*i];
-      y = coorCrit[3*i+1];
-      z = coorCrit[3*i+2];
+      fun  = val[0];
+	   ngrad = getGrd(val);
+	   lap   = getLap(val);
 
-      id[0] = 0; id[1] = 0; id[2] = 0;
-      getData(poly,pts,id,x,y,z,min,hvec,field,coef);
-      NumericalCrit02(x,y,z,coef,val);
-
-      vecIn[0] = x*factor;
-      vecIn[1] = y*factor;
-      vecIn[2] = z*factor;
-      matVecProduct(vecIn,matT,vecOut);
-
-      fprintf(log,"%5d  %5s",j+1,"CCP  ");
-      fprintf(log," % 10.6lf % 10.6lf % 10.6lf % 14.8lf % 16.7lf\n",vecOut[0],vecOut[1],vecOut[2],val[0],val[4]+val[7]+val[9]);
-      j++;
-    }
-  }
-  lineDiv(log);
-
-  double rho,lap,ngrad;
-  double kinG,kinK,virial,energyH;
-  double l1,l2,l3, matHH[3][3];
-  double eigenVec[3][3],eigenVal[3];
- 
-
-  //////////////////////////////////////////////////////////////////////////////////////
-  if( nna > 0 ){
-    centraMess("No-nuclear attractors",log);
-    
-    for(i=0,j=0; i < nCrit; i++){
-      if( type[i] == -4 ){
-
-        lineDiv(log);
-        x = coorCrit[3*i];
-        y = coorCrit[3*i+1];
-        z = coorCrit[3*i+2];
-
-        vecIn[0] = x*factor;
-        vecIn[1] = y*factor;
-        vecIn[2] = z*factor;
-        matVecProduct(vecIn,matT,vecOut);
-
-        id[0] = 0; id[1] = 0; id[2] = 0;
-        getData(poly,pts,id,x,y,z,min,hvec,field,coef);
-        NumericalCrit02(x,y,z,coef,val);
-
-	     rho   = val[0];
-	     ngrad = getNorm(val[1],val[2],val[3]);
-	     lap   = val[4] + val[7] + val[9];
-
-	     getEnergies(rho,lap,&kinG,&kinK,&virial);
-	     energyH = kinG + virial;
+	   getEnergies(fun,lap,&kinG,&kinK,&virial);
+	   eneH = kinG + virial;
 	
-        matHH[0][0] = val[4]; matHH[0][1] = val[5]; matHH[0][2] = val[6];
-        matHH[1][0] = val[5]; matHH[1][1] = val[7]; matHH[1][2] = val[8];
-        matHH[2][0] = val[6]; matHH[2][1] = val[8]; matHH[2][2] = val[9];
-        fprintf(log," Det H % 10.6E\n",determinant3(matHH));
+      matH[0] = val[4]; matH[1] = val[7]; matH[2] = val[8];
+      matH[3] = val[7]; matH[4] = val[5]; matH[5] = val[9];
+      matH[6] = val[8]; matH[7] = val[9]; matH[8] = val[6];
 
-        jacobi(matHH,eigenVal,eigenVec);
-	     sortJacobi(eigenVal);
-	     l1 = eigenVal[0]; l2 = eigenVal[1]; l3 = eigenVal[2];
+      //JacobiNxN(matH,eval,evec);
+      valoresPropios3x3(matH,eval);
 
+	   l1 = eval[0]; l2 = eval[1]; l3 = eval[2];
 
-        fprintf(log,"\n   Critical Point  %7d of type (3,-3)\n\n",j+1);
-        fprintf(log,"   Coordinates [A]    % 12.8E  % 12.8E  % 12.8E  \n\n",
-               vecOut[0],vecOut[1],vecOut[2]);
+      r[0] = x*B2A; r[1] = y*B2A; r[2] = z*B2A;
+      itrans00(r,matU);
 
-	     fprintf(log,"   Density            % 12.8E\n",rho);
-	     fprintf(log,"   NormGrad           % 12.8E\n",ngrad);
-	     fprintf(log,"   Laplacian          % 12.8E\n\n",lap);
+      fprintf(out,"\n   Critical Point  %7d of type (3,-3)\n\n",i+1);
+      fprintf(out,"   Coordinates [A]    % 12.8E  % 12.8E  % 12.8E  \n\n",
+                   r[0],r[1],r[2]);
 
-	     fprintf(log,"   Kinetic Energy G   % 12.8E\n",kinG);
-	     fprintf(log,"   Kinetic Energy K   % 12.8E\n",kinK);
-        fprintf(log,"   Virial field V     % 12.8E\n",virial);
-	     fprintf(log,"   Total energy H     % 12.8E\n\n",energyH);
+	   fprintf(out,"   Density            % 12.8E\n",fun);
+	   fprintf(out,"   NormGrad           % 12.8E\n",ngrad);
+	   fprintf(out,"   Laplacian          % 12.8E\n\n",lap);
 
-        fprintf(log,"                     | % 12.8E  % 12.8E  %12.8E |\n",matHH[0][0],matHH[0][1],matHH[0][2]);
-        fprintf(log,"   Hessian Matrix  = | % 12.8E  % 12.8E  %12.8E |\n",matHH[1][0],matHH[1][1],matHH[1][2]);
-        fprintf(log,"                     | % 12.8E  % 12.8E  %12.8E |\n\n",matHH[2][0],matHH[2][1],matHH[2][2]);
+	   fprintf(out,"   Kinetic Energy G   % 12.8E\n",kinG);
+	   fprintf(out,"   Kinetic Energy K   % 12.8E\n",kinK);
+      fprintf(out,"   Virial field V     % 12.8E\n",virial);
+	   fprintf(out,"   Total energy H     % 12.8E\n\n",eneH);
 
-
-	     fprintf(log,"   Eigenvalues        % 12.8E  % 12.8E  % 12.8E\n\n",l1,l2,l3);
-
-        jacobi(matHH,eigenVal,eigenVec);
-        matVecProduct(eigenVal,matT,vecOut);
-        sortJacobi(vecOut);
-        l1 = vecOut[0]; l2 = vecOut[1]; l3 = vecOut[2];
-	     fprintf(log,"   Eigenvalues        % 12.8E  % 12.8E  % 12.8E\n\n",l1,l2,l3);
+      fprintf(out,"                     | % 12.8E  % 12.8E  % 12.8E |\n"  ,matH[0],matH[1],matH[2]);
+      fprintf(out,"   Hessian Matrix  = | % 12.8E  % 12.8E  % 12.8E |\n"  ,matH[3],matH[4],matH[5]);
+      fprintf(out,"                     | % 12.8E  % 12.8E  % 12.8E |\n\n",matH[6],matH[7],matH[8]);
 
 
-        j++;
-      }
+	   fprintf(out,"   Eigenvalues        % 12.8E  % 12.8E  % 12.8E\n\n",l1,l2,l3);
     }
   }
-  //////////////////////////////////////////////////////////////////////////////////////
-  //////////////////////////////////////////////////////////////////////////////////////
-  if( nbc > 0 ){
-    lineDiv(log);
-    centraMess("Bond Critical Points",log);
-    
-    for(i=0,j=0; i < nCrit; i++){
-      if( type[i] == -3 ){
-        lineDiv(log);
-        x = coorCrit[3*i];
-        y = coorCrit[3*i+1];
-        z = coorCrit[3*i+2];
 
-        vecIn[0] = x*factor;
-        vecIn[1] = y*factor;
-        vecIn[2] = z*factor;
-        matVecProduct(vecIn,matT,vecOut);
 
-        id[0] = 0; id[1] = 0; id[2] = 0;
-        getData(poly,pts,id,x,y,z,min,hvec,field,coef);
-        NumericalCrit02(x,y,z,coef,val);
+  if( bcp > 0 ){
+    printBar82(out);
+    centraMess("Bond Critical Points",out);
+    for(i=0;i<bcp;i++){
+      printBar82(out);
+      x = bondCrit[i].x;
+      y = bondCrit[i].y;
+      z = bondCrit[i].z;
+      numCritical02(x,y,z,cube,param,matU,min0,val);
 
-	     rho   = val[0];
-	     ngrad = getNorm(val[1],val[2],val[3]);
-	     lap   = val[4] + val[7] + val[9];
+      fun  = val[0];
+	   ngrad = getGrd(val);
+	   lap   = getLap(val);
 
-	     getEnergies(rho,lap,&kinG,&kinK,&virial);
-	     energyH = kinG + virial;
+	   getEnergies(fun,lap,&kinG,&kinK,&virial);
+	   eneH = kinG + virial;
 	
-        matHH[0][0] = val[4]; matHH[0][1] = val[5]; matHH[0][2] = val[6];
-        matHH[1][0] = val[5]; matHH[1][1] = val[7]; matHH[1][2] = val[8];
-        matHH[2][0] = val[6]; matHH[2][1] = val[8]; matHH[2][2] = val[9];
+      matH[0] = val[4]; matH[1] = val[7]; matH[2] = val[8];
+      matH[3] = val[7]; matH[4] = val[5]; matH[5] = val[9];
+      matH[6] = val[8]; matH[7] = val[9]; matH[8] = val[6];
 
-        fprintf(log," Det H % 10.6E\n",determinant3(matHH));
+      //JacobiNxN(matH,eval,evec);
+      valoresPropios3x3(matH,eval);
+	   l1 = eval[0]; l2 = eval[1]; l3 = eval[2];
+      
+      at1 = bonding[2*i];
+      at2 = bonding[2*i+1];
 
-        jacobi(matHH,eigenVal,eigenVec);
-	     sortJacobi(eigenVal);
-	     l1 = eigenVal[0]; l2 = eigenVal[1]; l3 = eigenVal[2];
+      if( at1 < cube.natm )
+        getAtomicSymbol(cube.zatm[at1],4,symb1);
+      else
+        strcpy(symb1,"NNACP");
+      if( at2 < cube.natm )
+        getAtomicSymbol(cube.zatm[at2],4,symb2);
+      else
+        strcpy(symb2,"NNACP");
+
+      at1++;
+      at2++;
+
+      r[0] = x*B2A; r[1] = y*B2A; r[2] = z*B2A;
+      itrans00(r,matU);
+
+      fprintf(out,"\n   Critical Point  %7d of type (3,-1)\n\n",i+1);
+      fprintf(out,"   Between the nucleous : %2d %s and %2d %s\n",at1,symb1,at2,symb2);
+      fprintf(out,"   Coordinates [A]    % 12.8E  % 12.8E  % 12.8E  \n\n",
+                   r[0],r[1],r[2]);
+
+	   fprintf(out,"   Density            % 12.8E\n",fun);
+	   fprintf(out,"   NormGrad           % 12.8E\n",ngrad);
+	   fprintf(out,"   Laplacian          % 12.8E\n\n",lap);
+
+	   fprintf(out,"   Kinetic Energy G   % 12.8E\n",kinG);
+	   fprintf(out,"   Kinetic Energy K   % 12.8E\n",kinK);
+      fprintf(out,"   Virial field V     % 12.8E\n",virial);
+	   fprintf(out,"   Total energy H     % 12.8E\n\n",eneH);
+
+      fprintf(out,"                     | % 12.8E  % 12.8E  % 12.8E |\n"  ,matH[0],matH[1],matH[2]);
+      fprintf(out,"   Hessian Matrix  = | % 12.8E  % 12.8E  % 12.8E |\n"  ,matH[3],matH[4],matH[5]);
+      fprintf(out,"                     | % 12.8E  % 12.8E  % 12.8E |\n\n",matH[6],matH[7],matH[8]);
 
 
-        fprintf(log,"\n   Critical Point  %7d of type (3,-1)\n\n",j+1);
-        fprintf(log,"   Between the nucleous : %2d and %2d\n",bonding[2*j],bonding[2*j+1]);
-        fprintf(log,"   Coordinates [A]    % 12.8E  % 12.8E  % 12.8E \n\n",
-                vecOut[0],vecOut[1],vecOut[2]);
-
-	     fprintf(log,"   Density            % 12.8E\n",rho);
-	     fprintf(log,"   NormGrad           % 12.8E\n",ngrad);
-	     fprintf(log,"   Laplacian          % 12.8E\n\n",lap);
-
-	     fprintf(log,"   Kinetic Energy G   % 12.8E\n",kinG);
-	     fprintf(log,"   Kinetic Energy K   % 12.8E\n",kinK);
-        fprintf(log,"   Virial field V     % 12.8E\n",virial);
-        fprintf(log,"   Total energy H     % 12.8E\n\n",energyH);
-
-        fprintf(log,"                     | % 12.8E  % 12.8E  %12.8E |\n",matHH[0][0],matHH[0][1],matHH[0][2]);
-        fprintf(log,"   Hessian Matrix  = | % 12.8E  % 12.8E  %12.8E |\n",matHH[1][0],matHH[1][1],matHH[1][2]);
-        fprintf(log,"                     | % 12.8E  % 12.8E  %12.8E |\n\n",matHH[2][0],matHH[2][1],matHH[2][2]);
-
-	     fprintf(log,"   Eigenvalues        % 12.8E  % 12.8E  % 12.8E\n\n",l1,l2,l3);
-
-	     fprintf(log,"   Bond ellipticity   %12.8lf\n",(l1/l2)-1.);
-	     fprintf(log,"   Eta index          % 12.8E\n\n",fabs(l1)/l3);
-
-        jacobi(matHH,eigenVal,eigenVec);
-        matVecProduct(eigenVal,matT,vecOut);
-        sortJacobi(vecOut);
-        l1 = vecOut[0]; l2 = vecOut[1]; l3 = vecOut[2];
-	     fprintf(log,"   Eigenvalues        % 12.8E  % 12.8E  % 12.8E\n\n",l1,l2,l3);
-
-	     fprintf(log,"   Bond ellipticity   %12.8lf\n",(l1/l2)-1.);
-	     fprintf(log,"   Eta index          % 12.8E\n\n",fabs(l1)/l3);
-
-        j++;
-      }
+	   fprintf(out,"   Eigenvalues        % 12.8E  % 12.8E  % 12.8E\n\n",l1,l2,l3);
+	   fprintf(out,"   Bond ellipticity   %12.8lf\n",(l1/l2)-1.);
+	   fprintf(out,"   Eta index          % 12.8E\n\n",fabs(l1)/l3);
     }
   }
-  //////////////////////////////////////////////////////////////////////////////////////
-  //////////////////////////////////////////////////////////////////////////////////////
-  if( nrc > 0 ){
-    lineDiv(log);
-    centraMess("Ring Critical Points",log);
-    
-    for(i=0,j=0; i < nCrit; i++){
-      if( type[i] == -2 ){
 
-        lineDiv(log);
-        x = coorCrit[3*i];
-        y = coorCrit[3*i+1];
-        z = coorCrit[3*i+2];
 
-        vecIn[0] = x*factor;
-        vecIn[1] = y*factor;
-        vecIn[2] = z*factor;
-        matVecProduct(vecIn,matT,vecOut);
+  if( rcp > 0 ){
+    printBar82(out);
+    centraMess("Ring Critical Points",out);
+    for(i=0;i<rcp;i++){
+      printBar82(out);
+      x = ringCrit[i].x;
+      y = ringCrit[i].y;
+      z = ringCrit[i].z;
+      numCritical02(x,y,z,cube,param,matU,min0,val);
 
-        id[0] = 0; id[1] = 0; id[2] = 0;
-        getData(poly,pts,id,x,y,z,min,hvec,field,coef);
-        NumericalCrit02(x,y,z,coef,val);
+      fun  = val[0];
+	   ngrad = getGrd(val);
+	   lap   = getLap(val);
 
-	     rho   = val[0];
-	     ngrad = getNorm(val[1],val[2],val[3]);
-	     lap   = val[4] + val[7] + val[9];
-
-	     getEnergies(rho,lap,&kinG,&kinK,&virial);
-	     energyH = kinG + virial;
+	   getEnergies(fun,lap,&kinG,&kinK,&virial);
+	   eneH = kinG + virial;
 	
-        matHH[0][0] = val[4]; matHH[0][1] = val[5]; matHH[0][2] = val[6];
-        matHH[1][0] = val[5]; matHH[1][1] = val[7]; matHH[1][2] = val[8];
-        matHH[2][0] = val[6]; matHH[2][1] = val[8]; matHH[2][2] = val[9];
+      matH[0] = val[4]; matH[1] = val[7]; matH[2] = val[8];
+      matH[3] = val[7]; matH[4] = val[5]; matH[5] = val[9];
+      matH[6] = val[8]; matH[7] = val[9]; matH[8] = val[6];
 
-        fprintf(log," Det H % 10.6E\n",determinant3(matHH));
-        jacobi(matHH,eigenVal,eigenVec);
-	     sortJacobi(eigenVal);
-        l1 = eigenVal[0]; l2 = eigenVal[1]; l3 = eigenVal[2];
+      //JacobiNxN(matH,eval,evec);
+      valoresPropios3x3(matH,eval);
+	   l1 = eval[0]; l2 = eval[1]; l3 = eval[2];
+
+      r[0] = x*B2A; r[1] = y*B2A; r[2] = z*B2A;
+      itrans00(r,matU);
+
+      fprintf(out,"\n   Critical Point  %7d of type (3, 1)\n\n",i+1);
+      fprintf(out,"   Coordinates [A]    % 12.8E  % 12.8E  % 12.8E  \n\n",
+                   r[0],r[1],r[2]);
+
+	   fprintf(out,"   Density            % 12.8E\n",fun);
+	   fprintf(out,"   NormGrad           % 12.8E\n",ngrad);
+	   fprintf(out,"   Laplacian          % 12.8E\n\n",lap);
+
+	   fprintf(out,"   Kinetic Energy G   % 12.8E\n",kinG);
+	   fprintf(out,"   Kinetic Energy K   % 12.8E\n",kinK);
+      fprintf(out,"   Virial field V     % 12.8E\n",virial);
+	   fprintf(out,"   Total energy H     % 12.8E\n\n",eneH);
+
+      fprintf(out,"                     | % 12.8E  % 12.8E  % 12.8E |\n"  ,matH[0],matH[1],matH[2]);
+      fprintf(out,"   Hessian Matrix  = | % 12.8E  % 12.8E  % 12.8E |\n"  ,matH[3],matH[4],matH[5]);
+      fprintf(out,"                     | % 12.8E  % 12.8E  % 12.8E |\n\n",matH[6],matH[7],matH[8]);
 
 
-        fprintf(log,"\n   Critical Point  %7d of type (3,1)\n\n",j+1);
-        fprintf(log,"   Coordinates [A]    % 12.8E  % 12.8E  % 12.8E  \n\n",
-                vecOut[0],vecOut[1],vecOut[2]);
-
-	     fprintf(log,"   Density            % 12.8E\n",rho);
-	     fprintf(log,"   NormGrad           % 12.8E\n",ngrad);
-	     fprintf(log,"   Laplacian          % 12.8E\n\n",lap);
-
-	     fprintf(log,"   Kinetic Energy G   % 12.8E\n",kinG);
-	     fprintf(log,"   Kinetic Energy K   % 12.8E\n",kinK);
-	     fprintf(log,"   Virial field V     % 12.8E\n",virial);
-	     fprintf(log,"   Total energy H     % 12.8E\n\n",energyH);
-
-        fprintf(log,"                     | % 12.8E  % 12.8E  %12.8E |\n",matHH[0][0],matHH[0][1],matHH[0][2]);
-        fprintf(log,"   Hessian Matrix  = | % 12.8E  % 12.8E  %12.8E |\n",matHH[1][0],matHH[1][1],matHH[1][2]);
-        fprintf(log,"                     | % 12.8E  % 12.8E  %12.8E |\n\n",matHH[2][0],matHH[2][1],matHH[2][2]);
-
-	     fprintf(log,"   Eigenvalues        % 12.8E  % 12.8E  % 12.8E\n\n",l1,l2,l3);
-
-
-        jacobi(matHH,eigenVal,eigenVec);
-        matVecProduct(eigenVal,matT,vecOut);
-        sortJacobi(vecOut);
-        l1 = vecOut[0]; l2 = vecOut[1]; l3 = vecOut[2];
-	     fprintf(log,"   Eigenvalues        % 12.8E  % 12.8E  % 12.8E\n\n",l1,l2,l3);
-
-        j++;
-      }
+	   fprintf(out,"   Eigenvalues        % 12.8E  % 12.8E  % 12.8E\n\n",l1,l2,l3);
     }
   }
-  //////////////////////////////////////////////////////////////////////////////////////
-  //////////////////////////////////////////////////////////////////////////////////////
-  if( ncc > 0 ){
-    lineDiv(log);
-    centraMess("Cage Critical Points",log);
-    
-    for(i=0,j=0; i < nCrit; i++){
-      if( type[i] == -1 ){
 
-        lineDiv(log);
-        x = coorCrit[3*i];
-        y = coorCrit[3*i+1];
-        z = coorCrit[3*i+2];
+  if( ccp > 0 ){
+    printBar82(out);
+    centraMess("Cage Critical Points",out);
+    for(i=0;i<ccp;i++){
+      printBar82(out);
+      x = cageCrit[i].x;
+      y = cageCrit[i].y;
+      z = cageCrit[i].z;
+      numCritical02(x,y,z,cube,param,matU,min0,val);
 
-        vecIn[0] = x*factor;
-        vecIn[1] = y*factor;
-        vecIn[2] = z*factor;
-        matVecProduct(vecIn,matT,vecOut);
+      fun  = val[0];
+	   ngrad = getGrd(val);
+	   lap   = getLap(val);
 
-        id[0] = 0; id[1] = 0; id[2] = 0;
-        getData(poly,pts,id,x,y,z,min,hvec,field,coef);
-        NumericalCrit02(x,y,z,coef,val);
-
-	     rho   = val[0];
-	     ngrad = getNorm(val[1],val[2],val[3]);
-	     lap   = val[4] + val[7] + val[9];
-
-	     getEnergies(rho,lap,&kinG,&kinK,&virial);
-	     energyH = kinG + virial;
+	   getEnergies(fun,lap,&kinG,&kinK,&virial);
+	   eneH = kinG + virial;
 	
-        matHH[0][0] = val[4]; matHH[0][1] = val[5]; matHH[0][2] = val[6];
-        matHH[1][0] = val[5]; matHH[1][1] = val[7]; matHH[1][2] = val[8];
-        matHH[2][0] = val[6]; matHH[2][1] = val[8]; matHH[2][2] = val[9];
+      matH[0] = val[4]; matH[1] = val[7]; matH[2] = val[8];
+      matH[3] = val[7]; matH[4] = val[5]; matH[5] = val[9];
+      matH[6] = val[8]; matH[7] = val[9]; matH[8] = val[6];
 
-        fprintf(log," Det H % 10.6E\n",determinant3(matHH));
-        jacobi(matHH,eigenVal,eigenVec);
-	     sortJacobi(eigenVal);
-        l1 = eigenVal[0]; l2 = eigenVal[1]; l3 = eigenVal[2];
+      //JacobiNxN(matH,eval,evec);
+      valoresPropios3x3(matH,eval);
+	   l1 = eval[0]; l2 = eval[1]; l3 = eval[2];
+
+      r[0] = x*B2A; r[1] = y*B2A; r[2] = z*B2A;
+      itrans00(r,matU);
+
+      fprintf(out,"\n   Critical Point  %7d of type (3, 3)\n\n",i+1);
+      fprintf(out,"   Coordinates [A]    % 12.8E  % 12.8E  % 12.8E  \n\n",
+                   r[0],r[1],r[2]);
+
+	   fprintf(out,"   Density            % 12.8E\n",fun);
+	   fprintf(out,"   NormGrad           % 12.8E\n",ngrad);
+	   fprintf(out,"   Laplacian          % 12.8E\n\n",lap);
+
+	   fprintf(out,"   Kinetic Energy G   % 12.8E\n",kinG);
+	   fprintf(out,"   Kinetic Energy K   % 12.8E\n",kinK);
+      fprintf(out,"   Virial field V     % 12.8E\n",virial);
+	   fprintf(out,"   Total energy H     % 12.8E\n\n",eneH);
+
+      fprintf(out,"                     | % 12.8E  % 12.8E  % 12.8E |\n"  ,matH[0],matH[1],matH[2]);
+      fprintf(out,"   Hessian Matrix  = | % 12.8E  % 12.8E  % 12.8E |\n"  ,matH[3],matH[4],matH[5]);
+      fprintf(out,"                     | % 12.8E  % 12.8E  % 12.8E |\n\n",matH[6],matH[7],matH[8]);
 
 
-        fprintf(log,"\n   Critical Point  %7d of type (3,3)\n\n",j+1);
-        fprintf(log,"   Coordinates [A]    % 12.8E  % 12.8E  % 12.8E  \n\n",
-                vecOut[0],vecOut[1],vecOut[2]);
-
-	     fprintf(log,"   Density            % 12.8E\n",rho);
-	     fprintf(log,"   NormGrad           % 12.8E\n",ngrad);
-	     fprintf(log,"   Laplacian          % 12.8E\n\n",lap);
-
-	     fprintf(log,"   Kinetic Energy G   % 12.8E\n",kinG);
-	     fprintf(log,"   Kinetic Energy K   % 12.8E\n",kinK);
-	     fprintf(log,"   Virial field V     % 12.8E\n",virial);
-	     fprintf(log,"   Total energy H     % 12.8E\n\n",energyH);
-
-        fprintf(log,"                     | % 12.8E  % 12.8E  %12.8E |\n",matHH[0][0],matHH[0][1],matHH[0][2]);
-        fprintf(log,"   Hessian Matrix  = | % 12.8E  % 12.8E  %12.8E |\n",matHH[1][0],matHH[1][1],matHH[1][2]);
-        fprintf(log,"                     | % 12.8E  % 12.8E  %12.8E |\n\n",matHH[2][0],matHH[2][1],matHH[2][2]);
-
-	     fprintf(log,"   Eigenvalues        % 12.8E  % 12.8E  % 12.8E\n\n",l1,l2,l3);
-
-        j++;
-      }
+	   fprintf(out,"   Eigenvalues        % 12.8E  % 12.8E  % 12.8E\n\n",l1,l2,l3);
     }
   }
-  //////////////////////////////////////////////////////////////////////////////////////
-  
-  lineDiv(log);
-  centraMess("End of File",log);
-  lineDiv(log);
-  
-  fclose(log);
+
+  printBar82(out);
+  centraMess("End of File",out);
+  printBar82(out);
+
+  fclose(out);
+
+  printBar(stdout);
+  printf("  File %s was generated\n",nameOut);
 
   return 0;
 }
 
-void sortJacobi(double vec[3]){
-
-  int i,j;
-  double tmp;
-
-  for(i=0; i < 3; i++){
-    for(j=i+1; j < 3; j++){
-      if(vec[i] > vec[j] ){
-        tmp = vec[i];
-	vec[i] = vec[j];
-	vec[j] = tmp;
-      }
-    }
-  }
-
-
-
-}
-
+  
 void getEnergies(double rho, double lap, double *kinG,double *kinK,double *vir){
 
   double kG,kK;
@@ -976,69 +746,81 @@ void getEnergies(double rho, double lap, double *kinG,double *kinK,double *vir){
 
 }
 
+int myIsNanInf(double val){
 
-void printLog1(FILE *log,int ntyp[5]){
+  int ret=0;
+
+  ret += isnan(val);
+  ret += isinf(val);
+
+  return ret; 
+}
+
+int myIsNanInf_V3(double vec[3]){
+
+  int ret = 0; 
   
+  ret += myIsNanInf(vec[0]);
+  ret += myIsNanInf(vec[1]);
+  ret += myIsNanInf(vec[2]);
 
- 
+  return ret; 
+
+}
+
+void printLog1(int nbc, int nrc, int ncc, int nna, int nnu, FILE *out){
+  
   char tchar[128];
 
   time_t t= time(NULL);
   struct tm *tlocal = localtime(&t);
 
-  int ncc,nrc,nbc,nna,nnu;
-
-  ncc = ntyp[0];
-  nrc = ntyp[1];
-  nbc = ntyp[2];
-  nna = ntyp[3];
-  nnu = ntyp[4];
-
   strftime(tchar,128,"%H:%M:%S  %d/%m/%y",tlocal);
 
 
-  lineDiv(log);
+  printBar82(out);
 
-  centraMess("File log for cube3d",log);
-  lineDiv(log);
-  fprintf(log,"%82s\n",tchar);
-  lineDiv(log);
+  centraMess("File log for cube3d",out);
+  printBar82(out);
+  fprintf(out,"%82s\n",tchar);
+  printBar82(out);
   
-  fprintf(log," This file contains information about critical points and properties, these\n");
-  fprintf(log," information are determineted by code cube3d v.0\n");
-  fprintf(log," The units in this  file for  distance are  Angstrom and  the units for fields are\n");
-  fprintf(log," atomic units.\n\n");
-  fprintf(log,"  NNACP               Non-nuclear attractor critical point\n");
-  fprintf(log,"  BCP                 Bond critical point\n");
-  fprintf(log,"  RCP                 Ring critical point\n");
-  fprintf(log,"  CCP                 Cage critical point\n");
-  fprintf(log,"  Kinetic Energy G    Kinetic Energy Density in the form Lagrangian\n");
-  fprintf(log,"  Kinetic Energy K    Kinetic Energy Density in the form Hamiltonian\n");
-  fprintf(log,"  Virial Field        Or Potential Energy Density  V = -K - G\n");
-  //fprintf(log,"  Lagrangian Density  -(1/4) Laplacian or K - G\n");
- // fprintf(log,"  KenergyG/Density    Kinetic Energy Density per electron\n");
+  fprintf(out," This file contains information about critical points and properties, these\n");
+  fprintf(out," information are determineted by code cube3d v.2\n");
+  fprintf(out," The units in this  file for  distance are  Angstrom and  the units for fields are\n");
+  fprintf(out," atomic units.\n\n");
+  fprintf(out,"  NNACP               Non-nuclear attractor critical point\n");
+  fprintf(out,"  BCP                 Bond critical point\n");
+  fprintf(out,"  RCP                 Ring critical point\n");
+  fprintf(out,"  CCP                 Cage critical point\n");
+  fprintf(out,"  Kinetic Energy G    Kinetic Energy Density in the form Lagrangian\n");
+  fprintf(out,"                      (Abramov's approximation)\n");
+  fprintf(out,"  Kinetic Energy K    Kinetic Energy Density in the form Hamiltonian\n");
+  fprintf(out,"  Virial Field        Or Potential Energy Density  V = -K - G\n");
+  //fprintf(out,"  Lagrangian Density  -(1/4) Laplacian or K - G\n");
+ // fprintf(out,"  KenergyG/Density    Kinetic Energy Density per electron\n");
   
-  fprintf(log,"  Eigenvalues         Eigenvalues for Hessian matrix: lambda_1<lambda_2<lambda_3\n");
-  fprintf(log,"  Bond Ellipiticy     lambda_1/lambda_2 - 1\n");
-  fprintf(log,"  Eta index           |lambda_1|/lambda_3\n\n");
-  lineDiv(log);
-  centraMess("Information about the system",log);
-  lineDiv(log);
-  fprintf(log,"    Nuclei                : %15d\n",nnu);
-  fprintf(log,"    NNACP   (3,-3)        : %15d\n",nna);
-  fprintf(log,"    BCP     (3,-1)        : %15d\n",nbc);
-  fprintf(log,"    RCP     (3,+1)        : %15d\n",nrc);
-  fprintf(log,"    CCP     (3,+3)        : %15d\n",ncc);
-  fprintf(log,"    Total Critical Points : %15d\n",nna+nbc+nrc+ncc);
-  lineDiv(log);
-  fprintf(log,"    Poincare-Hopf rule\n");
-  fprintf(log,"    nuclei + NNACP + RCP - BCP - CCP = %5d\n",nnu+nna+nrc-nbc-ncc);
-  lineDiv(log);
+  fprintf(out,"  Eigenvalues         Eigenvalues for Hessian matrix: lambda_1<lambda_2<lambda_3\n");
+  fprintf(out,"  Bond Ellipiticy     lambda_1/lambda_2 - 1\n");
+  fprintf(out,"  Eta index           |lambda_1|/lambda_3\n\n");
+  printBar82(out);
+  centraMess("Information about the system",out);
+  printBar82(out);
+  fprintf(out,"    Nuclei  (3,-3)         : %15d\n",nnu);
+  fprintf(out,"    NNACP   (3,-3)         : %15d\n",nna);
+  fprintf(out,"    BCP     (3,-1)         : %15d\n",nbc);
+  fprintf(out,"    RCP     (3,+1)         : %15d\n",nrc);
+  fprintf(out,"    CCP     (3,+3)         : %15d\n",ncc);
+  fprintf(out,"    Total Critical Points  : %15d\n",nna+nbc+nrc+ncc);
+  printBar82(out);
+  fprintf(out,"    Poincare-Hopf rule\n");
+  fprintf(out,"    nuclei + NNACP + RCP - BCP - CCP = %5d\n",nnu+nna+nrc-nbc-ncc);
+  printBar82(out);
 
-  centraMess("Nuclear and Non-nuclear Attractors",log);
-  lineDiv(log);
-  fprintf(log,"  Atractor                Coordinates [A]            Density         Laplacian\n");
-  lineDiv(log);
+  centraMess("Nuclear and Non-nuclear Attractors",out);
+  printBar82(out);
+  fprintf(out,"  Atractor                Coordinates [A]            Density         Laplacian\n");
+  printBar82(out);
 
 
 
@@ -1060,18 +842,327 @@ void centraMess(char *mess,FILE *out){
       fprintf(out," ");
   fprintf(out,"%s\n",mess);
 
-
 }
 
+int axesCrit( int bcp, int rcp, int ccp, int ncp, dataCritP *bondCrit,
+              dataCritP *ringCrit, dataCritP *cageCrit, dataCritP *nnucCrit,
+             dataCube cube, dataRun param, double min0,  const double *matU, char *name){
 
-void lineDiv(FILE *out){
-  int i;
-  
-  for(i=0;i<82;i++)
-    fprintf(out,"=");
-  
-  fprintf(out,"\n");
 
+  int i,j;
+  char nameOut[128];
+
+  FILE *out;
+  sprintf(nameOut,"%sAxes.xyz",name);
+
+  openFile(&out,nameOut,"w+");
+
+  double x0,y0,z0;
+  double v1,v2,v3,norm;
+  double val[10];
+  double matH[9];
+  double eval[3];
+  double evec[9];
+  double r[3];
+
+  for(i=0; i < bcp; i++){
+    x0 = bondCrit[i].x;
+    y0 = bondCrit[i].y;
+    z0 = bondCrit[i].z;
+    numCritical02(x0,y0,z0,cube,param,matU,min0,val);
+  
+    matH[0] = val[4]; matH[1] = val[7]; matH[2] = val[8];
+    matH[3] = val[7]; matH[4] = val[5]; matH[5] = val[9];
+    matH[6] = val[8]; matH[7] = val[9]; matH[8] = val[6];
+  
+    JacobiNxN(matH,eval,evec);
+
+    r[0] = x0;
+    r[1] = y0;
+    r[2] = z0;
+    itrans00(r,matU);
+
+    fprintf(out," BCP  % 10.6lf % 10.6lf % 10.6lf\n",r[0]*B2A,r[1]*B2A,r[2]*B2A);
+
+    v1 = evec[6]; v2 = evec[7]; v3 = evec[8];
+    norm = getNorm(v1,v2,v3);
+    v1 = v1*0.05/norm; v2 = v2*0.05/norm; v3 = v3*0.05/norm;
+
+    for(j=1;j<=5;j++){
+      r[0] = x0 + j*v1;
+      r[1] = y0 + j*v2; 
+      r[2] = z0 + j*v3;
+      itrans00(r,matU);
+      fprintf(out," LA3B  % 10.6lf % 10.6lf % 10.6lf\n",r[0]*B2A,r[1]*B2A,r[2]*B2A);
+    }
+    for(j=1;j<=5;j++){
+      r[0] = x0 - j*v1;
+      r[1] = y0 - j*v2; 
+      r[2] = z0 - j*v3;
+      itrans00(r,matU);
+      fprintf(out," LA3B  % 10.6lf % 10.6lf % 10.6lf\n",r[0]*B2A,r[1]*B2A,r[2]*B2A);
+    }
+
+    v1 = evec[3]; v2 = evec[4]; v3 = evec[5];
+    norm = getNorm(v1,v2,v3);
+    v1 = v1*0.05/norm; v2 = v2*0.05/norm; v3 = v3*0.05/norm;
+    for(j=1;j<=5;j++){
+      r[0] = x0 + j*v1;
+      r[1] = y0 + j*v2; 
+      r[2] = z0 + j*v3;
+      itrans00(r,matU);
+      fprintf(out," LA2B  % 10.6lf % 10.6lf % 10.6lf\n",r[0]*B2A,r[1]*B2A,r[2]*B2A);
+    }
+    for(j=1;j<=5;j++){
+      r[0] = x0 - j*v1;
+      r[1] = y0 - j*v2; 
+      r[2] = z0 - j*v3;
+      itrans00(r,matU);
+      fprintf(out," LA2B  % 10.6lf % 10.6lf % 10.6lf\n",r[0]*B2A,r[1]*B2A,r[2]*B2A);
+    }
+    v1 = evec[0]; v2 = evec[1]; v3 = evec[2];
+    norm = getNorm(v1,v2,v3);
+    v1 = v1*0.05/norm; v2 = v2*0.05/norm; v3 = v3*0.05/norm;
+    for(j=1;j<=5;j++){
+      r[0] = x0 + j*v1;
+      r[1] = y0 + j*v2; 
+      r[2] = z0 + j*v3;
+      itrans00(r,matU);
+      fprintf(out," LA1B  % 10.6lf % 10.6lf % 10.6lf\n",r[0]*B2A,r[1]*B2A,r[2]*B2A);
+    }
+    for(j=1;j<=5;j++){
+      r[0] = x0 - j*v1;
+      r[1] = y0 - j*v2; 
+      r[2] = z0 - j*v3;
+      itrans00(r,matU);
+      fprintf(out," LA1B  % 10.6lf % 10.6lf % 10.6lf\n",r[0]*B2A,r[1]*B2A,r[2]*B2A);
+    }
+  
+  } // fin BCP
+
+  for(i=0; i < rcp; i++){
+    x0 = ringCrit[i].x;
+    y0 = ringCrit[i].y;
+    z0 = ringCrit[i].z;
+    numCritical02(x0,y0,z0,cube,param,matU,min0,val);
+  
+    matH[0] = val[4]; matH[1] = val[7]; matH[2] = val[8];
+    matH[3] = val[7]; matH[4] = val[5]; matH[5] = val[9];
+    matH[6] = val[8]; matH[7] = val[9]; matH[8] = val[6];
+  
+    JacobiNxN(matH,eval,evec);
+
+    r[0] = x0;
+    r[1] = y0;
+    r[2] = z0;
+    itrans00(r,matU);
+
+    fprintf(out," RCP  % 10.6lf % 10.6lf % 10.6lf\n",r[0]*B2A,r[1]*B2A,r[2]*B2A);
+
+    v1 = evec[6]; v2 = evec[7]; v3 = evec[8];
+    norm = getNorm(v1,v2,v3);
+    v1 = v1*0.05/norm; v2 = v2*0.05/norm; v3 = v3*0.05/norm;
+
+    for(j=1;j<=5;j++){
+      r[0] = x0 + j*v1;
+      r[1] = y0 + j*v2; 
+      r[2] = z0 + j*v3;
+      itrans00(r,matU);
+      fprintf(out," LA3R  % 10.6lf % 10.6lf % 10.6lf\n",r[0]*B2A,r[1]*B2A,r[2]*B2A);
+    }
+    for(j=1;j<=5;j++){
+      r[0] = x0 - j*v1;
+      r[1] = y0 - j*v2; 
+      r[2] = z0 - j*v3;
+      itrans00(r,matU);
+      fprintf(out," LA3R  % 10.6lf % 10.6lf % 10.6lf\n",r[0]*B2A,r[1]*B2A,r[2]*B2A);
+    }
+
+    v1 = evec[3]; v2 = evec[4]; v3 = evec[5];
+    norm = getNorm(v1,v2,v3);
+    v1 = v1*0.05/norm; v2 = v2*0.05/norm; v3 = v3*0.05/norm;
+    for(j=1;j<=5;j++){
+      r[0] = x0 + j*v1;
+      r[1] = y0 + j*v2; 
+      r[2] = z0 + j*v3;
+      itrans00(r,matU);
+      fprintf(out," LA2R  % 10.6lf % 10.6lf % 10.6lf\n",r[0]*B2A,r[1]*B2A,r[2]*B2A);
+    }
+    for(j=1;j<=5;j++){
+      r[0] = x0 - j*v1;
+      r[1] = y0 - j*v2; 
+      r[2] = z0 - j*v3;
+      itrans00(r,matU);
+      fprintf(out," LA2R  % 10.6lf % 10.6lf % 10.6lf\n",r[0]*B2A,r[1]*B2A,r[2]*B2A);
+    }
+    v1 = evec[0]; v2 = evec[1]; v3 = evec[2];
+    norm = getNorm(v1,v2,v3);
+    v1 = v1*0.05/norm; v2 = v2*0.05/norm; v3 = v3*0.05/norm;
+    for(j=1;j<=5;j++){
+      r[0] = x0 + j*v1;
+      r[1] = y0 + j*v2; 
+      r[2] = z0 + j*v3;
+      itrans00(r,matU);
+      fprintf(out," LA1R  % 10.6lf % 10.6lf % 10.6lf\n",r[0]*B2A,r[1]*B2A,r[2]*B2A);
+    }
+    for(j=1;j<=5;j++){
+      r[0] = x0 - j*v1;
+      r[1] = y0 - j*v2; 
+      r[2] = z0 - j*v3;
+      itrans00(r,matU);
+      fprintf(out," LA1R  % 10.6lf % 10.6lf % 10.6lf\n",r[0]*B2A,r[1]*B2A,r[2]*B2A);
+    }
+  
+  } // fin RCP
+
+  for(i=0; i < ccp; i++){
+    x0 = cageCrit[i].x;
+    y0 = cageCrit[i].y;
+    z0 = cageCrit[i].z;
+    numCritical02(x0,y0,z0,cube,param,matU,min0,val);
+  
+    matH[0] = val[4]; matH[1] = val[7]; matH[2] = val[8];
+    matH[3] = val[7]; matH[4] = val[5]; matH[5] = val[9];
+    matH[6] = val[8]; matH[7] = val[9]; matH[8] = val[6];
+  
+    JacobiNxN(matH,eval,evec);
+
+    r[0] = x0;
+    r[1] = y0;
+    r[2] = z0;
+    itrans00(r,matU);
+
+    fprintf(out," CCP  % 10.6lf % 10.6lf % 10.6lf\n",r[0]*B2A,r[1]*B2A,r[2]*B2A);
+
+    v1 = evec[6]; v2 = evec[7]; v3 = evec[8];
+    norm = getNorm(v1,v2,v3);
+    v1 = v1*0.05/norm; v2 = v2*0.05/norm; v3 = v3*0.05/norm;
+
+    for(j=1;j<=5;j++){
+      r[0] = x0 + j*v1;
+      r[1] = y0 + j*v2; 
+      r[2] = z0 + j*v3;
+      itrans00(r,matU);
+      fprintf(out," LA3C  % 10.6lf % 10.6lf % 10.6lf\n",r[0]*B2A,r[1]*B2A,r[2]*B2A);
+    }
+    for(j=1;j<=5;j++){
+      r[0] = x0 - j*v1;
+      r[1] = y0 - j*v2; 
+      r[2] = z0 - j*v3;
+      itrans00(r,matU);
+      fprintf(out," LA3C  % 10.6lf % 10.6lf % 10.6lf\n",r[0]*B2A,r[1]*B2A,r[2]*B2A);
+    }
+
+    v1 = evec[3]; v2 = evec[4]; v3 = evec[5];
+    norm = getNorm(v1,v2,v3);
+    v1 = v1*0.05/norm; v2 = v2*0.05/norm; v3 = v3*0.05/norm;
+    for(j=1;j<=5;j++){
+      r[0] = x0 + j*v1;
+      r[1] = y0 + j*v2; 
+      r[2] = z0 + j*v3;
+      itrans00(r,matU);
+      fprintf(out," LA2C  % 10.6lf % 10.6lf % 10.6lf\n",r[0]*B2A,r[1]*B2A,r[2]*B2A);
+    }
+    for(j=1;j<=5;j++){
+      r[0] = x0 - j*v1;
+      r[1] = y0 - j*v2; 
+      r[2] = z0 - j*v3;
+      itrans00(r,matU);
+      fprintf(out," LA2C  % 10.6lf % 10.6lf % 10.6lf\n",r[0]*B2A,r[1]*B2A,r[2]*B2A);
+    }
+    v1 = evec[0]; v2 = evec[1]; v3 = evec[2];
+    norm = getNorm(v1,v2,v3);
+    v1 = v1*0.05/norm; v2 = v2*0.05/norm; v3 = v3*0.05/norm;
+    for(j=1;j<=5;j++){
+      r[0] = x0 + j*v1;
+      r[1] = y0 + j*v2; 
+      r[2] = z0 + j*v3;
+      itrans00(r,matU);
+      fprintf(out," LA1C  % 10.6lf % 10.6lf % 10.6lf\n",r[0]*B2A,r[1]*B2A,r[2]*B2A);
+    }
+    for(j=1;j<=5;j++){
+      r[0] = x0 - j*v1;
+      r[1] = y0 - j*v2; 
+      r[2] = z0 - j*v3;
+      itrans00(r,matU);
+      fprintf(out," LA1C  % 10.6lf % 10.6lf % 10.6lf\n",r[0]*B2A,r[1]*B2A,r[2]*B2A);
+    }
+  
+  } // fin CCP
+
+  for(i=0; i < ncp; i++){
+    x0 = nnucCrit[i].x;
+    y0 = nnucCrit[i].y;
+    z0 = nnucCrit[i].z;
+    numCritical02(x0,y0,z0,cube,param,matU,min0,val);
+  
+    matH[0] = val[4]; matH[1] = val[7]; matH[2] = val[8];
+    matH[3] = val[7]; matH[4] = val[5]; matH[5] = val[9];
+    matH[6] = val[8]; matH[7] = val[9]; matH[8] = val[6];
+  
+    JacobiNxN(matH,eval,evec);
+
+    r[0] = x0;
+    r[1] = y0;
+    r[2] = z0;
+    itrans00(r,matU);
+
+    fprintf(out," NCP  % 10.6lf % 10.6lf % 10.6lf\n",r[0]*B2A,r[1]*B2A,r[2]*B2A);
+
+    v1 = evec[6]; v2 = evec[7]; v3 = evec[8];
+    norm = getNorm(v1,v2,v3);
+    v1 = v1*0.05/norm; v2 = v2*0.05/norm; v3 = v3*0.05/norm;
+
+    for(j=1;j<=5;j++){
+      r[0] = x0 + j*v1;
+      r[1] = y0 + j*v2; 
+      r[2] = z0 + j*v3;
+      itrans00(r,matU);
+      fprintf(out," LA3N  % 10.6lf % 10.6lf % 10.6lf\n",r[0]*B2A,r[1]*B2A,r[2]*B2A);
+    }
+    for(j=1;j<=5;j++){
+      r[0] = x0 - j*v1;
+      r[1] = y0 - j*v2; 
+      r[2] = z0 - j*v3;
+      itrans00(r,matU);
+      fprintf(out," LA3N  % 10.6lf % 10.6lf % 10.6lf\n",r[0]*B2A,r[1]*B2A,r[2]*B2A);
+    }
+
+    v1 = evec[3]; v2 = evec[4]; v3 = evec[5];
+    norm = getNorm(v1,v2,v3);
+    v1 = v1*0.05/norm; v2 = v2*0.05/norm; v3 = v3*0.05/norm;
+    for(j=1;j<=5;j++){
+      r[0] = x0 + j*v1;
+      r[1] = y0 + j*v2; 
+      r[2] = z0 + j*v3;
+      itrans00(r,matU);
+      fprintf(out," LA2N  % 10.6lf % 10.6lf % 10.6lf\n",r[0]*B2A,r[1]*B2A,r[2]*B2A);
+    }
+    for(j=1;j<=5;j++){
+      r[0] = x0 - j*v1;
+      r[1] = y0 - j*v2; 
+      r[2] = z0 - j*v3;
+      itrans00(r,matU);
+      fprintf(out," LA2N  % 10.6lf % 10.6lf % 10.6lf\n",r[0]*B2A,r[1]*B2A,r[2]*B2A);
+    }
+    v1 = evec[0]; v2 = evec[1]; v3 = evec[2];
+    norm = getNorm(v1,v2,v3);
+    v1 = v1*0.05/norm; v2 = v2*0.05/norm; v3 = v3*0.05/norm;
+    for(j=1;j<=5;j++){
+      r[0] = x0 + j*v1;
+      r[1] = y0 + j*v2; 
+      r[2] = z0 + j*v3;
+      itrans00(r,matU);
+      fprintf(out," LA1N  % 10.6lf % 10.6lf % 10.6lf\n",r[0]*B2A,r[1]*B2A,r[2]*B2A);
+    }
+    for(j=1;j<=5;j++){
+      r[0] = x0 - j*v1;
+      r[1] = y0 - j*v2; 
+      r[2] = z0 - j*v3;
+      itrans00(r,matU);
+      fprintf(out," LA1N  % 10.6lf % 10.6lf % 10.6lf\n",r[0]*B2A,r[1]*B2A,r[2]*B2A);
+    }
+  
+  } // fin NCP
 
 }
-

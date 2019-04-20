@@ -9,48 +9,103 @@ PRO = cube3D
 EXE = $(PRO).x
 
 CC := gcc
-CFLAGS := -c -Wunused
-LIB := -lm -llapacke -llapack
+CFLAGS := -c -Wunused -O2 
+LIB := -lm  -fopenmp
 
 OBJS := main.o\
-	file.o\
-        array.o\
-	analys.o\
-	tableP.o\
-	matvec.o\
-	lectura.o\
-	critical.o\
-	mathTools.o\
-	pruebaCoef.o\
-	numBondPath.o\
-	lagrangePol.o
+        file.o\
+		  array.o\
+		  graph.o\
+		  merge.o\
+		  fields.o\
+		  transU.o\
+		  tableP.o\
+		  timing.o\
+		  jacobi.o\
+		  kernels.o\
+		  lagForm.o\
+		  lectura.o\
+        findCrit.o\
+		  geomData.o\
+		  rotation.o\
+		  cubeIndex.o\
+		  lagrange2.o\
+		  replicate.o\
+		  mathTools.o\
+		  watershed.o\
+        numBondPath.o
+		  
+		# pruebaCoef.o\
+		  lagrangePol.o\
+        utils.o\
+
 
 $(PRO) : $(OBJS)
-	$(CC) -o $(EXE) $(OBJS) $(LIB)
+	$(CC) $(CFLAGS) utils.c
+	$(CC) -o $(EXE) $(OBJS) utils.o $(LIB)
 
-main.o: main.c file.h array.h analys.h lectura.h critical.h
+main.o: main.c file.h array.h  lectura.h struct.h
 	$(CC) $(CFLAGS) main.c
 
 file.o: file.c file.h
-	$(CC) $(CFLAGS) file.c
+	$(CC) $(CFLAGS) -DD file.c
 
 array.o: array.c  array.h
 	$(CC) $(CFLAGS) array.c
 
-analys.o: analys.c analys.h file.h array.h lectura.h
-	$(CC) $(CFLAGS) -DGRAD analys.c
+graph.o: graph.c  graph.h
+	$(CC) $(CFLAGS) graph.c
+
+merge.o: merge.c merge.h
+	$(CC) $(CFLAGS) merge.c
+
+fields.o: fields.c fields.h
+	$(CC) $(CFLAGS) fields.c -fopenmp
 
 tableP.o: tableP.c tableP.h
 	$(CC) $(CFLAGS) tableP.c
 
-matvec.o: matvec.c matvec.h
-	$(CC) $(CFLAGS) -DD matvec.c
+timing.o: timing.c timing.h
+	$(CC) $(CFLAGS) timing.c
 
-lectura.o: lectura.c lectura.h file.h array.h 
+jacobi.o: jacobi.c jacobi.h
+	$(CC) $(CFLAGS) jacobi.c
+
+matvec.o: matvec.c matvec.h
+	$(CC) $(CFLAGS) -DDEBUG matvec.c
+
+kernels.o: kernels.c kernels.h
+	$(CC) $(CFLAGS) -DGRAPH kernels.c
+
+lagForm.o: lagForm.c lagForm.h
+	$(CC) $(CFLAGS) lagForm.c
+
+lectura.o: lectura.c lectura.h
 	$(CC) $(CFLAGS) lectura.c
 
-critical.o: critical.c file.c array.h analys.h critical.h numBondPath.h
+transU.o: transU.c transU.h
+	$(CC) $(CFLAGS) transU.c
+
+findCrit.o: findCrit.c findCrit.h
+	$(CC) $(CFLAGS) findCrit.c -fopenmp
+
+critical.o: critical.c critical.h
 	$(CC) $(CFLAGS) critical.c
+
+geomData.o: geomData.c geomData.h
+	$(CC) $(CFLAGS) geomData.c
+
+rotation.o : rotation.c rotation.h
+	$(CC) $(CFLAGS) rotation.c
+
+cubeIndex.o	: cubeIndex.c cubeIndex.h
+	$(CC) $(CFLAGS) cubeIndex.c
+
+lagrange2.o : lagrange2.c lagrange2.h
+	$(CC) $(CFLAGS) lagrange2.c
+
+replicate.o : replicate.c replicate.h
+	$(CC) $(CFLAGS) replicate.c
 
 mathTools.o : mathTools.c mathTools.h
 	$(CC) $(CFLAGS) mathTools.c
@@ -58,8 +113,11 @@ mathTools.o : mathTools.c mathTools.h
 pruebaCoef.o : pruebaCoef.c pruebaCoef.h
 	$(CC) $(CFLAGS) pruebaCoef.c
 
-numBondPath.o: numBondPath.c numBondPath.h file.h array.h
-	$(CC) $(CFLAGS) numBondPath.c
+watershed.o : watershed.c watershed.h
+	$(CC) $(CFLAGS) watershed.c 
+
+numBondPath.o: numBondPath.c numBondPath.h 
+	$(CC) $(CFLAGS) numBondPath.c -fopenmp
 
 lagrangePol.o: lagrangePol.c lagrangePol.h
 	$(CC) $(CFLAGS) lagrangePol.c
@@ -70,6 +128,6 @@ install:
 
 .PHONY: clean
 clean:
-	rm $(OBJS) $(EXE)
+	rm $(OBJS) utils.o $(EXE) *.cube *.dat *.xyz *.log *.pdf *.eps *.gp
 
 

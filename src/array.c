@@ -1,7 +1,24 @@
+/**
+ * @file   array.c
+ * @brief  Implementation of functions to allocate dynamic memory.
+ *
+ * This set of functios allocates dynamic memory for
+ * integer, float, double and long types. For use in the
+ * code.
+ *
+ * @author Raymundo Hernández-Esparza.
+ * @date   August 2017.
+ */
 #include "array.h"
 
 
-int createArrayInt ( int n, int **ptr, char const *mess){
+/**
+ *  @brief Allocate memory for int.
+ *  @param n size to assign.
+ *  @param **ptr pointer to memory array.
+ *  @param *mess  exit message for possible erors.
+ */
+int createArrayInt ( int n, int **ptr, const char *mess){
 
   if( n < 1 ){
     printf(" There is an error in the size for [%s]\n",mess);
@@ -17,7 +34,13 @@ int createArrayInt ( int n, int **ptr, char const *mess){
    return 0;
 }
 
-int createArrayFlo ( int n, float **ptr, char const *mess){
+/**
+ *  @brief Allocate memory for float.
+ *  @param n  size to assign.
+ *  @param **ptr pointer to memory array.
+ *  @param *mess  exit message for possible erors.
+ */
+int createArrayFlo ( int n, float **ptr, const char *mess){
 
   if( n < 1 ){
     printf(" There is an error in the size for [%s]\n",mess);
@@ -33,7 +56,13 @@ int createArrayFlo ( int n, float **ptr, char const *mess){
    return 0;
 }
   
-int createArrayDou ( int n, double **ptr, char const *mess){
+/**
+ *  @brief Allocate memory for double.
+ *  @param n size to assign.
+ *  @param **ptr pointer to memory array.
+ *  @param *mess  exit message for possible erors.
+ */
+int createArrayDou ( int n, double **ptr, const char *mess){
 
   if( n < 1 ){
     printf(" There is an error in the size for [%s]\n",mess);
@@ -49,7 +78,13 @@ int createArrayDou ( int n, double **ptr, char const *mess){
    return 0;
 }
 
-int createArrayLong( int n, long int **ptr, char const *mess){
+/**
+ *  @brief Allocate memory for long int.
+ *  @param n size to assign.
+ *  @param **ptr pointer to memory array.
+ *  @param *mess  exit message for possible erors.
+ */
+int createArrayLong( int n, long int **ptr, const char *mess){
   if( n < 1 ){
     printf(" There is an error in the size for [%s]\n",mess);
     exit(EXIT_FAILURE);

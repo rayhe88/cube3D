@@ -1,32 +1,49 @@
+/**
+ * @file   numBondPath.h
+ * @brief 
+ * @author Raymundo Hernández-Esparza.
+ * @date   November 2018.
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
 #include <time.h>
 
+#include "struct.h"
+
 #ifndef _NUMBONDPATH_H_
  #define _NUMBONDPATH_H_
 
- int myIsNanInf(double);
+ #define BPATH_EPS 0.005  //0.02 // Bueno con 0.05
+ #define NSTEP 1
+ //#define TOL_DIST_ATM 0.35
+ #define TOL_DIST_ATM 0.1
+ #define MAXPTS 2000
+
+ int myIsNanInf( double);
  int myIsNanInf_V3(double*);
 
- int logFile(int,int,int,int*,int*,double*,double*,int*,double*,double*,double*,double*,const char *);
- int bondPath(int,int,int,int,int*,int*,double*,double*,int*,double*,double*,double*,double*,const char *);
+ void getKnRungeKuta( double[],double[]);
 
- int SortCoordinates(int,int*,double*);
+ int bondPath(int,dataCritP*,int,dataCritP*,int*,dataCube,dataRun,double, const double*,char*);
 
- int getData(int,int*,int*,double,double,double,double*,double*,double*,double*);
- int getData2(int,int*,int*,double,double,double,double*,double*,double*,double*);
+ int perfectCube(int,double *r,double *min, double *max);
+
+ int logFile( int bcp, int rcp, int ccp, int ncp, dataCritP *bondCrit,
+              dataCritP *ringCrit, dataCritP *cageCrit, dataCritP *nnucCrit,
+              dataCube cube, dataRun param, double min0, int*,const double *matU, char *name);
+
+ int axesCrit(int bcp, int rcp, int ccp, int ncp, dataCritP *bondCrit,
+              dataCritP *ringCrit, dataCritP *cageCrit, dataCritP *nnucCrit,
+              dataCube cube, dataRun param, double min0, const double *matU, char *name);
 
 
- void centraMess(char*,FILE*);
-  
- void lineDiv(FILE*);
+ void printLog1( int,int,int,int,int,FILE*);
 
- void printLog1(FILE*,int*);
+ void centraMess(char*, FILE*);
 
- void getEnergies(double rho,double lap,double *kinG,double *kinK, double *virial);
-
- void sortJacobi(double vec[3]);
+ void getEnergies( double,double,double*,double*,double*);
 
 
 

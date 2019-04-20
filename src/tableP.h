@@ -1,3 +1,9 @@
+/**
+ * @file tableP.h
+ * @brief 
+ * @author Raymundo Hernández-Esparza.
+ * @date   August 2018.
+ */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

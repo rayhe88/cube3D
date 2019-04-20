@@ -1,10 +1,13 @@
 /**
-  @file array.h
-  @brief Definition of functions that allocate dynamic memory
-
-  This set of functions allocate dynamic memory for data type
-  integer, float and double. For the use en all the code.
-
+ *  @file   array.h
+ *  @brief  Defining functions to allocate dynamic memory.
+ *
+ *  This set of functions allocates dynamic memory for 
+ *  integer, float, double and long types. For use in the
+ *  code.
+ *
+ *  @author Raymundo Hernández-Esparza.
+ *  @date   August 2017.
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -13,9 +16,9 @@
  #define _ARRAY_H_
  
  
- int createArrayInt (int, int    **, char const*);
- int createArrayFlo (int, float  **, char const*);
- int createArrayDou (int, double **, char const*);
- int createArrayLong(int, long int**,char const*);
+ int createArrayInt (int, int    **, const char*);
+ int createArrayFlo (int, float  **, const char*);
+ int createArrayDou (int, double **, const char*);
+ int createArrayLong(int, long int**,const char*);
 
 #endif
