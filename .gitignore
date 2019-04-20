@@ -24,4 +24,6 @@
 *.cub
 *.log
 garbage
+# Executable file
+*.x
 # End of https://www.gitignore.io/api/linux

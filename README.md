@@ -10,6 +10,7 @@
 -----------------------------------------------------------
 
 What is Cube3D?
+---------------
 
   Cube3D is a code to find critical points of scalar fields
   from quantum chemistry in the gaussian "cube" format.
