@@ -16,9 +16,9 @@
 # .nfs files are created when an open file is removed but is still being accessed
 .nfs*
 
-# Con esto no subo archivos que tienen que ver con la compilacion
+# Compilation files (objects)
 *.o
-# Con esto no subo archivos de ejecucion
+# Execution files 
 *.xyz
 *.cube
 *.cub
