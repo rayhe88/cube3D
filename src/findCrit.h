@@ -24,10 +24,11 @@
  #define PERCENT 1.5
  #define ALPHA(X) (1.)
  //#define TOLDIST 0.5E-1 //original
- #define TOLDIST 1.E-1
+ #define TOLDIST 1.72E-1
  #define TOLDIST2 0.2 // Algunos hidrogenos se encuentran movidos esta distancia 0.06
- #define TOLDIST3 0.66 // Si hay pseudopotenciales esta distancia puede servir para
+ #define TOLDIST3 0.7 // Si hay pseudopotenciales esta distancia puede servir para
                        // quitarlos 0.66 u.a. == 0.35 A.
+                       // 0.7 u.a. == 3704240743 A
 
  #define XCP  -5
  #define NCP  -4

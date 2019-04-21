@@ -800,7 +800,7 @@ int describeCrit(int ncrit, double min0, dataCube cube,
   }
 
 
-  bondPath(bcp,bondCrit,ncp,nnucCrit,bonding,cube,param,min0,matU,name);
+ // bondPath(bcp,bondCrit,ncp,nnucCrit,bonding,cube,param,min0,matU,name);
 
   printBar(stdout);
   printf("  File %s was generated\n",nameOut);

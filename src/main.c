@@ -37,9 +37,6 @@
 #include "kernels.h"
 #include "lectura.h"
 
-#include "watershed.h"
-
-//#include "fields.h"
 
 double getDenInCube2(int i, int j, int k, int n1, int n2, double *field);
 void chargeOfSystem(dataCube cube);
@@ -88,8 +85,7 @@ int main(int argc, char* argv[]){
 
   getMatInv(matT,matU);
 
-  /*
-  dataCube cube2;
+  /*dataCube cube2;
   int *zatm2;
   double *coor2,*field2;
   FILE *out2;
@@ -99,31 +95,12 @@ int main(int argc, char* argv[]){
   fclose(out2);
   unloadData(&cube2,&zatm2,&coor2,&field2);
   */
-  
-
-
 
   //comienza la ejecución real
   
   //printTapas(cube);
   selectExec(cube,parameters,matU,nameout);
   
-  int *centers;
-  int *idx2;
-  double *field2;
-
-  createArrayInt(cube.npt,&idx2, "Idx");
-  createArrayInt(cube.npt,&centers,"Centers");
-  createArrayDou(cube.npt,&field2,"field");
-
-  sortField(cube,parameters,idx2,field2);
-  printf("Tick tack\n");
-  waterShed(cube,parameters,matU,centers,idx2,cube.field);
-
-  free(centers);
-  free(field2);
-  free(idx2);
-
   unloadData(&cube,&zatm1,&coor1,&field1);  
 
   printTime("  End  time: ");

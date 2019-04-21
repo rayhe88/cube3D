@@ -16,7 +16,6 @@ OBJS := main.o\
         file.o\
 		  array.o\
 		  graph.o\
-		  merge.o\
 		  fields.o\
 		  transU.o\
 		  tableP.o\
@@ -24,6 +23,7 @@ OBJS := main.o\
 		  jacobi.o\
 		  kernels.o\
 		  lagForm.o\
+		  lebedev.o\
 		  lectura.o\
         findCrit.o\
 		  geomData.o\
@@ -32,7 +32,6 @@ OBJS := main.o\
 		  lagrange2.o\
 		  replicate.o\
 		  mathTools.o\
-		  watershed.o\
         numBondPath.o
 		  
 		# pruebaCoef.o\
@@ -56,9 +55,6 @@ array.o: array.c  array.h
 graph.o: graph.c  graph.h
 	$(CC) $(CFLAGS) graph.c
 
-merge.o: merge.c merge.h
-	$(CC) $(CFLAGS) merge.c
-
 fields.o: fields.c fields.h
 	$(CC) $(CFLAGS) fields.c -fopenmp
 
@@ -79,6 +75,9 @@ kernels.o: kernels.c kernels.h
 
 lagForm.o: lagForm.c lagForm.h
 	$(CC) $(CFLAGS) lagForm.c
+
+lebedev.o: lebedev.c lebedev.h
+	$(CC) $(CFLAGS) lebedev.c
 
 lectura.o: lectura.c lectura.h
 	$(CC) $(CFLAGS) lectura.c
@@ -112,9 +111,6 @@ mathTools.o : mathTools.c mathTools.h
 
 pruebaCoef.o : pruebaCoef.c pruebaCoef.h
 	$(CC) $(CFLAGS) pruebaCoef.c
-
-watershed.o : watershed.c watershed.h
-	$(CC) $(CFLAGS) watershed.c 
 
 numBondPath.o: numBondPath.c numBondPath.h 
 	$(CC) $(CFLAGS) numBondPath.c -fopenmp
