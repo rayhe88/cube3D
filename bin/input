@@ -1,11 +1,11 @@
 >> INPUT
-dimeroElf.cube
+../proof/mof.cube
 >> OUTPUT
-elfCrit
+mof
 >> TASK
 Crit
 >> POLY
-2
+3
 >> NCI PROP
 3.0 1.5
 >> PERIODIC
