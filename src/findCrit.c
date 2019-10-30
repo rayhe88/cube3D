@@ -99,7 +99,7 @@ int critPoints ( dataCube cube, dataRun param,const double *matU, double min0, c
   printBanner(" Searching of critical points ",stdout);
   printf("  Cutoff for the function         : % 10.6E\n",TOLFUN);
   printf("  Tolerance in the gradient       : % 10.6E\n",TOLGRD);
-  printf("  Cube overlap percentage         : % 10.2lf\%\n",PERCENT*100.);
+  printf("  Cube overlap percentage         : % 10.2lf%c \n",PERCENT*100.,'%');
   printf("  Maximum iterations step 1       : % 10d\n",MAXITER1);
   printf("  Maximum iterations step 2       : % 10d\n",MAXITER2);
   printBar(stdout);
@@ -126,7 +126,7 @@ int critPoints ( dataCube cube, dataRun param,const double *matU, double min0, c
 /**************************************/
 
   printf("  Search space %7d cubes\n",npc);
-  printf("  Corresponds to %6.2lf%c  total\n",'%',(100.*npc)/(double)(ncx*ncy*ncz));
+  printf("  Corresponds to %6.2lf%c  total\n",(double) (100.*npc)/(ncx*ncy*ncz),'%');
 
 /**************************************/
 

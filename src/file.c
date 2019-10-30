@@ -40,7 +40,7 @@ int tmpFile ( FILE **file, char *prefix, char *name, const char *type ){
   time_t t;
 
   t = time(NULL);
-  sprintf(timeascii,"-%d-%d",getpid(),t);
+  sprintf(timeascii,"-%d-%ld",getpid(),t);
   strcpy(name,path);
   strcat(name,prefix);
   strcat(name,timeascii);

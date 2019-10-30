@@ -22,8 +22,8 @@ void printSizeCube(dataCube cube){
   
   printBar(stdout);
   printBanner(" Memory Info ",stdout);
-  printf(" Size of  int         : %10d (B)\n",sizeof(int));
-  printf(" Size of double       : %10d (B)\n",sizeof(double));
+  printf(" Size of  int         : %10ld (B)\n",sizeof(int));
+  printf(" Size of double       : %10ld (B)\n",sizeof(double));
   printf(" Information loaded from cube file : %-20s\n",ascmem);
 
 }
@@ -310,7 +310,7 @@ int sizeUnits(int memory, char *out){
   }
 
   tmp /= 1024.;
-  sprintf(out," %6.2lf (GiB)");
+  sprintf(out," %6.2lf (GiB)",tmp);
   return 0;
 }
 

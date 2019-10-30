@@ -254,6 +254,7 @@ int evalVoidVol(dataCube cube, dataRun param, char *name){
   double vecA[3],vecB[3],vecC[3];
   double tmp[3],vol0,volt;
   double den,volvac;
+  double x,y,z;
 
 
   printBanner("Void volume",stdout);
@@ -263,6 +264,15 @@ int evalVoidVol(dataCube cube, dataRun param, char *name){
   ncz = cube.pts[2] - 1;
 
   nct = ncx*ncy*ncz;
+
+  dataVoids *dvoi;
+  dvoi = (dataVoids*) malloc(nct*sizeof(dataVoids));
+
+  if(dvoi == NULL){
+    printf(" Error in the allocation memory");
+    exit(EXIT_FAILURE);
+  }
+  
   
   vecA[0] = cube.mvec[0]; vecA[1] = cube.mvec[1]; vecA[2] = cube.mvec[2];
   vecB[0] = cube.mvec[3]; vecB[1] = cube.mvec[4]; vecB[2] = cube.mvec[5];
@@ -277,36 +287,67 @@ int evalVoidVol(dataCube cube, dataRun param, char *name){
   n2 = cube.pts[2];
   
   cbs=0;
+  int idxcube=0;
   for( i = 0 ; i < ncx ; i++ ){
     for( j = 0 ; j < ncy ; j++ ){
       for( k = 0 ; k < ncz ; k++ ){
          den = getDenInCube(i,j,k,n1,n2,cube.field); 
-         if( den <= param.vac )
+         dvoi[idxcube].stat = 0;
+         if( den <= param.vac ){
+           x = cube.min[0]  + ((double) i + 0.5 )*cube.hvec[0];
+           y = cube.min[1]  + ((double) j + 0.5 )*cube.hvec[1];
+           z = cube.min[2]  + ((double) k + 0.5 )*cube.hvec[2];
+
+           x *= B2A;
+           y *= B2A;
+           z *= B2A;
+
+           dvoi[idxcube].idx = i;
+           dvoi[idxcube].idy = j;
+           dvoi[idxcube].idz = k;
+           dvoi[idxcube].x = x;
+           dvoi[idxcube].y = y;
+           dvoi[idxcube].z = z;
+           dvoi[idxcube].stat = 1;
            cbs++;
+         }
+         idxcube++;
       }
     }
   }
 
-  volvac = cbs*vol0;
+  int id01,id02,id03,id04,id05,id06;
+  int prod, ncbs;
+  ncbs = 0;
+  for(idxcube = 0; idxcube < nct; idxcube++){
+    if( dvoi[idxcube].stat == 1 ){
+      i = dvoi[idxcube].idx;
+      j = dvoi[idxcube].idy;
+      k = dvoi[idxcube].idz;
+      if ( i == 0 || i == ncx-1 ) dvoi[idxcube].stat = 2;
+      if ( j == 0 || j == ncy-1 ) dvoi[idxcube].stat = 2;
+      if ( k == 0 || k == ncz-1 ) dvoi[idxcube].stat = 2;
+      id01 = getCubeIdx( i-1, j, k, ncx, ncy,ncz);
+      id02 = getCubeIdx( i+1, j, k, ncx, ncy,ncz);
+      id03 = getCubeIdx( i, j-1, k, ncx, ncy,ncz);
+      id04 = getCubeIdx( i, j+1, k, ncx, ncy,ncz);
+      id05 = getCubeIdx( i, j, k-1, ncx, ncy,ncz);
+      id06 = getCubeIdx( i, j, k+1, ncx, ncy,ncz);
+      if ( id01 >= 0 && id02 >= 0 && id03 >= 0 && id04 >= 0 && id05 >= 0 && id06 >=0){
 
-  
-   
-  printf("   Cutoff in the density  : % 12.6lf a.u.\n",param.vac);
-  printf("   Volume of the element  : % 12.6lf a.u.\n",vol0);
-  printf("   Volume of the cell     : % 12.6lf a.u.\n",volt);
-  printf("   Volume of the void     : % 12.6lf a.u.\n",volvac);
-  printf("   Percentaje of the void : % 12.3lf \%\n",(volvac*100.0)/volt);
+        prod  = dvoi[id01].stat * dvoi[id02].stat * dvoi[id03].stat;
+        prod *= dvoi[id04].stat * dvoi[id05].stat * dvoi[id06].stat;
+        if (prod == 0 )
+          dvoi[idxcube].stat = 2;
 
-  char nameout[128];
-  double x,y,z;
-  FILE *out;
+      }
+    if( dvoi[idxcube].stat == 2 )
+        ncbs++;
+    }
+  }
 
-  sprintf(nameout,"%sVoid.xyz",name);
 
-  openFile(&out,nameout,"w+");
-
-  fprintf(out," %10d\n",cbs);
-  fprintf(out," VOIDS for Cube3D project\n");
+/*
 
   for( i = 0 ; i < ncx ; i++ ){
     for( j = 0 ; j < ncy ; j++ ){
@@ -327,6 +368,34 @@ int evalVoidVol(dataCube cube, dataRun param, char *name){
     }
   }
 
+*/
+  volvac = cbs*vol0;
+
+  
+   
+  printf("   Cutoff in the density  : % 12.6lf a.u.\n",param.vac);
+  printf("   Volume of the element  : % 12.6lf a.u.\n",vol0);
+  printf("   Volume of the cell     : % 12.6lf a.u.\n",volt);
+  printf("   Volume of the void     : % 12.6lf a.u.\n",volvac);
+  printf("   Percentaje of the void : % 12.3lf \%\n",(volvac*100.0)/volt);
+
+  char nameout[128];
+  FILE *out;
+
+  sprintf(nameout,"%sVoid.xyz",name);
+
+  openFile(&out,nameout,"w+");
+
+  fprintf(out," %10d\n",ncbs);
+  fprintf(out," VOIDS for Cube3D project\n");
+
+  for(idxcube = 0; idxcube < nct; idxcube++){
+    if( dvoi[idxcube].stat == 2 )
+      fprintf(out," Voi % 10.6lf % 10.6lf % 10.6lf\n",
+                    dvoi[idxcube].x,
+                    dvoi[idxcube].y,
+                    dvoi[idxcube].z);
+  }
 
   printBar(stdout);
 
@@ -334,6 +403,8 @@ int evalVoidVol(dataCube cube, dataRun param, char *name){
 
 
   fclose(out);
+
+  free(dvoi);
   
   return 0;
 }
@@ -357,6 +428,16 @@ double getDenInCube(int i, int j, int k, int n1, int n2, double *field){
   den += field[ip*n1 + jp* n2 + kp];
 
   return ( 0.125*den);
+}
+
+int getCubeIdx( int i, int j, int k,int ncx, int ncy, int ncz){
+    if( i < 0 || i >= ncx)
+      return -1;
+    if( j < 0 || j >= ncy)
+      return -1;
+    if( k < 0 || k >= ncz)
+      return -1;
+    return i*ncy*ncz + j*ncz + k;
 }
 
 void getLogField (dataCube cube, double min2){

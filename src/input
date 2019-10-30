@@ -1,12 +1,15 @@
 >> INPUT
-../proof/mof.cube
+../proof/ureaII.cube
 >> OUTPUT
-mof
+ureaII
 >> TASK
-Crit
+VOID
 >> POLY
 3
 >> NCI PROP
 3.0 1.5
 >> PERIODIC
 yes
+>> VOI PROP
+0.002
+
