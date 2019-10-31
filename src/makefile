@@ -35,7 +35,6 @@ OBJS := main.o\
         numBondPath.o
 		  
 		# pruebaCoef.o\
-		  lagrangePol.o\
         utils.o\
 
 
@@ -66,9 +65,6 @@ timing.o: timing.c timing.h
 
 jacobi.o: jacobi.c jacobi.h
 	$(CC) $(CFLAGS) jacobi.c
-
-matvec.o: matvec.c matvec.h
-	$(CC) $(CFLAGS) -DDEBUG matvec.c
 
 kernels.o: kernels.c kernels.h
 	$(CC) $(CFLAGS) -DGRAPH kernels.c
@@ -114,9 +110,6 @@ pruebaCoef.o : pruebaCoef.c pruebaCoef.h
 
 numBondPath.o: numBondPath.c numBondPath.h 
 	$(CC) $(CFLAGS) numBondPath.c -fopenmp
-
-lagrangePol.o: lagrangePol.c lagrangePol.h
-	$(CC) $(CFLAGS) lagrangePol.c
 
 .PHONY: install
 install:
