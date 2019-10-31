@@ -9,7 +9,7 @@ PRO = cube3D
 EXE = $(PRO).x
 
 CC := gcc
-CFLAGS := -c -Wunused -O2 
+CFLAGS := -c -Wunused  -Wno-unused-result -O2 
 LIB := -lm  -fopenmp
 
 OBJS := main.o\

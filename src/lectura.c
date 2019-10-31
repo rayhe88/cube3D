@@ -150,8 +150,8 @@ int readData2( int *natom, double *coor,double *field,int n, int npt, FILE *inp)
 
   char buffer[128];
 
-  int i,zatom;
-  int j;
+  int i,j;
+  int zatom;
   double tmp;
   double x,y,z;
 
@@ -285,17 +285,17 @@ int readInput (char *namefld, char *nameout, dataRun *param, char *nameinp){
   while( !feof(tmp)){
     fgets(buffer,100,tmp);
     if( !strncmp(buffer,flag_0,7) ){ // INPUT
-      fscanf(tmp,"%s",&tmp1);
+      fscanf(tmp,"%s",tmp1);
       strcpy(namefld,tmp1);
       bin[0] = 1;
     }
     if( !strncmp(buffer,flag_1,7) ){ // OUTPUT
-      fscanf(tmp,"%s",&tmp2);
+      fscanf(tmp,"%s",tmp2);
       strcpy(nameout,tmp2);
       bin[1] = 1;
     }
     if( !strncmp(buffer,flag_2,7) ){ // TASK
-      fscanf(tmp,"%s",&nametask);
+      fscanf(tmp,"%s",nametask);
       bin[2] = 1;
     }
     if( !strncmp(buffer,flag_3,7) ){ // POLY
@@ -307,7 +307,7 @@ int readInput (char *namefld, char *nameout, dataRun *param, char *nameinp){
       bin[4] = 1;
     }
     if( !strncmp(buffer,flag_5,7) ){ // PERIODIC
-      fscanf(tmp,"%s",&bufper);
+      fscanf(tmp,"%s",bufper);
       bin[5] = 1;
     }
     if( !strncmp(buffer,flag_6,7) ){ // REP PROP
@@ -333,19 +333,19 @@ int readInput (char *namefld, char *nameout, dataRun *param, char *nameinp){
     if( !strncmp(buffer,flag_8,7) ){ // GEOM
       at1 = at2 = at3 = -1;
 
-      fgets (buffertmp,120,tmp);
-      sscanf(buffertmp,"%s",&bufgeom);
+      fgets(buffertmp,120,tmp);
+      sscanf(buffertmp,"%s",bufgeom);
 
       for(i=0;i<strlen(bufgeom);i++)
         bufgeom[i] = toupper(bufgeom[i]);
 
       if( !strncmp(bufgeom,"LINE",4) ){
         gt = LIN;
-        sscanf(buffertmp,"%s %d %d",&bufgeom,&at1,&at2);
+        sscanf(buffertmp,"%s %d %d",bufgeom,&at1,&at2);
       }
       if( !strncmp(bufgeom,"PLANE",4) ){
         gt = PLA;
-        sscanf(buffertmp,"%s %d %d %d",&bufgeom,&at1,&at2,&at3);
+        sscanf(buffertmp,"%s %d %d %d",bufgeom,&at1,&at2,&at3);
       }
       bin[8] = 1;
     }

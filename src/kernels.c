@@ -327,6 +327,7 @@ int evalVoidVol(dataCube cube, dataRun param, char *name){
       if ( i == 0 || i == ncx-1 ) dvoi[idxcube].stat = 2;
       if ( j == 0 || j == ncy-1 ) dvoi[idxcube].stat = 2;
       if ( k == 0 || k == ncz-1 ) dvoi[idxcube].stat = 2;
+
       id01 = getCubeIdx( i-1, j, k, ncx, ncy,ncz);
       id02 = getCubeIdx( i+1, j, k, ncx, ncy,ncz);
       id03 = getCubeIdx( i, j-1, k, ncx, ncy,ncz);
@@ -346,29 +347,6 @@ int evalVoidVol(dataCube cube, dataRun param, char *name){
     }
   }
 
-
-/*
-
-  for( i = 0 ; i < ncx ; i++ ){
-    for( j = 0 ; j < ncy ; j++ ){
-      for( k = 0 ; k < ncz ; k++ ){
-         den = getDenInCube(i,j,k,n1,n2,cube.field); 
-         if( den <= param.vac ){
-           x = cube.min[0]  + ((double) i + 0.5 )*cube.hvec[0];
-           y = cube.min[1]  + ((double) j + 0.5 )*cube.hvec[1];
-           z = cube.min[2]  + ((double) k + 0.5 )*cube.hvec[2];
-
-           x *= B2A;
-           y *= B2A;
-           z *= B2A;
-           
-           fprintf(out," Voi % 10.6lf % 10.6lf % 10.6lf\n",x,y,z);
-         }
-      }
-    }
-  }
-
-*/
   volvac = cbs*vol0;
 
   
@@ -377,7 +355,7 @@ int evalVoidVol(dataCube cube, dataRun param, char *name){
   printf("   Volume of the element  : % 12.6lf a.u.\n",vol0);
   printf("   Volume of the cell     : % 12.6lf a.u.\n",volt);
   printf("   Volume of the void     : % 12.6lf a.u.\n",volvac);
-  printf("   Percentaje of the void : % 12.3lf \%\n",(volvac*100.0)/volt);
+  printf("   Percentaje of the void : % 12.3lf %c\n",(volvac*100.0)/volt,'%');
 
   char nameout[128];
   FILE *out;
@@ -431,11 +409,11 @@ double getDenInCube(int i, int j, int k, int n1, int n2, double *field){
 }
 
 int getCubeIdx( int i, int j, int k,int ncx, int ncy, int ncz){
-    if( i < 0 || i >= ncx)
+    if( i < 0 || i >= ncx )
       return -1;
-    if( j < 0 || j >= ncy)
+    if( j < 0 || j >= ncy )
       return -1;
-    if( k < 0 || k >= ncz)
+    if( k < 0 || k >= ncz )
       return -1;
     return i*ncy*ncz + j*ncz + k;
 }
