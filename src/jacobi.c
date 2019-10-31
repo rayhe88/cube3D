@@ -14,7 +14,7 @@ int JacobiNxN (double *matH, double *eval,double *evec){
   //matrizH es la del input
   for(i=0;i<9;i++)
     matA[i] = matH[i];
-
+  count=0;
   do{
 
     k = 0; l = 1;

@@ -177,7 +177,7 @@ void genGroup6 ( int *num, dataVec *r, double va, double vb, double v){
 
 int Lebedev0006 ( dataVec *r ){
   int num = 0;
-  double a,b,v;
+  double a=0.,b=0.,v=0.;
   v = 0.1666666666666667;
   genGroup1 ( &num,r,a,b,v);
 
@@ -186,7 +186,7 @@ int Lebedev0006 ( dataVec *r ){
 
 int Lebedev0014 ( dataVec *r ){
   int num = 0;
-  double a,b,v;
+  double a=0.,b=0.,v=0.;
   v = 0.6666666666666667E-1;
   genGroup1 ( &num,r,a,b,v);
   v = 0.7500000000000000E-1;
@@ -197,7 +197,7 @@ int Lebedev0014 ( dataVec *r ){
 
 int Lebedev0026 ( dataVec *r ){
   int num = 0;
-  double a,b,v;
+  double a=0.,b=0.,v=0.;
   v = 0.4761904761904762E-1; 
   genGroup1 ( &num,r,a,b,v);
   v = 0.3809523809523810E-1;
@@ -211,7 +211,7 @@ int Lebedev0026 ( dataVec *r ){
 
 int Lebedev0038 ( dataVec *r ){
   int num = 0;
-  double a,b,v;
+  double a=0.,b=0.,v=0.;
   v = 0.9523809523809524E-2;
   genGroup1 ( &num,r,a,b,v);
   v = 0.3214285714285714E-1;
@@ -225,7 +225,7 @@ int Lebedev0038 ( dataVec *r ){
 
 int Lebedev0050 ( dataVec *r ){
   int num = 0;
-  double a,b,v;
+  double a=0.,b=0.,v=0.;
   v = 0.1269841269841270E-1;
   genGroup1 ( &num,r,a,b,v);
   v = 0.2257495590828924E-1;
@@ -241,7 +241,7 @@ int Lebedev0050 ( dataVec *r ){
 
 int Lebedev0074 ( dataVec *r ){
   int num = 0;
-  double a,b,v;
+  double a=0.,b=0.,v=0.;
   v = 0.5130671797338464E-3;
   genGroup1 ( &num,r,a,b,v);
   v = 0.1660406956574204E-1;
@@ -260,7 +260,7 @@ int Lebedev0074 ( dataVec *r ){
 
 int Lebedev0086 ( dataVec *r ){
   int num = 0;
-  double a,b,v;
+  double a=0.,b=0.,v=0.;
   v = 0.1154401154401154E-1;
   genGroup1 ( &num,r,a,b,v);
   v = 0.1194390908585628E-1;
@@ -280,7 +280,7 @@ int Lebedev0086 ( dataVec *r ){
 
 int Lebedev0110 ( dataVec *r ){
   int num = 0;
-  double a,b,v;
+  double a=0.,b=0.,v=0.;
   v = 0.3828270494937162E-2; 
   genGroup1 ( &num,r,a,b,v);
   v = 0.9793737512487512E-2;
@@ -303,7 +303,7 @@ int Lebedev0110 ( dataVec *r ){
 
 int Lebedev0146 ( dataVec *r ){
   int num = 0;
-  double a,b,v;
+  double a=0.,b=0.,v=0.;
   v = 0.5996313688621381E-3;
   genGroup1 ( &num,r,a,b,v);
   v = 0.7372999718620756E-2;
@@ -329,7 +329,7 @@ int Lebedev0146 ( dataVec *r ){
 
 int Lebedev0170 ( dataVec *r ){
   int num = 0;
-  double a,b,v;
+  double a=0.,b=0.,v=0.;
   v = 0.5544842902037365E-2;
   genGroup1 ( &num,r,a,b,v);
   v = 0.6071332770670752E-2;
@@ -358,7 +358,7 @@ int Lebedev0170 ( dataVec *r ){
 
 int Lebedev0194 ( dataVec *r ){
   int num = 0;
-  double a,b,v;
+  double a=0.,b=0.,v=0.;
   v = 0.1782340447244611E-2;
   genGroup1 ( &num,r,a,b,v);
   v = 0.5716905949977102E-2;
@@ -391,7 +391,7 @@ int Lebedev0194 ( dataVec *r ){
 
 int Lebedev0230 ( dataVec *r ){
   int num = 0;
-  double a,b,v;
+  double a=0.,b=0.,v=0.;
   v = -0.5522639919727325E-1;
   genGroup1 ( &num,r,a,b,v);
   v = 0.4450274607445226E-2;
@@ -427,7 +427,7 @@ int Lebedev0230 ( dataVec *r ){
 
 int Lebedev0266 ( dataVec *r ){
   int num = 0;
-  double a,b,v;
+  double a=0.,b=0.,v=0.;
   v = -0.1313769127326952E-2;
   genGroup1 ( &num,r,a,b,v);
   v = -0.2522728704859336E-2;
@@ -467,7 +467,7 @@ int Lebedev0266 ( dataVec *r ){
 
 int Lebedev0302 ( dataVec *r ){
   int num = 0;
-  double a,b,v;
+  double a=0.,b=0.,v=0.;
   v = 0.8545911725128148E-3;
   genGroup1 ( &num,r,a,b,v);
   v = 0.3599119285025571E-2;
@@ -511,7 +511,7 @@ int Lebedev0302 ( dataVec *r ){
 
 int Lebedev0350 ( dataVec *r ){
   int num = 0;
-  double a,b,v;
+  double a=0.,b=0.,v=0.;
   v = 0.3006796749453936E-2;
   genGroup1 ( &num,r,a,b,v);
   v = 0.3050627745650771E-2;
@@ -558,7 +558,7 @@ int Lebedev0350 ( dataVec *r ){
 
 int Lebedev0434 ( dataVec *r ){
   int num = 0;
-  double a,b,v;
+  double a=0.,b=0.,v=0.;
   v = 0.5265897968224436E-3;
   genGroup1 ( &num,r,a,b,v);
   v = 0.2548219972002607E-2;
@@ -611,4 +611,3 @@ int Lebedev0434 ( dataVec *r ){
 
   return 0;
 }
-

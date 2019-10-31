@@ -340,11 +340,12 @@ void printTapas(dataCube cube ){
   x0 = cube.min[0];
   xf = x0 + (npx-1)*hx;
 
-  yf = y0 + (npy-1)*hy;
   y0 = cube.min[1]; 
+  yf = y0 + (npy-1)*hy;
 
-  zf = z0 + (npz-1)*hz;
   z0 = cube.min[2];
+  zf = z0 + (npz-1)*hz;
+
   printBanner("TAPA YZ",stdout);
   openFile(&out,"TapaYZ.dat","w+");
   fprintf(out,"#Tapa YZ a X constante\n");
