@@ -11,6 +11,10 @@
   
   #define NCHAR 60
 
+  #define TGBI "\033[1;3;92m"
+  #define TRBI "\033[1;3;91m"
+  #define TRST "\033[0m"
+
   void printBar      (FILE *);
   void printBanner   (char *text, FILE *);
 
@@ -39,4 +43,10 @@
   void SkewParameters(double *);
 
   void checkBoundaryCond (dataCube, int *);
+
+  void getNameOut    (char *name1, char *name2);
+
+  void createInput   (char *name);
+
+  void checkCommandLine(int, char**);
 #endif

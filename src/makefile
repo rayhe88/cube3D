@@ -25,14 +25,14 @@ OBJS := main.o\
 		  lagForm.o\
 		  lebedev.o\
 		  lectura.o\
-        findCrit.o\
+          findCrit.o\
 		  geomData.o\
 		  rotation.o\
 		  cubeIndex.o\
 		  lagrange2.o\
 		  replicate.o\
 		  mathTools.o\
-        numBondPath.o
+          numBondPath.o
 		  
 		# pruebaCoef.o\
         utils.o\
@@ -113,7 +113,7 @@ numBondPath.o: numBondPath.c numBondPath.h
 
 .PHONY: install
 install:
-	mv $(EXE) ../bin/.
+	mv $(EXE) $(HOME)/bin/.
 
 .PHONY: clean
 clean:

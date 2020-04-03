@@ -570,3 +570,106 @@ void checkBoundaryCond(dataCube cube, int *check){
 
 }
 
+void checkCommandLine(int argc, char *argv[]){
+
+    int i;
+    char name[64];
+    
+ //   if( argc == 1 )
+ //       exit(EXIT_FAILURE);
+
+    for( i=0; i<argc; i++){
+        if( argv[i][0] == '-' && argv[i][1] == 'i'){
+            printf("%s A input file [input.in] will be created!%s\n",TGBI,TRST);
+            if ( argv[i+1] != NULL )
+                strcpy(name,argv[i+1]);
+            else{
+            printf("%s Change the name 'foobar.cube' in the file [input.in]%s\n",TRBI,TRST);
+                strcpy(name,"foobar.cube");
+            }
+            createInput (name);
+            exit(EXIT_SUCCESS);
+        }            
+
+    }
+    
+
+}
+
+void getNameOut(char *nameInp, char *nameOut){
+    char c;
+    int i,nchar;
+    nchar = strlen(nameInp);
+
+    strcpy(nameOut,nameInp);
+    
+    for(i=0;i<nchar;i++){
+        c = nameInp[i];
+        if( c == '.')
+          nameOut[i] = '\0';
+    }
+}
+
+void createInput (char* nameInp ){
+
+    char nameOut[64];
+
+    FILE *fin;
+    openFile(&fin,"input.in","w+");
+    
+    getNameOut(nameInp,nameOut);
+
+    fprintf(fin,"#Name of input file\n");
+    fprintf(fin,">> INPUT\n");
+    fprintf(fin,"%s\n",nameInp);
+    fprintf(fin,"#Name of output file\n");
+    fprintf(fin,">> OUTPUT\n");
+    fprintf(fin,"%s\n",nameOut);
+    fprintf(fin,"# Task to evaluate\n");
+    fprintf(fin,"# REDU  Reduced gradient\n");
+    fprintf(fin,"# GRAD  Gradient module\n");
+    fprintf(fin,"# LAP   Laplacian\n");
+    fprintf(fin,"# KIN   Kinetic energy (if the cube is density)\n");
+    fprintf(fin,"#       The expression is approximate. It is taken from\n");
+    fprintf(fin,"#       Yu.A. Abramov, Acta Cryst. A53 1997 264–272.\n");
+    fprintf(fin,"#\n");
+    fprintf(fin,"# VIR   virial... (lap/4 - 2 kin)\n");
+    fprintf(fin,"# NCI   Index of non-covalent interactions\n");
+    fprintf(fin,"# CRIT  to search critical points \n");
+    fprintf(fin,"# VOID  to determine the percentage of the void\n");
+    fprintf(fin,"# REP   Replicates nx ny and nz the original cube\n");
+    fprintf(fin,">> TASK\n");
+    fprintf(fin,"CRIT\n");
+    fprintf(fin,"# It is the polynomial used in the interpolation\n");
+    fprintf(fin,"# 2 and 3 are suitable for critical points, 4 takes a long time\n");
+    fprintf(fin,">> POLY\n");
+    fprintf(fin,"3\n");
+    fprintf(fin,"# If the system is periodic mark yes\n");
+    fprintf(fin,">> PERIODIC\n");
+    fprintf(fin,"yes\n");
+    fprintf(fin,"# Extra properties for  NCI. The default values are\n");
+    fprintf(fin,"# den 0.05 and grad  2.0\n");
+    fprintf(fin,"#>> NCI PROP\n");
+    fprintf(fin,"#0.1 1.5\n");
+    fprintf(fin,"# Void properties the default value is 0.0003 u.a.\n");
+    fprintf(fin,"# it is only loaded if VOID was written in task\n");
+    fprintf(fin,"#>> VOI PROP\n");
+    fprintf(fin,"#0.03\n");
+    fprintf(fin,"# Properties to replicate the cube\n");
+    fprintf(fin,"# only replicates if REP was TASK\n");
+    fprintf(fin,"# needs 3 integer values nx ny and nz\n");
+    fprintf(fin,"#>> REP PROP\n");
+    fprintf(fin,"#1 2 3\n");
+    fprintf(fin,"# If this line is added it is optional the field is calculated\n");
+    fprintf(fin,"# given by task (grad, red,  lap, kin, vir) on one line\n");
+    fprintf(fin,"# given by at1 and at2 (integers)\n");
+    fprintf(fin,"# or by the plane formed by at1, at2 and at3 (integers)\n");
+    fprintf(fin,"#>> GEOM\n");
+    fprintf(fin,"#LINE at1 at2\n");
+    fprintf(fin,"# or\n");
+    fprintf(fin,"#>> GEOM\n");
+    fprintf(fin,"#PLANE at1 at2 at3\n");
+
+    fclose(fin);
+
+}

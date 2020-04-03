@@ -60,6 +60,8 @@ int main(int argc, char* argv[]){
 
   dataCube cube;
   dataRun  parameters;
+  
+  checkCommandLine(argc, argv);
 
   tmpFile(&aux,".c3dInp",nametmp,"w+");
 
