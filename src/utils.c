@@ -575,8 +575,13 @@ void checkCommandLine(int argc, char *argv[]){
     int i;
     char name[64];
     
- //   if( argc == 1 )
- //       exit(EXIT_FAILURE);
+    if( argc == 1 ){
+        printf(" Try to run the program as:\n");
+        printf(" %s  input.in \n",argv[0]);
+        printf(" or to create a example of input file\n");
+        printf(" %s -i [file.cube]\n",argv[0]);
+        exit(EXIT_FAILURE);
+    }
 
     for( i=0; i<argc; i++){
         if( argv[i][0] == '-' && argv[i][1] == 'i'){
