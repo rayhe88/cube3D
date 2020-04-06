@@ -102,7 +102,7 @@ void getMatT(dataCube cube, int *rec, double *matT){
   printf("             |% 10.6lf % 10.6lf % 10.6lf|\n",  matT[0],matT[1],matT[2]);
   printf("       T  =  |% 10.6lf % 10.6lf % 10.6lf|\n",  matT[3],matT[4],matT[5]);
   printf("             |% 10.6lf % 10.6lf % 10.6lf|\n\n",matT[6],matT[7],matT[8]);
-  printf("   det(U) = % 10.6lf\n\n",detMat(matT));
+  printf("   det(T) = % 10.6lf\n\n",detMat(matT));
 
   printBar(stdout);
 
