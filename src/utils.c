@@ -170,6 +170,7 @@ void printHead (char *namei, char *namef, char *nameout){
   printf("             | |__| |_| | |_) |  __/___) | |_| |           \n");
   printf("              \\____\\__,_|_.__/ \\___|____/|____/         \n");
   printf("                                                           \n");
+  printf("                                                     v1.2  \n");
   printBar(stdout);
   printTime(" Start time: ");
   printBanner(" Input Info ",stdout);

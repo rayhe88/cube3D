@@ -1,8 +1,8 @@
 # AUTH Raymundo Hernandez Esparza
 # DATE March 2017
-# REVI August 2018
+# REVI APRIL 2020
 # REQU lapacke / lapack
-#
+# 
 
 
 PRO = cube3D
