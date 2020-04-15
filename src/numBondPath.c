@@ -77,13 +77,8 @@ int bondPath( int bcp, dataCritP *bondCrit, int ncp, dataCritP *nnucCrit,int *bo
           (bpaths). In the future may do a structure for 
           matrix of transformation and rotation.
   **********************************************************/
-  double matI[9],matT[9];
-  matI[0] = 1.0;  matI[1] = 0.0;  matI[2] = 0.0;
-  matI[3] = 0.0;  matI[4] = 1.0;  matI[5] = 0.0;
-  matI[6] = 0.0;  matI[7] = 0.0;  matI[8] = 1.0;
-
+  double matT[9];
   getMatInv(matU,matT);//The inverse of U is the original matrix T
-
 
   sprintf(nameOut,"%sBPath.xyz",name);
 
@@ -110,7 +105,7 @@ int bondPath( int bcp, dataCritP *bondCrit, int ncp, dataCritP *nnucCrit,int *bo
 #pragma omp parallel private(i,nucleo1,nucleo2,val,matH,eval,evec,vec,         \
                              vec2,norm,ri,rn,qi,qn,iterp,itern,dist,qc,q,      \
                              k1,k3,k4,k6,amico,difmin,step,ratm,rij)           \
-                     shared(bcp,bondCrit,cube,param,matU,matT,matI,min0,a3,a4, \
+                     shared(bcp,bondCrit,cube,param,matU,matT,min0,a3,a4,      \
                             a6,c1,c3,c4,c6,attractors,coorAttr)
 {
 

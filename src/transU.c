@@ -185,7 +185,7 @@ void transformCube (dataCube inp, dataCube *out,
  * @param
  * @param
  */
-void getMatInv(double *matT,double *matU){
+void getMatInv(const double *matT,double *matU){
 
   matU[0] = 1.;
   matU[1] = -matT[1]/matT[4];

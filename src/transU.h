@@ -18,7 +18,7 @@
 
  void getMatT(dataCube cube, int *rec, double *matT);
 
- void getMatInv(double *matT, double *matU);
+ void getMatInv(const double *matT, double *matU);
 
  void transformCube (dataCube inp, dataCube *out,
                     int **zatm2, double **coor2,

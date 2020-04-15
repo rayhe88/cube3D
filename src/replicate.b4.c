@@ -26,27 +26,21 @@ int replicate(dataCube cubeOld, int rep[3],const char *name){
 
   openFile(&out,name,"w+");
 
-  printf("%s",TRBI);
-  printf(" Original points\n");
-  printf("  xn = % 6d\n",cubeOld.pts[0]);
-  printf("  yn = % 6d\n",cubeOld.pts[1]);
-  printf("  zn = % 6d\n",cubeOld.pts[2]);
-  printf("%s",TRST);
+ 
+  //printf(" Original points\n");
+  //printf("  xn = % 6d\n",cubeOld.pts[0]);
+  //printf("  yn = % 6d\n",cubeOld.pts[1]);
+  //printf("  zn = % 6d\n",cubeOld.pts[2]);
  
   checkBoundaryCond(cubeOld,&check);
 
   printf(" Check value for boundary conditions: %d\n",check);
 
-  newxp -= (rep[0] - 1) * check;
-  newyp -= (rep[1] - 1) * check;
-  newzp -= (rep[2] - 1) * check;
-  printf("%s",TRBI);
-  printf(" Replicate points\n");
-  printf("  xn = % 6d\n",newxp);
-  printf("  yn = % 6d\n",newyp);
-  printf("  zn = % 6d\n",newzp);
-  printf("%s",TRST);
 
+  //printf(" Replicate points\n");
+  //printf("  xn = % 6d\n",newxp);
+  //printf("  yn = % 6d\n",newyp);
+  //printf("  zn = % 6d\n",newzp);
 
   npt2 = newxp*newyp*newzp;
 
@@ -92,7 +86,7 @@ int replicate(dataCube cubeOld, int rep[3],const char *name){
   unloadData(&cubeNew,&zatm2,&coor2,&fieldNew);
 
 
-// checkData( cubeNew.natm,cubeNew.pts,zatm2,cubeNew.min,cubeNew.mvec,coor2,fieldNew,"prueba replicada",out);  
+ // checkData( cubeNew.natm,cubeNew.pts,zatm2,cubeNew.min,cubeNew.mvec,coor2,fieldNew,"prueba replicada",out);  
 
   fclose(out);
 
