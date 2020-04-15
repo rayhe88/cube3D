@@ -19,6 +19,17 @@
 
 #include <omp.h>
 
+void cpyVec3(double in[3], double out[3]){
+    out[0] = in[0];
+    out[1] = in[1];
+    out[2] = in[2];
+}
+
+void getRiU ( double q[3], const double *matU, double r[3]){
+    cpyVec3(q,r);
+    itrans00(r,matU);
+}
+
 void getKnRungeKuta( double k[3], double val[10]){
   double norm;
 
@@ -39,16 +50,15 @@ int bondPath( int bcp, dataCritP *bondCrit, int ncp, dataCritP *nnucCrit,int *bo
   int iterp,itern,amico;
   int attractors;
   int nucleo1,nucleo2,itmp;
-  double x,y,z;
-  double xc,yc,zc;
-  double x0,y0,z0;
-  double xn,yn,zn;
-  double ratm[3],rn[3],rij;
+  double ratm[3],rij;
   double dist,norm,difmin;
   double val[10];
   double matH[9],eval[3],evec[9];
-  double v1,v2,v3;
   char nameOut[128],tmpname[128];
+
+  double vec[3],vec2[3];
+  double ri[3],qi[3],rn[3],qn[3];
+  double qc[3],q[3];
 
   double k1[3],k3[3],k4[3],k6[3];
   double a3 = 0.300*BPATH_EPS;
@@ -62,6 +72,19 @@ int bondPath( int bcp, dataCritP *bondCrit, int ncp, dataCritP *nnucCrit,int *bo
   double *coorAttr;
   FILE *tmp;
   FILE *out;
+  /**********************************************************
+    TODO  this is only a form to repair the gradient lines 
+          (bpaths). In the future may do a structure for 
+          matrix of transformation and rotation.
+  **********************************************************/
+  double matI[9],matT[9];
+  matI[0] = 1.0;  matI[1] = 0.0;  matI[2] = 0.0;
+  matI[3] = 0.0;  matI[4] = 1.0;  matI[5] = 0.0;
+  matI[6] = 0.0;  matI[7] = 0.0;  matI[8] = 1.0;
+
+  getMatInv(matU,matT);//The inverse of U is the original matrix T
+
+
   sprintf(nameOut,"%sBPath.xyz",name);
 
   tmpFile(&tmp,".c3dBpath_",tmpname,"w+");
@@ -84,11 +107,11 @@ int bondPath( int bcp, dataCritP *bondCrit, int ncp, dataCritP *nnucCrit,int *bo
 
   printBar(stdout);
 
-#pragma omp parallel private(i,nucleo1,nucleo2,xc,yc,zc,val,matH,eval,evec,    \
-                             v1,v2,v3,norm,xn,yn,zn,rn,iterp,itern,dist,x0,y0, \
-                             z0,k1,k3,k4,k6,x,y,z,amico,difmin,step,ratm,rij)\
-                     shared(bcp,bondCrit,cube,param,matU,min0,a3,a4,a6,c1,c3,  \
-                            c4,c6,attractors,coorAttr)
+#pragma omp parallel private(i,nucleo1,nucleo2,val,matH,eval,evec,vec,         \
+                             vec2,norm,ri,rn,qi,qn,iterp,itern,dist,qc,q,      \
+                             k1,k3,k4,k6,amico,difmin,step,ratm,rij)           \
+                     shared(bcp,bondCrit,cube,param,matU,matT,matI,min0,a3,a4, \
+                            a6,c1,c3,c4,c6,attractors,coorAttr)
 {
 
 #pragma omp single 
@@ -102,11 +125,11 @@ int bondPath( int bcp, dataCritP *bondCrit, int ncp, dataCritP *nnucCrit,int *bo
   for(i=0; i < bcp; i++){
     nucleo1 = nucleo2 = 0;
 
-    xc = bondCrit[i].x;
-    yc = bondCrit[i].y;
-    zc = bondCrit[i].z;
+    qc[0] = bondCrit[i].x;
+    qc[1] = bondCrit[i].y;
+    qc[2] = bondCrit[i].z;
 
-    numCritical02(xc,yc,zc,cube,param,matU,min0,val);
+    numCritical02Vec(qc,cube,param,matU,min0,val); 
 
     matH[0] = val[4]; matH[1] = val[7]; matH[2] = val[8];
     matH[3] = val[7]; matH[4] = val[5]; matH[5] = val[9];
@@ -114,72 +137,74 @@ int bondPath( int bcp, dataCritP *bondCrit, int ncp, dataCritP *nnucCrit,int *bo
 
     JacobiNxN(matH,eval,evec);
 /*  The 3rd eigenvector is taken */
-    v1 = evec[6];  v2 = evec[7];  v3 = evec[8]; 
+    vec2[0] = evec[6];  vec2[1] = evec[7];  vec2[2] = evec[8]; 
 
-    norm = getNorm(v1,v2,v3);
-    v1 /= norm; v2 /= norm; v3 /= norm;
+    norm = getNormVec(vec2);
+    vec2[0] /= norm; vec2[1] /= norm; vec2[2] /= norm;
 
-    xn = xc + 0.02*v1;
-    yn = yc + 0.02*v2;
-    zn = zc + 0.02*v3;
-
+    qi[0] = qc[0] + 0.02*vec2[0];
+    qi[1] = qc[1] + 0.02*vec2[1];
+    qi[2] = qc[2] + 0.02*vec2[2];
 
     step = iterp= 0; dist = 6.;
 
-    rn[0] = xn; rn[1] = yn; rn[2] = zn;
-    perfectCube ( param.pbc,rn,cube.min,cube.max);
-    xn = rn[0]; yn = rn[1]; zn = rn[2];
+    perfectCube ( param.pbc,qi,cube.min,cube.max);
     
     while( iterp < MAXPTS && dist > 0 ){
-      x0 = xn;
-      y0 = yn;
-      z0 = zn;
 
-      numCritical01(x0,y0,z0,cube,param,matU,min0,val);
-      getKnRungeKuta(k1,val);
+      getRiU(qi,matU,ri);
+      numCritical01Vec(qi,cube,param,matU,min0,val);
+      getKnRungeKuta(k1,val);   
 
-      x  = x0 + a3;
-      y  = y0 + a3;
-      z  = z0 + a3;
+      q[0] = qi[0] + a3;
+      q[1] = qi[1] + a3;
+      q[2] = qi[2] + a3;
 
-      numCritical01(x,y,z,cube,param,matU,min0,val);
+      numCritical01Vec(q,cube,param,matU,min0,val);
       getKnRungeKuta(k3,val);
 
-      x = x0 + a4;
-      y = y0 + a4;
-      z = z0 + a4;
+      q[0] = qi[0] + a4;
+      q[1] = qi[1] + a4;
+      q[2] = qi[2] + a4;
 
-      numCritical01(x,y,z,cube,param,matU,min0,val);
+      numCritical01Vec(q,cube,param,matU,min0,val);
       getKnRungeKuta(k4,val);
 
-      x = x0 + a6;
-      y = y0 + a6;
-      z = z0 + a6;
+      q[0] = qi[0] + a6;
+      q[1] = qi[1] + a6;
+      q[2] = qi[2] + a6;
 
-      numCritical01(x,y,z,cube,param,matU,min0,val);
+      numCritical01Vec(q,cube,param,matU,min0,val);
       getKnRungeKuta(k6,val);
+      
+      vec[0] = c1*k1[0] + c3*k3[0] + c4*k4[0] + c6*k6[0];
+      vec[1] = c1*k1[1] + c3*k3[1] + c4*k4[1] + c6*k6[1];
+      vec[2] = c1*k1[2] + c3*k3[2] + c4*k4[2] + c6*k6[2];
 
-      xn = x0 + BPATH_EPS*(c1*k1[0] + c3*k3[0] + c4*k4[0] + c6*k6[0]);
-      yn = y0 + BPATH_EPS*(c1*k1[1] + c3*k3[1] + c4*k4[1] + c6*k6[1]);
-      zn = z0 + BPATH_EPS*(c1*k1[2] + c3*k3[2] + c4*k4[2] + c6*k6[2]);
+      //if( param.orth != YES) trans01(vec,matU);
+      
+      
+      rn[0] = ri[0] + BPATH_EPS * vec[0];
+      rn[1] = ri[1] + BPATH_EPS * vec[1];
+      rn[2] = ri[2] + BPATH_EPS * vec[2];
+
+      getRiU(rn,matT,qn);
+
+      perfectCube ( param.pbc,qn,cube.min,cube.max);
+       
+      step++;
 
       amico = 0;
       difmin = 1.E4;
 
-      rn[0] = xn; rn[1] = yn; rn[2] = zn;
-      perfectCube ( param.pbc,rn,cube.min,cube.max);
-      xn = rn[0]; yn = rn[1]; zn = rn[2];
-//      if( inMacroCube(xn,yn,zn,cube.min,cube.max) != 0 )
-//        break;
-
-      step++;
+      cpyVec3(qn,qi);
 
       for(k=0; k < attractors; k++){
         ratm[0] = coorAttr[3*k];
         ratm[1] = coorAttr[3*k+1];
         ratm[2] = coorAttr[3*k+2];
 
-        rij = distance(ratm,rn);
+        rij = distance(ratm,qn);
 
         if( rij < difmin){
           difmin = rij;
@@ -195,8 +220,8 @@ int bondPath( int bcp, dataCritP *bondCrit, int ncp, dataCritP *nnucCrit,int *bo
         iterp++;
         dist = 6.;
         if( step == NSTEP ){
-          if( myIsNanInf_V3(rn) == 0 ){
-            itrans00(rn,matU);
+          if( myIsNanInf_V3(qn) == 0 ){
+            getRiU(qn,matU,rn);
             fprintf(tmp," BP%04d  % 10.6lf   % 10.6lf  % 10.6lf\n",
                             i+1,rn[0]*B2A,rn[1]*B2A,rn[2]*B2A);
           }
@@ -209,66 +234,68 @@ int bondPath( int bcp, dataCritP *bondCrit, int ncp, dataCritP *nnucCrit,int *bo
 
 
  // At this moment we change the direction
-    xn = xc - 0.02*v1; //original 0.02
-    yn = yc - 0.02*v2;
-    zn = zc - 0.02*v3;
-
-    rn[0] = xn; rn[1] = yn; rn[2] = zn;
-    perfectCube ( param.pbc,rn,cube.min,cube.max);
-    xn = rn[0]; yn = rn[1]; zn = rn[2];
+    qi[0] = qc[0] - 0.02*vec2[0]; //original 0.02
+    qi[1] = qc[1] - 0.02*vec2[1];
+    qi[2] = qc[2] - 0.02*vec2[2];
 
     step = itern = 0; dist = 6.;
 
-    while( itern < MAXPTS && dist > 0. ){
-      x0 = xn;
-      y0 = yn;
-      z0 = zn;
+    perfectCube ( param.pbc,qi,cube.min,cube.max);
 
-      numCritical01(x0,y0,z0,cube,param,matU,min0,val);
+    while( itern < MAXPTS && dist > 0. ){
+
+      getRiU(qi,matU,ri);
+      numCritical01Vec(qi,cube,param,matU,min0,val);
       getKnRungeKuta(k1,val);
 
-      x  = x0 - a3;
-      y  = y0 - a3;
-      z  = z0 - a3;
+      q[0] = qi[0] - a3;
+      q[1] = qi[1] - a3;
+      q[2] = qi[2] - a3;
 
-      numCritical01(x,y,z,cube,param,matU,min0,val);
+      numCritical01Vec(qi,cube,param,matU,min0,val);
       getKnRungeKuta(k3,val);
 
-      x  = x0 - a4;
-      y  = y0 - a4;
-      z  = z0 - a4;
+      q[0] = qi[0] - a4;
+      q[1] = qi[1] - a4;
+      q[2] = qi[2] - a4;
 
-      numCritical01(x,y,z,cube,param,matU,min0,val);
+      numCritical01Vec(q,cube,param,matU,min0,val);
       getKnRungeKuta(k4,val);
 
-      x  = x0 - a6;
-      y  = y0 - a6;
-      z  = z0 - a6;
+      q[0] = qi[0] - a6;
+      q[1] = qi[1] - a6;
+      q[2] = qi[2] - a6;
 
-      numCritical01(x,y,z,cube,param,matU,min0,val);
+      numCritical01Vec(q,cube,param,matU,min0,val);
       getKnRungeKuta(k6,val);
 
-      xn = x0 + BPATH_EPS*(c1*k1[0] + c3*k3[0] + c4*k4[0] + c6*k6[0]);
-      yn = y0 + BPATH_EPS*(c1*k1[1] + c3*k3[1] + c4*k4[1] + c6*k6[1]);
-      zn = z0 + BPATH_EPS*(c1*k1[2] + c3*k3[2] + c4*k4[2] + c6*k6[2]);
+      vec[0] = c1*k1[0] + c3*k3[0] + c4*k4[0] + c6*k6[0];
+      vec[1] = c1*k1[1] + c3*k3[1] + c4*k4[1] + c6*k6[1];
+      vec[2] = c1*k1[2] + c3*k3[2] + c4*k4[2] + c6*k6[2];
+      
+      //if (param.orth != YES) trans01 (vec,matU);
 
-      rn[0] = xn; rn[1] = yn; rn[2] = zn;
-      perfectCube ( param.pbc,rn,cube.min,cube.max);
-      xn = rn[0]; yn = rn[1]; zn = rn[2];
+      rn[0] = ri[0] + BPATH_EPS * vec[0];
+      rn[1] = ri[1] + BPATH_EPS * vec[1];
+      rn[2] = ri[2] + BPATH_EPS * vec[2];
+ 
+      getRiU(rn,matT,qn);
+
+      perfectCube ( param.pbc,qn,cube.min,cube.max);
+
       step++;
-
-      //if( inMacroCube(xn,yn,zn,cube.min,cube.max) != 0 )
-      //  break;
 
       amico = 0;
       difmin = 1.E4;
+
+      cpyVec3(qn,qi);
 
       for(k=0; k < attractors; k++){
         ratm[0] = coorAttr[3*k];
         ratm[1] = coorAttr[3*k+1];
         ratm[2] = coorAttr[3*k+2];
 
-        rij = distance(rn,ratm);
+        rij = distance(ratm,qn);
 
         if( rij < difmin){
           difmin = rij;
@@ -285,8 +312,8 @@ int bondPath( int bcp, dataCritP *bondCrit, int ncp, dataCritP *nnucCrit,int *bo
         dist = 6.;
 
         if( step == NSTEP ){
-          if( myIsNanInf_V3(rn) == 0 ){
-            itrans00(rn,matU);
+          if( myIsNanInf_V3(qn) == 0 ){
+            getRiU(qn,matU,rn);
             fprintf(tmp," BP%04d  % 10.6lf   % 10.6lf  % 10.6lf\n",
                           i+1,rn[0]*B2A,rn[1]*B2A,rn[2]*B2A);
           }

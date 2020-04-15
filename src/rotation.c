@@ -5,12 +5,12 @@
 
 // 1 ) getAngles(vecOriginales,angles);
 
-// 2 ) transform(vecIn,angles,vecOut);
+// 2 ) rotacionZYX(vecIn,angles,vecOut);
 //
 int checkRotation( double *mvec){
 
   int ret=NOT;
-  const double zero = 1.E-7;
+  const double zero = 1.E-8;
   double ay = mvec[1];
   double az = mvec[2];
   double bz = mvec[5];
@@ -87,7 +87,6 @@ void rotationCube(double *mvec,dataCube* cube){
 
 }
 
-
 void getAngles( double *vec, double *theta){
 
   int i;
@@ -134,7 +133,6 @@ void getAngles( double *vec, double *theta){
   rotInX ( axe7,theta[0], axe10);
   rotInX ( axe8,theta[0], axe11);
   rotInX ( axe9,theta[0], axe12);
-
 
 }
 
@@ -200,7 +198,12 @@ void rotInZ ( double *v, double theta, double *out){
 
 }
 
-void transform( double *v, double *theta, double *out){
+void transform (double *v, double *theta, double *out){
+ // out = rotx.roty.rotz.v
+ // Ayuda a pasar
+ //  ( 1  bx  cx )             ( a b c )
+ //  ( 0  by  cy ) = transform.( d e f )  
+ //  ( 0   0  cz )             ( g h i )
 
   double cx,sx,cy,sy,cz,sz;
 
@@ -208,12 +211,26 @@ void transform( double *v, double *theta, double *out){
   cy = cos(theta[1]); sy = sin(theta[1]);
   cz = cos(theta[2]); sz = sin(theta[2]);
 
-  cx = 1.; sx = 0.;
-  cy = 1.; sy = 0.;
-
   out[0] = cy*(cz*v[0] - sz*v[1]) + sy*v[2];
   out[1] = cx*(sz*v[0] + cz*v[1]) - sx*(-sy*(cz*v[0]-sz*v[1]) + cy*v[2]);
   out[2] = sx*(sz*v[0] + cz*v[1]) + cx*(-sy*(cz*v[0]-sz*v[1]) + cy*v[2]);
 }
 
+void transformInv (double *v, double *theta, double *out){
+// out = rotz.roty.rotx.v
+ // Ayuda a pasar
+ //  ( a  b  c )                ( 1  by  cx )
+ //  ( d  e  f ) = transformInv.( 0  bx  cy )  
+ //  ( g  h  i )                ( 0   0  cz )
 
+  double cx,sx,cy,sy,cz,sz;
+
+  cx = cos(theta[0]); sx = sin(theta[0]);
+  cy = cos(theta[1]); sy = sin(theta[1]);
+  cz = cos(theta[2]); sz = sin(theta[2]);
+
+  out[0] = -sz*(cx*v[1] - sx*v[2]) + cz*(cy*v[0] + sy*(sx*v[1] + cx*v[2]));
+  out[1] =  cz*(cx*v[1] - sx*v[2]) + sz*(cy*v[0] + sy*(sx*v[1] + cx*v[2]));
+  out[2] = -sy*v[0] + cy*(sx*v[1] + cx*v[2]);
+
+}

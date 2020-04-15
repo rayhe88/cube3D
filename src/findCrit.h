@@ -69,6 +69,10 @@
  int numCritical02( double, double,double, dataCube,
                     dataRun,const double*, double, double *);
 
+ int numCritical01Vec( double [3], dataCube,
+                       dataRun, const double*,double, double *);
+ int numCritical02Vec( double [3], dataCube,
+                       dataRun,const double*, double, double *);
 
  double hessGrad(double *x, double *y, double *z,double *ngrad,double *val);
 

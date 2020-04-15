@@ -24,6 +24,10 @@
  int myIsNanInf( double);
  int myIsNanInf_V3(double*);
 
+ void cpyVec3(double[3], double[3]);
+ 
+ void getRiU(double[3], const double*, double[3]);
+
  void getKnRungeKuta( double[],double[]);
 
  int bondPath(int,dataCritP*,int,dataCritP*,int*,dataCube,dataRun,double, const double*,char*);

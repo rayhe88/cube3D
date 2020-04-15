@@ -13,6 +13,7 @@
 
   void getAngles( double* vec, double *theta);
   void transform( double *in, double *theta, double *out);
+  void transformInv( double *in, double *theta, double *out);
 
   double getTheta( int i, double *vecV, double *vecU );
   void rotInX ( double *v, double theta, double *out);

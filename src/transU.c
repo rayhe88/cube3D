@@ -49,7 +49,6 @@ void getMatT(dataCube cube, int *rec, double *matT){
   vol = fabs(dotProduct(vecC,vecTmp));
 
   // Matriz de transformacion T
-  /*
   matT[0] = 1.;
   matT[1] = cos(gamma);
   matT[2] = cos(beta);
@@ -61,8 +60,8 @@ void getMatT(dataCube cube, int *rec, double *matT){
   matT[6] = 0.;
   matT[7] = 0.;
   matT[8] = vol/(sin(gamma)*normA*normB*normC);
-  */
   // Matriz de transformacion T version 2
+  /* 
   matT[0] = vecA[0]/normA;
   matT[1] = vecB[0]/normB;
   matT[2] = vecC[0]/normC;
@@ -74,6 +73,7 @@ void getMatT(dataCube cube, int *rec, double *matT){
   matT[6] = vecA[2]/normA;
   matT[7] = vecB[2]/normB;
   matT[8] = vecC[2]/normC;
+  */
 
   printBanner(" Geometrical Info ",stdout);
   printf("      vector A   =  % 10.6lf  % 10.6lf  % 10.6lf\n",vecA[0],vecA[1],vecA[2]);

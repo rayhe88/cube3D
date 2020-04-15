@@ -440,6 +440,13 @@ int inMacroCube(double x,double y,double z,double *min, double *max) {
 
 }
 
+int numCritical01Vec(double r[3], dataCube cube, dataRun param, const double *matU, double min0, double *val){
+
+  int ret = numCritical01(r[0],r[1],r[2],cube, param, matU, min0, val);
+
+  return ret;
+}
+
 int numCritical01(double x, double y, double z, dataCube cube, 
                   dataRun param, const double *matU,double min0,double *val){
 
@@ -459,6 +466,13 @@ int numCritical01(double x, double y, double z, dataCube cube,
 
 
   return 0;
+}
+
+int numCritical02Vec(double r[3], dataCube cube, dataRun param, const double *matU, double min0, double *val){
+
+  int ret = numCritical02(r[0],r[1],r[2],cube, param, matU, min0, val);
+
+  return ret;
 }
 
 int numCritical02(double x, double y, double z, dataCube cube, 
