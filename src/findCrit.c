@@ -9,13 +9,41 @@
 #include "utils.h"
 #include "fields.h"
 #include "tableP.h"
+#include "version.h"
 #include "findCrit.h"
 #include "cubeIndex.h"
 #include "mathTools.h"
 #include "numBondPath.h"
 
+#include "transU.h"
+
 #include <omp.h>
 
+void printPoss(int npc, double* coorIn, const double *matU){
+    int i;
+
+    double q[3];
+    double r[3];
+
+    FILE *f;
+
+    f = fopen("posibles.xyz","w+");
+
+    for(i=0;i<npc;i++){
+        q[0] = coorIn[3*i];
+        q[1] = coorIn[3*i+1];
+        q[2] = coorIn[3*i+2];
+        getRiU(q,matU,r);
+
+        fprintf(f,"  PC  % 10.6lf % 10.6lf % 10.6lf\n",r[0]*B2A,r[1]*B2A,r[2]*B2A);
+
+
+    }
+
+    fclose(f);
+
+
+}
 
 int createArrayCritP( int n, dataCritP **ptr, const char *mess){
   
@@ -564,6 +592,8 @@ int  refineCrit(int npc, double min0, dataCube cube, dataRun param, double *coor
 
   createArrayDou(3*npc,&xyz,"Coordinates Intermediate");
 
+  //printPoss(npc,coorIn,matU); //  XXX- Delete after test
+
   nu=0;
   for( mu = 0; mu < npc; mu++){
     x = coorIn[3*mu];
@@ -582,7 +612,21 @@ int  refineCrit(int npc, double min0, dataCube cube, dataRun param, double *coor
       iter++;
     } // end of WHILE
 
-    if( norm < TOLGRD && inMacroCube(x,y,z,cube.min,cube.max) == 0 ){
+    if( iter == MAXITER2 ){
+        while( iter < 2 * MAXITER2 && norm > TOLGRD ){
+            x = (x + coorIn[3*mu]  )/2.;
+            y = (y + coorIn[3*mu+1])/2.;
+            z = (z + coorIn[3*mu+2])/2.;
+            numCritical02(x,y,z,cube,param,matU,min0,val);
+            hessGrad(&xn,&yn,&zn,&norm,val);
+            x += 0.01*xn;
+            y += 0.01*yn;
+            z += 0.01*zn;
+            iter++;
+        } // end of WHILE
+    }
+
+    if( norm < 1.E-4 && inMacroCube(x,y,z,cube.min,cube.max) == 0 ){
       xyz[ 3*nu    ] = x;
       xyz[ 3*nu+ 1 ] = y;
       xyz[ 3*nu+ 2 ] = z;
@@ -756,7 +800,7 @@ int describeCrit(int ncrit, double min0, dataCube cube,
   /**** Imprimimos el xyz ****/
   /**** Geometria del sistema ****/
   fprintf(out,"  %5d\n",cube.natm + ncrit);
-  fprintf(out,"  File created by Cube3D for critical points\n");
+  fprintf(out,"  File created by Cube3D-%s for critical points\n",VERSION);
   for(i=0; i < cube.natm; i++ ){
     getAtomicSymbol(cube.zatm[i],4,symb);
 

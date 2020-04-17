@@ -11,7 +11,7 @@
 
 #ifndef _STRUCT_H_
   #define _STRUCT_H_
-
+  
   #define NOT 0              /**< Macro for NOT.                  */
   #define YES 1              /**< Macro for YES.                  */
 

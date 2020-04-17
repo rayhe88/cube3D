@@ -4,7 +4,7 @@
  *  @brief Code to analize numerically scalar fields in quantum 
  *         chemistry.
  *
- *  @mainpage Cube3D code version 02
+ *  @mainpage Cube3D code v1.2
  *
  *  The main input is cube type files and using numerical interpolation
  *  reconstructs the scalar fields for later analysis.

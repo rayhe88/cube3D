@@ -9,6 +9,7 @@
 #include "array.h"
 #include "fields.h"
 #include "jacobi.h"
+#include "version.h"
 #include "findCrit.h"
 #include "mathTools.h"
 #include "numBondPath.h"
@@ -808,7 +809,7 @@ void printLog1(int nbc, int nrc, int ncc, int nna, int nnu, FILE *out){
   printBar82(out);
   
   fprintf(out," This file contains information about critical points and properties, these\n");
-  fprintf(out," information are determineted by code cube3d v.2\n");
+  fprintf(out," information are determineted by code Cube3D-%s\n",VERSION);
   fprintf(out," The units in this  file for  distance are  Angstrom and  the units for fields are\n");
   fprintf(out," atomic units.\n\n");
   fprintf(out,"  NNACP               Non-nuclear attractor critical point\n");

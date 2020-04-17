@@ -7,6 +7,7 @@
 #include "utils.h"
 #include "graph.h"
 #include "kernels.h"
+#include "version.h"
 #include "findCrit.h"
 #include "mathTools.h"
 #include "geomData.h"
@@ -365,7 +366,7 @@ int evalVoidVol(dataCube cube, dataRun param, char *name){
   openFile(&out,nameout,"w+");
 
   fprintf(out," %10d\n",ncbs);
-  fprintf(out," VOIDS for Cube3D project\n");
+  fprintf(out," VOIDS for Cube3D-%s project\n",VERSION);
 
   for(idxcube = 0; idxcube < nct; idxcube++){
     if( dvoi[idxcube].stat == 2 )

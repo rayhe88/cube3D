@@ -2,7 +2,7 @@
 # DATE March 2017
 # REVI APRIL 2020
 # REQU lapacke / lapack
-# 
+# VER  v1.2
 
 
 PRO = cube3D
@@ -33,13 +33,9 @@ OBJS := main.o\
 		  replicate.o\
 		  mathTools.o\
           numBondPath.o
-		  
-		# pruebaCoef.o\
-        utils.o\
-
 
 $(PRO) : $(OBJS)
-	$(CC) $(CFLAGS) utils.c
+	$(CC) $(CFLAGS)  utils.c
 	$(CC) -o $(EXE) $(OBJS) utils.o $(LIB)
 
 main.o: main.c file.h array.h  lectura.h struct.h
@@ -67,7 +63,7 @@ jacobi.o: jacobi.c jacobi.h
 	$(CC) $(CFLAGS) jacobi.c
 
 kernels.o: kernels.c kernels.h
-	$(CC) $(CFLAGS) -DGRAPH kernels.c
+	$(CC) $(CFLAGS) -DGRAPH  kernels.c
 
 lagForm.o: lagForm.c lagForm.h
 	$(CC) $(CFLAGS) lagForm.c
@@ -82,7 +78,7 @@ transU.o: transU.c transU.h
 	$(CC) $(CFLAGS) transU.c
 
 findCrit.o: findCrit.c findCrit.h
-	$(CC) $(CFLAGS) findCrit.c -fopenmp
+	$(CC) $(CFLAGS)  findCrit.c -fopenmp
 
 critical.o: critical.c critical.h
 	$(CC) $(CFLAGS) critical.c
@@ -109,7 +105,7 @@ pruebaCoef.o : pruebaCoef.c pruebaCoef.h
 	$(CC) $(CFLAGS) pruebaCoef.c
 
 numBondPath.o: numBondPath.c numBondPath.h 
-	$(CC) $(CFLAGS) numBondPath.c -fopenmp
+	$(CC) $(CFLAGS)  numBondPath.c -fopenmp
 
 .PHONY: install
 install:
