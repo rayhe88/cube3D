@@ -17,7 +17,7 @@
  #define TOLFUN0  1.E-6 //original
  #define TOLFUN  1.E-5
 // #define TOLGRD  1.E-14
- #define TOLGRD  1.E-7 // original
+ #define TOLGRD  1.E-5 // original
  #define TOLNRM  100.
  #define MAXITER1 30
  #define MAXITER2 1000
