@@ -211,7 +211,7 @@ void printRunning (dataRun param){
   }
 
   if( task == REP )
-    printf(" Copies in X, Y and Z : %10d %10d %10d\n",
+    printf(" Copies in X, Y and Z : %10lf %10lf %10lf\n",
            param.rep[0],param.rep[1],param.rep[2]);
 
   printBar(stdout);

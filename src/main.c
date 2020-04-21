@@ -101,7 +101,7 @@ int main(int argc, char* argv[]){
   //comienza la ejecución real
   
   //printTapas(cube);
-  selectExec(cube,parameters,matU,nameout);
+  selectExec(cube,parameters,matT,matU,nameout);
   
   unloadData(&cube,&zatm1,&coor1,&field1);  
 

@@ -20,11 +20,11 @@
     double z;
   } dataVoids;
 
-  void selectExec (dataCube, dataRun, double *, char*);
+  void selectExec (dataCube, dataRun, double*, double *, char*);
   int evalRGL     (dataCube, dataRun, double *, char*);
   int evalNCI     (dataCube, dataRun, double *, char*);
   int evalVoidVol (dataCube, dataRun, char*);
-  int evalRepCube (dataCube, dataRun, char*);
+  int evalRepCube (double *, double *,dataCube, dataRun, char*);
 
   double getDenInCube (int,int,int,int,int,double*);
 

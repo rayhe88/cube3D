@@ -20,7 +20,7 @@
  * @param
  * @param
  */
-void selectExec(dataCube cube, dataRun param, double *matU, char *name){
+void selectExec(dataCube cube, dataRun param,double *matT, double *matU, char *name){
 
   double min, max;
   double min2;
@@ -66,7 +66,7 @@ void selectExec(dataCube cube, dataRun param, double *matU, char *name){
                   getLogField (cube,min2);
                   critPoints  (cube,param,matU,min,name); break;
         case VOI: evalVoidVol (cube,param,name);      break;
-        case REP: evalRepCube (cube,param,name);      break;
+        case REP: evalRepCube (matT,matU,cube,param,name);      break;
       }
     }
 
@@ -220,11 +220,11 @@ int evalNCI (dataCube cube, dataRun param, double *matU, char *name){
 
 }
 
-int evalRepCube ( dataCube cube, dataRun param, char *name){
+int evalRepCube ( double *matT, double *matU, dataCube cube, dataRun param, char *name){
 
   char nameOut[128];
   sprintf(nameOut,"%s_%d%d%d.cube",name, 
-          param.rep[0], param.rep[1], param.rep[2]);
+          (int)param.rep[0],(int) param.rep[1],(int) param.rep[2]);
 
 
   int tamanio = param.rep[0]*param.rep[1]*param.rep[2];
@@ -232,11 +232,11 @@ int evalRepCube ( dataCube cube, dataRun param, char *name){
   printf(" Number of atoms      : % 10d\n",(cube.natm)*tamanio);
   printf(" Total field points   : % 10d\n",(cube.npt)*tamanio);
   printf(" Points in X Y Z axes : % 10d % 10d % 10d\n",
-          (cube.pts[0])*(param.rep[0]) ,
-          (cube.pts[1])*(param.rep[1]) ,
-          (cube.pts[2])*(param.rep[2]) );
+          (int)ceil((cube.pts[0])*(param.rep[0])) ,
+          (int)ceil((cube.pts[1])*(param.rep[1])) ,
+          (int)ceil((cube.pts[2])*(param.rep[2])) );
 
-  replicate(cube,param.rep,nameOut);
+  replicate(cube,param.rep,matT,matU,nameOut);
 
   printBar(stdout);
   printf("  File %s was generated\n",nameOut);

@@ -57,11 +57,11 @@
     int size;                /**< Size of the array for the values
                                   of the field                    */
     int geotask;            
-    int rep[3];              /**< Replica in the 3 direcctions.   */
     int geom[3];             /**< Atoms for geometry lin or plan. */
     double la2;              /**< Cutoff for the lambda2 value.   */
     double rgd;              /**< Cutoff for the reduced gradient.*/
     double vac;              /**< Cutoff for density in voids.    */
+    double rep[3];           /**< Replica in the 3 direcctions.   */
 
   } dataRun;                 /**< Structure for run information.  */
 

@@ -5,15 +5,28 @@
 #include "file.h"
 #include "utils.h"
 
+int repInt(double rep){
+    if ( rep >= 1. )
+        return floor(rep) - 1;
+    else
+        return 0;
+}
 
-int replicate(dataCube cubeOld, int rep[3],const char *name){
+int repInt2(double rep){
+    if ( rep >= 1. )
+        return (int)ceil(rep);
+    else
+        return 1;
+}
+int replicate(dataCube cubeOld, double rep[3],const double matT[9],
+              const double matU[9],const char *name){
 
   char text[64];
   int i, npt2,check;
   int tamanio;
-  int newxp = ceil(cubeOld.pts[0]*rep[0]);
-  int newyp = ceil(cubeOld.pts[1]*rep[1]);
-  int newzp = ceil(cubeOld.pts[2]*rep[2]);
+  int newxp = (int) ceil(cubeOld.pts[0]*rep[0]);
+  int newyp = (int) ceil(cubeOld.pts[1]*rep[1]);
+  int newzp = (int) ceil(cubeOld.pts[2]*rep[2]);
   int *zatm2;
   double *coor2;
   double *fieldNew;
@@ -21,7 +34,7 @@ int replicate(dataCube cubeOld, int rep[3],const char *name){
   FILE *out;
   dataCube cubeNew;
 
-  sprintf(text," Cube replicate %3d x %3d x %3d times",rep[0],rep[1],rep[2]);
+  sprintf(text," Cube replicate %6lf x %6lf x %6lf times",rep[0],rep[1],rep[2]);
  
 
   openFile(&out,name,"w+");
@@ -37,9 +50,10 @@ int replicate(dataCube cubeOld, int rep[3],const char *name){
 
   printf(" Check value for boundary conditions: %d\n",check);
 
-  newxp -= (rep[0] - 1) * check;
-  newyp -= (rep[1] - 1) * check;
-  newzp -= (rep[2] - 1) * check;
+  newxp -= ( repInt( rep[0] )) * check;
+  newyp -= ( repInt( rep[1] )) * check;
+  newzp -= ( repInt( rep[2] )) * check;
+
   printf("%s",TRBI);
   printf(" Replicate points\n");
   printf("  xn = % 6d\n",newxp);
@@ -52,7 +66,6 @@ int replicate(dataCube cubeOld, int rep[3],const char *name){
 
   createArrayDou ( npt2,&fieldNew,"Field2");
 
-  
   cubeNew.pts[0] = newxp;
   cubeNew.pts[1] = newyp;
   cubeNew.pts[2] = newzp;
@@ -71,15 +84,14 @@ int replicate(dataCube cubeOld, int rep[3],const char *name){
   }
 
   tamanio  = cubeOld.natm;
-  tamanio *= ceil(rep[0]);
-  tamanio *= ceil(rep[1]);
-  tamanio *= ceil(rep[2]);
+  tamanio *= repInt2(rep[0]);
+  tamanio *= repInt2(rep[1]);
+  tamanio *= repInt2(rep[2]);
 
   createArrayInt(tamanio,&zatm2,"New zatm");
   createArrayDou(3*tamanio,&coor2,"New coor");
 
-  replicateCoor(check,cubeOld,zatm2,coor2,rep);
-
+  tamanio = replicateCoor(check,cubeOld,zatm2,coor2,rep, matT,matU);
 
   cubeNew.natm = tamanio;
 
@@ -135,8 +147,19 @@ int getIndexOld(int check, int idx, int oldpts[3], int newpts[3] ){
   return oldIdx;
 }
 
+void getRiT( double r[3], const double u[9], double q[3]){
+    double rx,ry,rz;
+    rx = r[0]; ry = r[1]; rz = r[2];
 
-int replicateCoor(int check, dataCube cubeOld, int *zatm2, double *coor2, int *rep){
+    q[0] =  rx - ry*(u[1]/u[4]);                                                  
+    q[0] += rz*((u[1]*u[5] - u[2]*u[4])/(u[4]*u[8]));                             
+    q[1]  = ry/u[4] - rz*u[5]/(u[4]*u[8]);                                        
+    q[2]  = rz/u[8];  
+
+}
+
+int replicateCoor(int check, dataCube cubeOld, int *zatm2, double *coor2, 
+                  double *rep,const double* matT,const double* matU){
 
   int i,j,k,l,n;
   int nrx,nry,nrz;
@@ -147,41 +170,70 @@ int replicateCoor(int check, dataCube cubeOld, int *zatm2, double *coor2, int *r
   int npz = cubeOld.pts[2] - check;
 
   double hrx[3],hry[3],hrz[3];
+  double hqx[3],hqy[3],hqz[3];
+  double deltax,deltay,deltaz;
 
   hrx[0] = npx*(cubeOld.mvec[0]);
   hrx[1] = npx*(cubeOld.mvec[1]);
   hrx[2] = npx*(cubeOld.mvec[2]);
+  getRiT(hrx, matT, hqx);
 
   hry[0] = npy*(cubeOld.mvec[3]);
   hry[1] = npy*(cubeOld.mvec[4]);
   hry[2] = npy*(cubeOld.mvec[5]);
+  getRiT(hry, matT, hqy);
 
   hrz[0] = npz*(cubeOld.mvec[6]);
   hrz[1] = npz*(cubeOld.mvec[7]);
   hrz[2] = npz*(cubeOld.mvec[8]);
+  getRiT(hrz, matT, hqz);
 
-  nrx = (int) rep[0];
-  nry = (int) rep[1];
-  nrz = (int) rep[2];
+  deltax = getNormVec(hqx);
+  deltay = getNormVec(hqy);
+  deltaz = getNormVec(hqz);
 
-  
+  printf(" deltax = % 10.8lf  hqx = % 10.8lf  \n",deltax,getNormVec(hqx));
+  printf(" deltay = % 10.8lf  hqy = % 10.8lf  \n",deltay,getNormVec(hqy));
+  printf(" deltaz = % 10.8lf  hqz = % 10.8lf  \n",deltaz,getNormVec(hqz));
+
+  double max_x,max_y,max_z;
+  max_x = deltax * rep[0];
+  max_y = deltay * rep[1];
+  max_z = deltaz * rep[2];
+
+  nrx = (int) ceil ( rep[0] );
+  nry = (int) ceil ( rep[1] );
+  nrz = (int) ceil ( rep[2] );
+
+  double ra[3],qa[3];
+ 
+  l=0;
   for(i=0;i<nrx;i++){
     for(j=0;j<nry;j++){
       for(k=0;k<nrz;k++){
         for(n=0;n<natm;n++){
-          l  = i*nry*nrz*natm;
-          l += j*nrz*natm;
-          l += k*natm;
-          l += n;
-          zatm2[l] = cubeOld.zatm[n];
-          coor2[3*l]   = cubeOld.coor[3*n  ] + i*hrx[0] + j*hry[0] + k*hrz[0];
-          coor2[3*l+1] = cubeOld.coor[3*n+1] + i*hrx[1] + j*hry[1] + k*hrz[1];
-          coor2[3*l+2] = cubeOld.coor[3*n+2] + i*hrx[2] + j*hry[2] + k*hrz[2];
-          
+            ra[0] = cubeOld.coor[3*n];
+            ra[1] = cubeOld.coor[3*n+1];
+            ra[2] = cubeOld.coor[3*n+2];
+
+            getRiT(ra, matT, qa);
+            qa[0] += i*deltax;
+            qa[1] += j*deltay;
+            qa[2] += k*deltaz;
+
+            if( qa[0] <= max_x && qa[1] <= max_y && qa[2] <= max_z){
+                getRiT(qa, matU, ra);
+
+                zatm2[l] = cubeOld.zatm[n];
+                coor2[3*l]   = ra[0];
+                coor2[3*l+1] = ra[1];
+                coor2[3*l+2] = ra[2];
+                l++;
+            }
         }
       }
     }
   }
  
-  return 0;
+  return l-1;
 }

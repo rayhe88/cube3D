@@ -232,11 +232,11 @@ int readInput (char *namefld, char *nameout, dataRun *param, char *nameinp){
   int tmptask;
   int tmppoly;
   int tmpper=0;
-  int rpx,rpy,rpz;
   int bin[10];
   int izq,der,size;
   int at1,at2,at3;
   int gt=0;
+  double  rpx,rpy,rpz;
   double tmpden,tmpgra;
   double tmpvac;
   FILE *inp;
@@ -311,7 +311,7 @@ int readInput (char *namefld, char *nameout, dataRun *param, char *nameinp){
       bin[5] = 1;
     }
     if( !strncmp(buffer,flag_6,7) ){ // REP PROP
-      fscanf(tmp,"%d %d %d",&rpx,&rpy,&rpz);
+      fscanf(tmp,"%lf %lf %lf",&rpx,&rpy,&rpz);
       if( rpx <= 0 ){
         rpx = 1;
         printf("  [ERROR] n_rep_x must be greater than zero\n");
@@ -387,7 +387,7 @@ int readInput (char *namefld, char *nameout, dataRun *param, char *nameinp){
   }
 // Default for replicate
   if( bin[6] == 0 ){  
-    rpx = rpy = rpz = 1;
+    rpx = rpy = rpz = (double) 1;
   }  
 // Default for void
   if( bin[7] == 0 ){
