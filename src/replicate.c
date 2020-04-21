@@ -18,7 +18,7 @@ int repInt2(double rep){
     else
         return 1;
 }
-int replicate(dataCube cubeOld, double rep[3],const double matT[9],
+int replicate(int *npts,dataCube cubeOld, double rep[3],const double matT[9],
               const double matU[9],const char *name){
 
   char text[64];
@@ -39,13 +39,6 @@ int replicate(dataCube cubeOld, double rep[3],const double matT[9],
 
   openFile(&out,name,"w+");
 
-  printf("%s",TRBI);
-  printf(" Original points\n");
-  printf("  xn = % 6d\n",cubeOld.pts[0]);
-  printf("  yn = % 6d\n",cubeOld.pts[1]);
-  printf("  zn = % 6d\n",cubeOld.pts[2]);
-  printf("%s",TRST);
- 
   checkBoundaryCond(cubeOld,&check);
 
   printf(" Check value for boundary conditions: %d\n",check);
@@ -53,14 +46,6 @@ int replicate(dataCube cubeOld, double rep[3],const double matT[9],
   newxp -= ( repInt( rep[0] )) * check;
   newyp -= ( repInt( rep[1] )) * check;
   newzp -= ( repInt( rep[2] )) * check;
-
-  printf("%s",TRBI);
-  printf(" Replicate points\n");
-  printf("  xn = % 6d\n",newxp);
-  printf("  yn = % 6d\n",newyp);
-  printf("  zn = % 6d\n",newzp);
-  printf("%s",TRST);
-
 
   npt2 = newxp*newyp*newzp;
 
@@ -99,12 +84,11 @@ int replicate(dataCube cubeOld, double rep[3],const double matT[9],
   cubeNew.coor  = coor2;
   cubeNew.field = fieldNew;
 
+  (*npts) = tamanio;
+
   printCube(text,cubeNew,out);
 
   unloadData(&cubeNew,&zatm2,&coor2,&fieldNew);
-
-
-// checkData( cubeNew.natm,cubeNew.pts,zatm2,cubeNew.min,cubeNew.mvec,coor2,fieldNew,"prueba replicada",out);  
 
   fclose(out);
 
@@ -191,10 +175,6 @@ int replicateCoor(int check, dataCube cubeOld, int *zatm2, double *coor2,
   deltax = getNormVec(hqx);
   deltay = getNormVec(hqy);
   deltaz = getNormVec(hqz);
-
-  printf(" deltax = % 10.8lf  hqx = % 10.8lf  \n",deltax,getNormVec(hqx));
-  printf(" deltay = % 10.8lf  hqy = % 10.8lf  \n",deltay,getNormVec(hqy));
-  printf(" deltaz = % 10.8lf  hqz = % 10.8lf  \n",deltaz,getNormVec(hqz));
 
   double max_x,max_y,max_z;
   max_x = deltax * rep[0];

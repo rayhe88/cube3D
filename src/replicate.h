@@ -7,7 +7,7 @@
 #ifndef _REPLICATE_H_
   #define _REPLICATE_H_
 
-  int replicate(dataCube, double[], const double *, const double *, const char*);
+  int replicate(int*,dataCube, double[], const double *, const double *, const char*);
 
   int replicateCoor(int, dataCube,int*,double*,double*, const double*,const double*);
 

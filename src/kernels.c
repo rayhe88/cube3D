@@ -223,20 +223,23 @@ int evalNCI (dataCube cube, dataRun param, double *matU, char *name){
 int evalRepCube ( double *matT, double *matU, dataCube cube, dataRun param, char *name){
 
   char nameOut[128];
-  sprintf(nameOut,"%s_%d%d%d.cube",name, 
-          (int)param.rep[0],(int) param.rep[1],(int) param.rep[2]);
+  int natos,npts;
+  sprintf(nameOut,"%sRep.cube",name);
 
-
-  int tamanio = param.rep[0]*param.rep[1]*param.rep[2];
   printBanner(" Cube Info Rep ",stdout);
-  printf(" Number of atoms      : % 10d\n",(cube.natm)*tamanio);
-  printf(" Total field points   : % 10d\n",(cube.npt)*tamanio);
-  printf(" Points in X Y Z axes : % 10d % 10d % 10d\n",
-          (int)ceil((cube.pts[0])*(param.rep[0])) ,
-          (int)ceil((cube.pts[1])*(param.rep[1])) ,
-          (int)ceil((cube.pts[2])*(param.rep[2])) );
 
-  replicate(cube,param.rep,matT,matU,nameOut);
+  replicate(&natos,cube,param.rep,matT,matU,nameOut);
+
+  npts  = (int)ceil((cube.pts[0])*(param.rep[0])) *
+          (int)ceil((cube.pts[1])*(param.rep[1])) *
+          (int)ceil((cube.pts[2])*(param.rep[2])) ;
+
+  printf(" Number of atoms       : % 10d\n",natos);
+  printf(" Total field points    : % 10d\n",npts );
+  printf(" Points in X Y Z axes  : % 10d % 10d % 10d\n",
+          (int)ceil((cube.pts[0])*(param.rep[0])),
+          (int)ceil((cube.pts[1])*(param.rep[1])),
+          (int)ceil((cube.pts[2])*(param.rep[2])));
 
   printBar(stdout);
   printf("  File %s was generated\n",nameOut);
