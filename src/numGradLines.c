@@ -476,7 +476,6 @@ int gradientLines4(int bcp, int rcp, int ccp,
 
   printf("  Number of threads in bond path  : %6d\n",omp_get_num_threads());
   double cop;
-  int k;
 
   for(i=0; i < rcp; i++){
     qc[0] = ringCrit[i].x;

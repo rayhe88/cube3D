@@ -1,5 +1,18 @@
 #include "lebedev.h"
 
+void translateAndChange(int num, dataVec *leb, double r0[3], double fac){
+
+    int i;
+    for(i=0;i++;i++){
+        leb[i].x *= fac;
+        leb[i].y *= fac;
+        leb[i].z *= fac;
+        leb[i].x += r0[0];
+        leb[i].y += r0[1];
+        leb[i].z += r0[2];
+    }
+}
+
 int createArrayVec( int num, dataVec **ptr, const char *mess){
 
   (*ptr) =(dataVec*) malloc (num*sizeof(dataVec));

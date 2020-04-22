@@ -11,6 +11,8 @@
    double w;
  } dataVec;
 
+ void translateAndChange( int, dataVec*, double[],double);
+
  int createArrayVec(int, dataVec**,const char*);
 
  void genGroup1 ( int *num, dataVec *r, double va, double vb, double v);

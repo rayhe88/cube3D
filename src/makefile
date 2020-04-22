@@ -6,7 +6,7 @@
 
 
 PRO = cube3D
-EXE = $(PRO).x
+EXE = $(PRO)-basins.x
 
 CC := gcc
 CFLAGS := -c -Wunused  -Wno-unused-result -O2 
@@ -32,7 +32,8 @@ OBJS := main.o\
 		  lagrange2.o\
 		  replicate.o\
 		  mathTools.o\
-          numBondPath.o
+          numBondPath.o\
+          numGradLines.o
 
 $(PRO) : $(OBJS)
 	$(CC) $(CFLAGS)  utils.c
@@ -106,6 +107,9 @@ pruebaCoef.o : pruebaCoef.c pruebaCoef.h
 
 numBondPath.o: numBondPath.c numBondPath.h 
 	$(CC) $(CFLAGS)  numBondPath.c -fopenmp
+
+numGradLines.o: numGradLines.c numGradLines.h
+	$(CC) $(CFLAGS)  numGradLines.c -fopenmp
 
 .PHONY: install
 install:
