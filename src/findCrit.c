@@ -14,6 +14,7 @@
 #include "cubeIndex.h"
 #include "mathTools.h"
 #include "numBondPath.h"
+#include "numGradLines.h"
 
 #include "transU.h"
 
@@ -864,6 +865,10 @@ int describeCrit(int ncrit, double min0, dataCube cube,
   printf("  File %s was generated\n",nameOut);
   logFile (bcp,rcp,ccp,ncp,bondCrit,ringCrit,cageCrit,nnucCrit,cube,param, min0,
        bonding,matU,name);
+
+
+   gradientLines5(0,cube,param,min0,matU,name);
+   gradientLines5(1,cube,param,min0,matU,name);
 
   //axesCrit (bcp,rcp,ccp,ncp,bondCrit,ringCrit,cageCrit,nnucCrit,cube,param, min0,
   //     matU,name);

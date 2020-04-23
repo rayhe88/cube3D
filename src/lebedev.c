@@ -3,7 +3,7 @@
 void translateAndChange(int num, dataVec *leb, double r0[3], double fac){
 
     int i;
-    for(i=0;i++;i++){
+    for(i=0;i<num;i++){
         leb[i].x *= fac;
         leb[i].y *= fac;
         leb[i].z *= fac;

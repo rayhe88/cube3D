@@ -6,10 +6,11 @@
 
 
 PRO = cube3D
-EXE = $(PRO)-basins.x
+EXE = $(PRO).x
 
-CC := gcc
-CFLAGS := -c -Wunused  -Wno-unused-result -O2 
+CC := icc
+###CFLAGS := -c -Wunused  -Wno-unused-result -O2 
+CFLAGS := -c -Wunused  -O2 
 LIB := -lm  -fopenmp
 
 OBJS := main.o\

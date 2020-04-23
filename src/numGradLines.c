@@ -664,3 +664,146 @@ int sortBondCritP(int np, double qi[3],dataCritP *crit){
                 crit[j] = tmp;
             }
 }
+
+
+int gradientLines5(int atm, dataCube cube,
+                  dataRun param, double min0,const double *matU,
+                  char *name){
+  int np,step;
+  int flag,k,iter;
+  double val[10];
+  char nameOut[128],tmpname[128];
+   
+  double rad;
+  double ri[3],qi[3],rn[3],qn[3];
+  double qc[3],rc[3];
+
+  double rho;
+  FILE *tmp;
+  FILE *out;
+ 
+  dataVec *rleb;
+  
+  /**********************************************************
+    TODO  this is only a form to repair the gradient lines 
+          (bpaths). In the future may do a structure for 
+          matrix of transformation and rotation.
+  **********************************************************/
+  double matT[9];
+  getMatInv(matU,matT);//The inverse of U is the original matrix T
+
+  sprintf(nameOut,"%sBasin_%d.xyz",name,atm+1);
+
+  tmpFile(&tmp,".c3dgline_",tmpname,"w+");
+
+   rc[0] = cube.coor[3*atm];
+   rc[1] = cube.coor[3*atm + 1];
+   rc[2] = cube.coor[3*atm + 2];
+
+   printf(" % 10.6lf % 10.6lf % 10.6lf\n",rc[0],rc[1],rc[2]);
+    
+    getRiU(rc,matT,qc);
+
+    printBar(stdout);
+
+    printf("  Number of threads in bond path  : %6d\n",omp_get_num_threads());
+
+    rad = 0.1;
+    np = 434; //np = 266;
+    createArrayVec(np,&rleb,"Lebedev points");
+    Lebedev0434(rleb);
+    //Lebedev0266(rleb);
+    //Lebedev0050(rleb);
+
+    perfectCube ( param.pbc,qc,cube.min,cube.max);
+    translateAndChange(np,rleb,rc,rad);
+
+    double sum_k = (double) 0.;
+    double sum_i,ngrad;
+
+    for ( k = 0; k < np; k++ ){
+      
+
+      transVec(rleb[k],ri);
+      getRiU(ri,matT,qi);
+      numCritical01Vec(qi,cube,param,matU,min0,val);
+      rho = val[0];
+      ngrad = 10.;
+      step = 0;
+      iter = 0;
+      sum_i = rho;
+      flag = k%2;
+      while( iter < 2*MAXPTS && rho > 1.E-4 && ngrad > 1.E-5){
+        perfectCube ( param.pbc,qi,cube.min,cube.max);
+
+        numCritical01Vec(qi,cube,param,matU,min0,val);
+        ngrad = getNorm(val[1],val[2],val[3]);
+        rho = val[0];
+        sum_i += rho;
+        if( ngrad > 1.E-7){
+          rn[0] = ri[0] - 0.01 * val[1]/ngrad;
+          rn[1] = ri[1] - 0.01 * val[2]/ngrad;
+          rn[2] = ri[2] - 0.01 * val[3]/ngrad;
+        }else{
+            step = 20;
+            iter = 3*MAXPTS;
+        }
+
+        getRiU(rn,matT,qn);
+        perfectCube ( param.pbc,qn,cube.min,cube.max);
+        cpyVec3(qn,qi);
+        getRiU(qi,matU,ri);
+        getRiU(qn,matU,rn);
+        step++;
+        if( step == 20 && flag == 0){
+          fprintf(tmp," BASIN%04d  % 10.6lf   % 10.6lf  % 10.6lf\n",
+                            atm+1,rn[0]*B2A,rn[1]*B2A,rn[2]*B2A);
+          step = 0;
+          iter++;
+        }
+      }
+
+      sum_k += (sum_i*0.01)*rleb[k].w;
+    }
+
+
+  printf(" Suma de lebedev : % 12.8lf\n",sum_k);
+
+  free(rleb);
+
+  rewind(tmp);
+
+  int npoints=0;
+  char c;
+
+  while( (c = fgetc(tmp)) != EOF){
+    if( c == '\n' )
+      npoints++;
+  }
+  rewind(tmp);
+
+
+  openFile(&out,nameOut,"w+");
+
+  fprintf(out," %10d\n",npoints);
+  fprintf(out," Gradient Lines (basins) atm = %d  file in Aangstrom\n",atm+1);
+
+  while( (c = fgetc(tmp)) != EOF ){
+    fprintf(out,"%c",c);
+  }
+
+
+  fclose(tmp);
+  fclose(out);
+
+  remove(tmpname);
+  printBar(stdout);
+  printf("  File %s was generated\n",nameOut);
+  return 0;
+}
+
+void basinsAtm (int atm, dataCube cube,
+                dataRun param, double min0,const double *matU,
+                char *name){
+
+}

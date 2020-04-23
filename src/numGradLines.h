@@ -27,6 +27,8 @@
 
   int gradientLines4(int, int, int, dataCritP *, dataCritP *, dataCritP *, dataCube, dataRun, double, const double *,
   char *);
+
+  int gradientLines5(int, dataCube, dataRun, double, const double *, char*);
   int sortBondCritP(int, double[3], dataCritP *);
   void cpyCritP(int, dataCritP*, dataCritP*);
 #endif
