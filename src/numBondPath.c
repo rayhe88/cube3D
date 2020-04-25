@@ -146,7 +146,7 @@ int bondPath( int bcp, dataCritP *bondCrit, int ncp, dataCritP *nnucCrit,int *bo
 
     perfectCube ( param.pbc,qi,cube.min,cube.max);
     
-    while( iterp < MAXPTS && dist > 0 ){
+    while( iterp < MAXPTS && dist > 0.0 ){
 
       getRiU(qi,matU,ri);
       numCritical01Vec(qi,cube,param,matU,min0,val);
@@ -1188,4 +1188,66 @@ int axesCrit( int bcp, int rcp, int ccp, int ncp, dataCritP *bondCrit,
   
   } // fin NCP
 
+}
+
+
+int logFileCSV( int bcp, dataCritP *bondCrit, dataCube cube, 
+                dataRun param, double min0, 
+                const double *matU, char *name){
+
+  int i;
+  char nameOut[128];
+  double fun,lap,val[10];
+  double l1,l2,l3,matH[9];
+  double eval[3],evec[9];
+  double r[3],q[3],ellep;
+  double kinG,kinK,virial,eneH;
+  FILE *out;
+
+  sprintf(nameOut,"%sCritP.csv",name);
+  openFile(&out,nameOut,"w+");
+  
+  fprintf(out,"Index, Type, Coor X, Coor Y, Coor Z, Density, ");
+  fprintf(out,"Laplacian, Kinetic G, Kinetic K, Virial, energy H, ");
+  fprintf(out,"lambda_1, lambda_2, lambda_3, ellepticiy\n");
+
+  for(i=0;i<bcp;i++){
+      q[0] = bondCrit[i].x;
+      q[1] = bondCrit[i].y;
+      q[2] = bondCrit[i].z;
+      numCritical02Vec_exp(q,cube,param,matU,min0,val);
+
+      fun  = val[0];
+	  lap   = getLap(val);
+
+	  getEnergies(fun,lap,&kinG,&kinK,&virial);
+	  eneH = kinG + virial;
+	
+      matH[0] = val[4]; matH[1] = val[7]; matH[2] = val[8];
+      matH[3] = val[7]; matH[4] = val[5]; matH[5] = val[9];
+      matH[6] = val[8]; matH[7] = val[9]; matH[8] = val[6];
+
+      JacobiNxN(matH,eval,evec);
+      //valoresPropios3x3(matH,eval);
+	   l1 = eval[0]; l2 = eval[1]; l3 = eval[2];
+      ellep = (l1/l2)-1.;
+      
+      getRiU(q,matU,r);
+      r[0] *= B2A;
+      r[1] *= B2A;
+      r[2] *= B2A;
+      fprintf(out,"%3d,BCP,%10.6lf,%10.6lf,%10.6lf,",i+1,r[0],r[1],r[2]);
+      fprintf(out,"%10.6lf,%10.6lf,%10.6lf,%10.6lf,",fun,lap,kinG,kinK);
+      fprintf(out,"%10.6lf,%10.6lf,",virial,eneH);
+      fprintf(out,"%10.6lf,%10.6lf,%10.6lf,",l1,l2,l3);
+      fprintf(out,"%10.6lf\n",ellep);
+
+  }
+
+  fclose(out);
+
+  printBar(stdout);
+  printf("  File %s was generated\n",nameOut);
+
+  return 0;
 }

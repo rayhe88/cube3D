@@ -4,6 +4,8 @@
 #include "lagrange2.h"
 #include "cubeIndex.h"
 #include "utils.h"
+#include "numBondPath.h"
+#include "transU.h"
 
 int getFieldInLine(double min0,dataCube cube, dataRun param, const double *matU,char *name){
 
@@ -140,6 +142,11 @@ int getFieldInPlane(double min0,dataCube cube, dataRun param, const double *matU
   int n;
   double dist,h;
   double r1[3],r2[3],r3[3];
+  double r[3],q[3];
+
+  double matT[9];
+
+  getMatInv(matU,matT);
 
   double f[param.size];
   double xx[param.pol + 1];
@@ -217,7 +224,6 @@ int getFieldInPlane(double min0,dataCube cube, dataRun param, const double *matU
   }
 
   int i,j;
-  double r[3];
   int idx[3];
   double val[10];
   double f0;
@@ -230,6 +236,9 @@ int getFieldInPlane(double min0,dataCube cube, dataRun param, const double *matU
       r[0] = r0[0] + i*h*vL[0] + j*h*vM[0];
       r[1] = r0[1] + i*h*vL[1] + j*h*vM[1];
       r[2] = r0[2] + i*h*vL[2] + j*h*vM[2];
+
+      getRiU(r,matT,q);
+
       ejeL = dotProduct(r,vL);
       ejeM = dotProduct(r,vM);
       cgL  = dotProduct(cg,vL);
@@ -238,12 +247,12 @@ int getFieldInPlane(double min0,dataCube cube, dataRun param, const double *matU
       ejeL -= cgL;
       ejeM -= cgM;
 
-      getIndex3D(cube.pts,r,cube.min,cube.hvec,idx);
+
+      getIndex3D(cube.pts,q,cube.min,cube.hvec,idx);
       loadLocalField(idx,cube,param,xx,yy,zz,f);
 
-      gNum(r[0],r[1],r[2],xx,yy,zz,f,param.pol,param.orth,matU,min0,val);
+      gNum(q[0],q[1],q[2],xx,yy,zz,f,param.pol,param.orth,matU,min0,val);
       f0 = gfun(val);
-      
 
       fprintf(out," % 12.6lf % 12.6lf  % 14.8lf % 14.8lf \n",ejeL*B2A,ejeM*B2A,f0,val[0]);
 

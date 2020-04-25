@@ -522,6 +522,28 @@ int numCritical02(double x, double y, double z, dataCube cube,
 
   return 0;
 }
+int numCritical02Vec_exp(double r[3], dataCube cube, dataRun param, const double *matU, double min0, double *val){
+  int i,idx[3];
+  double f[param.size];
+  double xx[param.pol + 1];
+  double yy[param.pol + 1];
+  double zz[param.pol + 1];
+
+
+  idx[0] = getIndex(cube.pts[0],r[0],cube.min[0],cube.hvec[0]);
+  idx[1] = getIndex(cube.pts[1],r[1],cube.min[1],cube.hvec[1]);
+  idx[2] = getIndex(cube.pts[2],r[2],cube.min[2],cube.hvec[2]);
+
+  loadLocalField(idx,cube,param,xx,yy,zz,f);
+
+  for(i=0;i<param.size;i++){
+    f[i] = exp(f[i]) + min0 - DELTA;
+  }
+
+  getDerivatives3D(r[0],r[1],r[2],xx,yy,zz,f,param.pol,param.orth,matU,val);
+
+  return 0;
+}
 
 double getFunInCube(int i, int j, int k, int n1, int n2, double min0, double *h,double *field,double *norm){
   
@@ -864,6 +886,8 @@ int describeCrit(int ncrit, double min0, dataCube cube,
   printf("  File %s was generated\n",nameOut);
   logFile (bcp,rcp,ccp,ncp,bondCrit,ringCrit,cageCrit,nnucCrit,cube,param, min0,
        bonding,matU,name);
+  
+  logFileCSV(bcp,bondCrit,cube,param,min0,matU,name);
 
   //axesCrit (bcp,rcp,ccp,ncp,bondCrit,ringCrit,cageCrit,nnucCrit,cube,param, min0,
   //     matU,name);

@@ -14,8 +14,10 @@
 #ifndef _FINDCRIT_H_
  #define _FINDCRIT_H_
 
- #define TOLFUN0  1.E-6 //original
- #define TOLFUN  1.E-5
+ //#define TOLFUN0  1.E-6 //original
+ //#define TOLFUN  1.E-5
+ #define TOLFUN0  1.E-10 //original
+ #define TOLFUN  1.E-10
 // #define TOLGRD  1.E-14
  #define TOLGRD  1.E-5 // original
  #define TOLNRM  100.
@@ -72,6 +74,9 @@
  int numCritical01Vec( double [3], dataCube,
                        dataRun, const double*,double, double *);
  int numCritical02Vec( double [3], dataCube,
+                       dataRun,const double*, double, double *);
+
+ int numCritical02Vec_exp( double [3], dataCube,
                        dataRun,const double*, double, double *);
 
  double hessGrad(double *x, double *y, double *z,double *ngrad,double *val);

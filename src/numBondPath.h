@@ -11,6 +11,7 @@
 #include <time.h>
 
 #include "struct.h"
+#include "findCrit.h"
 
 #ifndef _NUMBONDPATH_H_
  #define _NUMBONDPATH_H_
@@ -19,7 +20,7 @@
  #define NSTEP 1
  //#define TOL_DIST_ATM 0.35
  #define TOL_DIST_ATM 0.1
- #define MAXPTS 2000
+ #define MAXPTS 3000
 
  int myIsNanInf( double);
  int myIsNanInf_V3(double*);
@@ -37,6 +38,9 @@
  int logFile( int bcp, int rcp, int ccp, int ncp, dataCritP *bondCrit,
               dataCritP *ringCrit, dataCritP *cageCrit, dataCritP *nnucCrit,
               dataCube cube, dataRun param, double min0, int*,const double *matU, char *name);
+
+ int logFileCSV( int bcp,dataCritP *bondCrit,
+              dataCube cube, dataRun param, double min0,const double *matU, char *name);
 
  int axesCrit(int bcp, int rcp, int ccp, int ncp, dataCritP *bondCrit,
               dataCritP *ringCrit, dataCritP *cageCrit, dataCritP *nnucCrit,

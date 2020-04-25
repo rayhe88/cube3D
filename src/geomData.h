@@ -9,7 +9,7 @@
 #ifndef _GEOM_DATA_H_
   #define _GEOM_DATA_H_
 
-  #define NPUA1 100
+  #define NPUA1 50
 
   int getFieldInLine  (double,dataCube, dataRun, const double*, char*);
   int getFieldInPlane (double,dataCube, dataRun, const double*, char*);
