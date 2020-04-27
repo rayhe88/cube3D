@@ -24,6 +24,7 @@
   #define CRI 6              /**< Macro for critical points.      */
   #define VOI 7              /**< Macro for voids in density.     */
   #define REP 8              /**< Macro for replication.          */
+  #define BAS 9              /**< Macro for basins asignations.   */
  
   #define LIN 100            /**< Macro for Geometry Line.        */
   #define PLA 200            /**< Macro for Goemetry Plane.       */

@@ -6,6 +6,7 @@
  */
 #include "utils.h"
 #include "graph.h"
+#include "basins.h"
 #include "kernels.h"
 #include "version.h"
 #include "findCrit.h"
@@ -67,6 +68,7 @@ void selectExec(dataCube cube, dataRun param, double *matU, char *name){
                   critPoints  (cube,param,matU,min,name); break;
         case VOI: evalVoidVol (cube,param,name);      break;
         case REP: evalRepCube (cube,param,name);      break;
+        case BAS: evalBasins  (cube,param,matU,name); break;
       }
     }
 

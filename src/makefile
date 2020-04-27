@@ -16,6 +16,7 @@ OBJS := main.o\
         file.o\
 		  array.o\
 		  graph.o\
+          basins.o\
 		  fields.o\
 		  transU.o\
 		  tableP.o\
@@ -49,6 +50,9 @@ array.o: array.c  array.h
 
 graph.o: graph.c  graph.h
 	$(CC) $(CFLAGS) graph.c
+
+basins.o: basins.c basins.h
+	$(CC) $(CFLAGS) basins.c -fopenmp
 
 fields.o: fields.c fields.h
 	$(CC) $(CFLAGS) fields.c -fopenmp

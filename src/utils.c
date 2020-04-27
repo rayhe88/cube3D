@@ -196,6 +196,7 @@ void printRunning (dataRun param){
     case CRI: strcpy(ascTask," CRIT"); break;
     case VOI: strcpy(ascTask,"VOIDS"); break;
     case REP: strcpy(ascTask,"REPLI"); break;
+    case BAS: strcpy(ascTask,"BASIN"); break;
   }
 
   printBanner(" Running Info ",stdout);

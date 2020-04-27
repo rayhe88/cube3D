@@ -455,6 +455,8 @@ int getTask(char* task){
     valor = VOI;
   if( !strncmp(task,"REPI",3) )
     valor = REP;
+  if( !strncmp(task,"BASINS",3))
+    valor = BAS;
   
   if( valor == -1 ){
     printf("  [ERROR] There is an error in >> TASK\n");

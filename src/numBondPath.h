@@ -17,10 +17,10 @@
  #define _NUMBONDPATH_H_
 
  #define BPATH_EPS 0.005  //0.02 // Bueno con 0.05
- #define NSTEP 1
+ #define NSTEP 2
  //#define TOL_DIST_ATM 0.35
  #define TOL_DIST_ATM 0.1
- #define MAXPTS 3000
+ #define MAXPTS 4000
 
  int myIsNanInf( double);
  int myIsNanInf_V3(double*);
