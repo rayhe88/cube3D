@@ -744,9 +744,11 @@ int describeCrit(int ncrit, double min0, dataCube cube,
 
 
   int *bonding;
+  int *cells;
   if ( bcp != 0 ) {
     createArrayCritP(bcp, &bondCrit,"Critical BCP");
     createArrayInt (2*bcp,&bonding,"Bonding array");
+    createArrayInt (2*bcp,&cells,"cells array");
   }
   if ( rcp != 0 ) createArrayCritP(rcp, &ringCrit,"Critical RCP");
   if ( ccp != 0 ) createArrayCritP(ccp, &cageCrit,"Critical CCP");
@@ -880,12 +882,12 @@ int describeCrit(int ncrit, double min0, dataCube cube,
   }
 
 
- bondPath(bcp,bondCrit,ncp,nnucCrit,bonding,cube,param,min0,matU,name);
+ bondPath(bcp,bondCrit,ncp,nnucCrit,bonding,cells,cube,param,min0,matU,name);
 
   printBar(stdout);
   printf("  File %s was generated\n",nameOut);
   logFile (bcp,rcp,ccp,ncp,bondCrit,ringCrit,cageCrit,nnucCrit,cube,param, min0,
-       bonding,matU,name);
+       bonding,cells,matU,name);
   
   logFileCSV(bcp,bondCrit,cube,param,min0,matU,name);
 

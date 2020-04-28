@@ -16,14 +16,13 @@
 
  //#define TOLFUN0  1.E-6 //original
  //#define TOLFUN  1.E-5
- #define TOLFUN0  1.E-10 //original
- #define TOLFUN  1.E-10
-// #define TOLGRD  1.E-14
- #define TOLGRD  1.E-5 // original
- #define TOLNRM  100.
+ #define TOLFUN0  1.E-7 //original
+ #define TOLFUN   1.E-7 
+ #define TOLGRD   1.E-5 // original
+ #define TOLNRM   100.
  #define MAXITER1 30
  #define MAXITER2 1000
- #define PERCENT 1.5
+ #define PERCENT  1.5
  #define ALPHA(X) (1.)
  //#define TOLDIST 0.5E-1 //original
  #define TOLDIST 1.72E-1

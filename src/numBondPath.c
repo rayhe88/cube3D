@@ -44,13 +44,15 @@ void getKnRungeKuta( double k[3], double val[10]){
 
 
 int bondPath( int bcp, dataCritP *bondCrit, int ncp, dataCritP *nnucCrit,int *bonding,
-              dataCube cube, dataRun param, double min0,const double *matU, char *name){
+              int *cellInfo, dataCube cube, dataRun param, double min0,
+              const double *matU, char *name){
 
 
   int i,j,k,step;
   int iterp,itern,amico;
-  int attractors;
+  int attractors,flagNeg,flagPos;
   int nucleo1,nucleo2,itmp;
+  int cell1,cell2;
   double ratm[3],rij;
   double dist,norm,difmin;
   double val[10];
@@ -103,11 +105,12 @@ int bondPath( int bcp, dataCritP *bondCrit, int ncp, dataCritP *nnucCrit,int *bo
 
   printBar(stdout);
 
-#pragma omp parallel private(i,nucleo1,nucleo2,val,matH,eval,evec,vec,         \
-                             vec2,norm,ri,rn,qi,qn,iterp,itern,dist,qc,q,      \
-                             k1,k3,k4,k6,amico,difmin,step,ratm,rij)           \
+#pragma omp parallel private(i,nucleo1,nucleo2,val,matH,eval,evec,vec,vec2,    \
+                             norm,ri,rn,qi,qn,iterp,itern,dist,qc,q,k,k1,k3,k4,\
+                             k6,amico,difmin,step,ratm,rij,flagPos,flagNeg,    \
+                             cell1, cell2)                                     \
                      shared(bcp,bondCrit,cube,param,matU,matT,min0,a3,a4,      \
-                            a6,c1,c3,c4,c6,attractors,coorAttr)
+                            a6,c1,c3,c4,c6,attractors,coorAttr,tmp,cellInfo)
 {
 
 #pragma omp single 
@@ -134,18 +137,22 @@ int bondPath( int bcp, dataCritP *bondCrit, int ncp, dataCritP *nnucCrit,int *bo
     JacobiNxN(matH,eval,evec);
 /*  The 3rd eigenvector is taken */
     vec2[0] = evec[6];  vec2[1] = evec[7];  vec2[2] = evec[8]; 
-
+    
     norm = getNormVec(vec2);
     vec2[0] /= norm; vec2[1] /= norm; vec2[2] /= norm;
 
-    qi[0] = qc[0] + 0.02*vec2[0];
-    qi[1] = qc[1] + 0.02*vec2[1];
-    qi[2] = qc[2] + 0.02*vec2[2];
+    qi[0] = qc[0] + BPATH_EPS * vec2[0];
+    qi[1] = qc[1] + BPATH_EPS * vec2[1];
+    qi[2] = qc[2] + BPATH_EPS * vec2[2];
 
     step = iterp= 0; dist = 6.;
 
-    perfectCube ( param.pbc,qi,cube.min,cube.max);
-    
+
+    cellInfo[2*i  ] = 0;
+    cellInfo[2*i+1] = 0;
+   
+    flagPos = 0;
+    flagPos += perfectCube ( param.pbc,qi,cube.min,cube.max);
     while( iterp < MAXPTS && dist > 0.0 ){
 
       getRiU(qi,matU,ri);
@@ -156,21 +163,27 @@ int bondPath( int bcp, dataCritP *bondCrit, int ncp, dataCritP *nnucCrit,int *bo
       q[1] = qi[1] + a3;
       q[2] = qi[2] + a3;
 
+      flagPos += perfectCube ( param.pbc,q,cube.min,cube.max);
       numCritical01Vec(q,cube,param,matU,min0,val);
+
       getKnRungeKuta(k3,val);
 
       q[0] = qi[0] + a4;
       q[1] = qi[1] + a4;
       q[2] = qi[2] + a4;
 
+      flagPos += perfectCube ( param.pbc,q,cube.min,cube.max);
       numCritical01Vec(q,cube,param,matU,min0,val);
+
       getKnRungeKuta(k4,val);
 
       q[0] = qi[0] + a6;
       q[1] = qi[1] + a6;
       q[2] = qi[2] + a6;
 
+      flagPos += perfectCube ( param.pbc,q,cube.min,cube.max);
       numCritical01Vec(q,cube,param,matU,min0,val);
+
       getKnRungeKuta(k6,val);
       
       vec[0] = c1*k1[0] + c3*k3[0] + c4*k4[0] + c6*k6[0];
@@ -186,7 +199,7 @@ int bondPath( int bcp, dataCritP *bondCrit, int ncp, dataCritP *nnucCrit,int *bo
 
       getRiU(rn,matT,qn);
 
-      perfectCube ( param.pbc,qn,cube.min,cube.max);
+      flagPos += perfectCube ( param.pbc,qn,cube.min,cube.max);
        
       step++;
 
@@ -230,38 +243,41 @@ int bondPath( int bcp, dataCritP *bondCrit, int ncp, dataCritP *nnucCrit,int *bo
 
 
  // At this moment we change the direction
-    qi[0] = qc[0] - 0.02*vec2[0]; //original 0.02
-    qi[1] = qc[1] - 0.02*vec2[1];
-    qi[2] = qc[2] - 0.02*vec2[2];
+    qi[0] = qc[0] - BPATH_EPS * vec2[0]; 
+    qi[1] = qc[1] - BPATH_EPS * vec2[1];
+    qi[2] = qc[2] - BPATH_EPS * vec2[2];
 
     step = itern = 0; dist = 6.;
-
-    perfectCube ( param.pbc,qi,cube.min,cube.max);
-
+    
+    flagNeg = 0;
+    flagNeg += perfectCube ( param.pbc,qi,cube.min,cube.max);
     while( itern < MAXPTS && dist > 0. ){
 
       getRiU(qi,matU,ri);
       numCritical01Vec(qi,cube,param,matU,min0,val);
       getKnRungeKuta(k1,val);
 
-      q[0] = qi[0] - a3;
-      q[1] = qi[1] - a3;
-      q[2] = qi[2] - a3;
+      q[0] = qi[0] + a3;
+      q[1] = qi[1] + a3;
+      q[2] = qi[2] + a3;
 
-      numCritical01Vec(qi,cube,param,matU,min0,val);
+      flagNeg += perfectCube ( param.pbc,q,cube.min,cube.max);
+      numCritical01Vec(q,cube,param,matU,min0,val);
       getKnRungeKuta(k3,val);
 
-      q[0] = qi[0] - a4;
-      q[1] = qi[1] - a4;
-      q[2] = qi[2] - a4;
+      q[0] = qi[0] + a4;
+      q[1] = qi[1] + a4;
+      q[2] = qi[2] + a4;
 
+      flagNeg += perfectCube ( param.pbc,q,cube.min,cube.max);
       numCritical01Vec(q,cube,param,matU,min0,val);
       getKnRungeKuta(k4,val);
 
-      q[0] = qi[0] - a6;
-      q[1] = qi[1] - a6;
-      q[2] = qi[2] - a6;
+      q[0] = qi[0] + a6;
+      q[1] = qi[1] + a6;
+      q[2] = qi[2] + a6;
 
+      flagNeg += perfectCube ( param.pbc,q,cube.min,cube.max);
       numCritical01Vec(q,cube,param,matU,min0,val);
       getKnRungeKuta(k6,val);
 
@@ -269,15 +285,13 @@ int bondPath( int bcp, dataCritP *bondCrit, int ncp, dataCritP *nnucCrit,int *bo
       vec[1] = c1*k1[1] + c3*k3[1] + c4*k4[1] + c6*k6[1];
       vec[2] = c1*k1[2] + c3*k3[2] + c4*k4[2] + c6*k6[2];
       
-      //if (param.orth != YES) trans01 (vec,matU);
-
       rn[0] = ri[0] + BPATH_EPS * vec[0];
       rn[1] = ri[1] + BPATH_EPS * vec[1];
       rn[2] = ri[2] + BPATH_EPS * vec[2];
  
       getRiU(rn,matT,qn);
 
-      perfectCube ( param.pbc,qn,cube.min,cube.max);
+      flagNeg += perfectCube ( param.pbc,qn,cube.min,cube.max);
 
       step++;
 
@@ -287,6 +301,8 @@ int bondPath( int bcp, dataCritP *bondCrit, int ncp, dataCritP *nnucCrit,int *bo
       cpyVec3(qn,qi);
 
       for(k=0; k < attractors; k++){
+        if ( k ==  nucleo1 )
+            continue;
         ratm[0] = coorAttr[3*k];
         ratm[1] = coorAttr[3*k+1];
         ratm[2] = coorAttr[3*k+2];
@@ -321,24 +337,38 @@ int bondPath( int bcp, dataCritP *bondCrit, int ncp, dataCritP *nnucCrit,int *bo
       }
     }//end while
 
-
+    cell1 = flagPos;
+    cell2 = flagNeg;
 
     if( nucleo1 > nucleo2){
       itmp = nucleo1;
       nucleo1 = nucleo2;
       nucleo2 = itmp;
+
+      itmp = cell1;
+      cell1 = cell2;
+      cell2 = itmp;
     }
 
-    bonding[2*i  ] = nucleo1;
-    bonding[2*i+1] = nucleo2;
-
+    bonding [2*i  ] = nucleo1;
+    bonding [2*i+1] = nucleo2;
+    cellInfo[2*i  ] = cell1;
+    cellInfo[2*i+1] = cell2;
   }//fin for
 }//fin OMP
 
   printBar(stdout);
   printBanner("Connectivity of Attractors by BCP",stdout);
   char symb1[6],symb2[6];
+  char cc1,cc2;
   for( i = 0; i < bcp ; i++ ){
+    
+    cc1=' ';
+    cc2=' ';
+    if( cellInfo[2*i] != 0 )
+        cc1='*';
+    if( cellInfo[2*i+1] != 0 )
+        cc2='*';
 
     nucleo1 = bonding[2*i];
     nucleo2 = bonding[2*i+1];
@@ -352,7 +382,7 @@ int bondPath( int bcp, dataCritP *bondCrit, int ncp, dataCritP *nnucCrit,int *bo
     else
       strcpy(symb2,"NNA");
   
-    printf("     Critical point %4d between  : %3d %-4s %3d %-4s\n",i+1,nucleo1+1,symb1,nucleo2+1,symb2);
+    printf("     Critical point %4d between  : %3d %c%-4s %3d %c%-4s\n",i+1,nucleo1+1,cc1,symb1,nucleo2+1,cc2,symb2);
   }
 
   rewind(tmp);
@@ -389,34 +419,29 @@ int bondPath( int bcp, dataCritP *bondCrit, int ncp, dataCritP *nnucCrit,int *bo
 
 int perfectCube ( int bcp, double *r, double *min, double *max){
   
+  int flag = 0;
   if( bcp == YES ){
     double dx = fabs( max[0] - min[0]);
     double dy = fabs( max[1] - min[1]);
     double dz = fabs( max[2] - min[2]);
 
-    if ( r[0] <= min[0] )
-      r[0] += dx;
-    if ( r[0] > max[0] )
-      r[0] -= dx;
+    if ( r[0] <= min[0] ){ r[0] += dx; flag += 1;}
+    if ( r[0]  > max[0] ){ r[0] -= dx; flag += 1;}
         
-    if ( r[1] <= min[1] )
-      r[1] += dy;
-    if ( r[1] > max[1] )
-      r[1] -= dy;
+    if ( r[1] <= min[1] ){ r[1] += dy; flag += 1;}
+    if ( r[1]  > max[1] ){ r[1] -= dy; flag += 1;}
 
-    if ( r[2] <= min[2] )
-      r[2] += dz;
-    if ( r[2] > max[2] )
-      r[2] -= dz;
+    if ( r[2] <= min[2] ){ r[2] += dz; flag += 1;}
+    if ( r[2]  > max[2] ){ r[2] -= dz; flag += 1;}
   }
 
-  return 0;
-
+  return flag;
 }
 
 int logFile( int bcp, int rcp, int ccp, int ncp, dataCritP *bondCrit,
              dataCritP *ringCrit, dataCritP *cageCrit, dataCritP *nnucCrit,
-             dataCube cube, dataRun param, double min0, int *bonding, const double *matU, char *name){
+             dataCube cube, dataRun param, double min0, int *bonding, int *cells,
+             const double *matU, char *name){
   int i;
   int at1,at2;
   char nameOut[128];
@@ -428,6 +453,7 @@ int logFile( int bcp, int rcp, int ccp, int ncp, dataCritP *bondCrit,
   double r[3];
   double kinG,kinK,virial,eneH;
   double ngrad;
+  char cc1,cc2;
   FILE *out;
 
   sprintf(nameOut,"%sCritP.log",name);
@@ -556,12 +582,12 @@ int logFile( int bcp, int rcp, int ccp, int ncp, dataCritP *bondCrit,
 
 	   fprintf(out,"   Kinetic Energy G   % 12.8E\n",kinG);
 	   fprintf(out,"   Kinetic Energy K   % 12.8E\n",kinK);
-      fprintf(out,"   Virial field V     % 12.8E\n",virial);
+       fprintf(out,"   Virial field V     % 12.8E\n",virial);
 	   fprintf(out,"   Total energy H     % 12.8E\n\n",eneH);
 
-      fprintf(out,"                     | % 12.8E  % 12.8E  % 12.8E |\n"  ,matH[0],matH[1],matH[2]);
-      fprintf(out,"   Hessian Matrix  = | % 12.8E  % 12.8E  % 12.8E |\n"  ,matH[3],matH[4],matH[5]);
-      fprintf(out,"                     | % 12.8E  % 12.8E  % 12.8E |\n\n",matH[6],matH[7],matH[8]);
+       fprintf(out,"                     | % 12.8E  % 12.8E  % 12.8E |\n"  ,matH[0],matH[1],matH[2]);
+       fprintf(out,"   Hessian Matrix  = | % 12.8E  % 12.8E  % 12.8E |\n"  ,matH[3],matH[4],matH[5]);
+       fprintf(out,"                     | % 12.8E  % 12.8E  % 12.8E |\n\n",matH[6],matH[7],matH[8]);
 
 
 	   fprintf(out,"   Eigenvalues        % 12.8E  % 12.8E  % 12.8E\n\n",l1,l2,l3);
@@ -573,6 +599,7 @@ int logFile( int bcp, int rcp, int ccp, int ncp, dataCritP *bondCrit,
     printBar82(out);
     centraMess("Bond Critical Points",out);
     for(i=0;i<bcp;i++){
+      
       printBar82(out);
       x = bondCrit[i].x;
       y = bondCrit[i].y;
@@ -580,11 +607,11 @@ int logFile( int bcp, int rcp, int ccp, int ncp, dataCritP *bondCrit,
       numCritical02(x,y,z,cube,param,matU,min0,val);
 
       fun  = val[0];
-	   ngrad = getGrd(val);
-	   lap   = getLap(val);
+	  ngrad = getGrd(val);
+	  lap   = getLap(val);
 
-	   getEnergies(fun,lap,&kinG,&kinK,&virial);
-	   eneH = kinG + virial;
+	  getEnergies(fun,lap,&kinG,&kinK,&virial);
+	  eneH = kinG + virial;
 	
       matH[0] = val[4]; matH[1] = val[7]; matH[2] = val[8];
       matH[3] = val[7]; matH[4] = val[5]; matH[5] = val[9];
@@ -592,7 +619,7 @@ int logFile( int bcp, int rcp, int ccp, int ncp, dataCritP *bondCrit,
 
       //JacobiNxN(matH,eval,evec);
       valoresPropios3x3(matH,eval);
-	   l1 = eval[0]; l2 = eval[1]; l3 = eval[2];
+	  l1 = eval[0]; l2 = eval[1]; l3 = eval[2];
       
       at1 = bonding[2*i];
       at2 = bonding[2*i+1];
@@ -601,6 +628,7 @@ int logFile( int bcp, int rcp, int ccp, int ncp, dataCritP *bondCrit,
         getAtomicSymbol(cube.zatm[at1],4,symb1);
       else
         strcpy(symb1,"NNACP");
+
       if( at2 < cube.natm )
         getAtomicSymbol(cube.zatm[at2],4,symb2);
       else
@@ -609,11 +637,18 @@ int logFile( int bcp, int rcp, int ccp, int ncp, dataCritP *bondCrit,
       at1++;
       at2++;
 
+      cc1 = ' ';
+      if( cells[2*i]   != 0 ) cc1 = '*';
+      cc2 = ' '; 
+      if( cells[2*i+1] != 0 ) cc2 = '*';
+      
+
       r[0] = x*B2A; r[1] = y*B2A; r[2] = z*B2A;
       itrans00(r,matU);
 
       fprintf(out,"\n   Critical Point  %7d of type (3,-1)\n\n",i+1);
-      fprintf(out,"   Between the nucleous : %2d %s and %2d %s\n",at1,symb1,at2,symb2);
+      fprintf(out,"   Between the nucleous : %2d %c%s and %2d %c%s\n",
+                  at1,cc1,symb1,at2,cc2,symb2);
       fprintf(out,"   Coordinates [A]    % 12.8E  % 12.8E  % 12.8E  \n\n",
                    r[0],r[1],r[2]);
 
