@@ -48,6 +48,8 @@
    double fun;
  } dataCritP;
 
+ int numCritical01VecBasins(double r[],dataCube,dataRun,const double*, double *);
+
  int delCoorAtomic( int , double*, const double*,dataCube);
 
  int delCoorPseudo( int, double*,double, const double*,dataCube, dataRun);

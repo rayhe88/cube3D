@@ -36,7 +36,7 @@ OBJS := main.o\
           numBondPath.o
 
 $(PRO) : $(OBJS)
-	$(CC) $(CFLAGS)  utils.c
+	$(CC) $(CFLAGS) utils.c
 	$(CC) -o $(EXE) $(OBJS) utils.o $(LIB)
 
 main.o: main.c file.h array.h  lectura.h struct.h
@@ -82,7 +82,7 @@ transU.o: transU.c transU.h
 	$(CC) $(CFLAGS) transU.c
 
 findCrit.o: findCrit.c findCrit.h
-	$(CC) $(CFLAGS)  findCrit.c -fopenmp
+	$(CC) $(CFLAGS) findCrit.c -fopenmp
 
 critical.o: critical.c critical.h
 	$(CC) $(CFLAGS) critical.c
@@ -109,7 +109,7 @@ pruebaCoef.o : pruebaCoef.c pruebaCoef.h
 	$(CC) $(CFLAGS) pruebaCoef.c
 
 numBondPath.o: numBondPath.c numBondPath.h 
-	$(CC) $(CFLAGS)  numBondPath.c -fopenmp
+	$(CC) $(CFLAGS) numBondPath.c -fopenmp
 
 .PHONY: install
 install:
