@@ -16,12 +16,12 @@ OBJS := main.o\
         file.o\
 		  array.o\
 		  graph.o\
-          basins.o\
 		  fields.o\
 		  transU.o\
 		  tableP.o\
 		  timing.o\
 		  jacobi.o\
+          basins2.o\
 		  kernels.o\
 		  lagForm.o\
 		  lebedev.o\
@@ -33,7 +33,11 @@ OBJS := main.o\
 		  lagrange2.o\
 		  replicate.o\
 		  mathTools.o\
+          mergeSort.o\
           numBondPath.o
+
+
+          #basins.o\
 
 $(PRO) : $(OBJS)
 	$(CC) $(CFLAGS) utils.c
@@ -53,6 +57,9 @@ graph.o: graph.c  graph.h
 
 basins.o: basins.c basins.h
 	$(CC) $(CFLAGS) basins.c -fopenmp
+
+basins2.o: basins2.c basins2.h
+	$(CC) $(CFLAGS) -DDEBUG basins2.c -fopenmp
 
 fields.o: fields.c fields.h
 	$(CC) $(CFLAGS) fields.c -fopenmp
@@ -108,6 +115,9 @@ mathTools.o : mathTools.c mathTools.h
 pruebaCoef.o : pruebaCoef.c pruebaCoef.h
 	$(CC) $(CFLAGS) pruebaCoef.c
 
+mergeSort.o: mergeSort.c mergeSort.h 
+	$(CC) $(CFLAGS) mergeSort.c
+
 numBondPath.o: numBondPath.c numBondPath.h 
 	$(CC) $(CFLAGS) numBondPath.c -fopenmp
 
@@ -117,6 +127,6 @@ install:
 
 .PHONY: clean
 clean:
-	rm $(OBJS) utils.o $(EXE) *.cube *.dat *.xyz *.log *.pdf *.eps *.gp
+	rm $(OBJS) utils.o $(EXE) *.dat *.xyz *.log *.pdf *.eps *.gp
 
 

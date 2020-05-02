@@ -546,7 +546,7 @@ int numCritical02Vec_exp(double r[3], dataCube cube, dataRun param, const double
 }
 
 int numCritical01VecBasins(double r[3], dataCube cube, dataRun param, const double *matU, double *val){
-  int i,idx[3];
+  int idx[3];
   double f[param.size];
   double xx[param.pol + 1];
   double yy[param.pol + 1];

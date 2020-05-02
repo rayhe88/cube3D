@@ -11,8 +11,9 @@
   
   #define NCHAR 60
 
-  #define TGBI "\033[1;3;92m"
+  //#define TGBI "\033[1;3;92m"
   #define TRBI "\033[1;3;91m"
+  #define TGBI "\033[1;3;94m"
   #define TRST "\033[0m"
 
   void printBar      (FILE *);

@@ -190,9 +190,9 @@ void getCellsNoPer (dataCube cube, dataRun param, double *matU){
             cells[index].fun0 = val[0];
             cells[index].fun1 = getKin(val);
             cells[index].fun2 = getLap(val);
-            cells[index].dx   = cube.hvec[0]*(val[1] / gnorm);
-            cells[index].dy   = cube.hvec[1]*(val[2] / gnorm);
-            cells[index].dz   = cube.hvec[2]*(val[3] / gnorm);
+            cells[index].dx   = 1.5 * cube.hvec[0]*(val[1] / gnorm);
+            cells[index].dy   = 1.5 * cube.hvec[1]*(val[2] / gnorm);
+            cells[index].dz   = 1.5 * cube.hvec[2]*(val[3] / gnorm);
             cells[index].norm = gnorm;
             cells[index].attr = SET_VOID;
             cells[index].max  = max;
@@ -245,9 +245,9 @@ void getCellsNoPer (dataCube cube, dataRun param, double *matU){
         }
     }
 
-    for(i=0; i< 10; i++){
-        printf(" Attr %2d  Vol = % 10.6lf Q = % 10.6lf  Lap = % 10.6lf\n",i+1,
-        vol[i],q[i],lap[i]);
+    for(i=0; i< 3; i++){
+        printf(" Attr %2d  Vol = % 10.6E e = % 10.6lf q = % 10.6lf Lap = % 10.6lf\n",i+1,
+        vol[i],q[i],cube.zatm[i] - q[i] ,lap[i]);
         totalvol += vol[i];
         totallap += lap[i];
         totalq   += q[i];
@@ -478,8 +478,11 @@ int ascendingGLine( int idx, int *hash, double r[3], dataCells *cells,
     int iter,flag=0;
     int new_idx;
     double val[10];
+    double gnorm;
 
     numCritical01VecBasins(r,cube,param,matU,val);
+    gnorm = getGrd(val);
+
     
     printf(" Entramos a ascendingGLine  ");
     iter = 0;
