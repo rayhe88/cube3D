@@ -626,6 +626,7 @@ void checkCommandLine(int argc, char *argv[]){
     }
 }
 
+
 void getNameOut(char *nameInp, char *nameOut){
     char c;
     int i,nchar;

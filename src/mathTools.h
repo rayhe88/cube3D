@@ -34,6 +34,7 @@
  int  eigenVV(double mat[9],double val[3],double vec[9]);
 
  double distance(double r1[3],double r2[3]);
+ double distance2(double x,double y, double z,double r2[3]);
 
  double detMat(double mat[9]);
  double getNorm(double,double,double);

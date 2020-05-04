@@ -206,4 +206,3 @@ int clearString(char *string){
   for(i=0;i<n;i++)
     string[i] = '\0';
 }
-

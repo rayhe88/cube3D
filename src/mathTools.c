@@ -15,6 +15,15 @@ double distance(double r1[3],double r2[3]){
   return sqrt(ret);
  }
 
+double distance2(double rx,double ry, double rz, double r2[3]){
+    double x, y, z;
+    x = r2[0] - rx;
+    y = r2[1] - ry;
+    z = r2[2] - rz;
+
+    return sqrt( x*x + y*y + z*z);
+}
+
 // Return  vector's norm for a 3D-vector
 double getNorm(double v1, double v2, double v3){
 
