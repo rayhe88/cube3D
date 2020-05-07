@@ -29,6 +29,8 @@ void printPoss(int npc, double* coorIn, const double *matU){
 
     f = fopen("posibles.xyz","w+");
 
+    fprintf(f," %5d\n",npc);
+    fprintf(f,"    \n");
     for(i=0;i<npc;i++){
         q[0] = coorIn[3*i];
         q[1] = coorIn[3*i+1];
@@ -85,6 +87,10 @@ int critPoints ( dataCube cube, dataRun param,const double *matU, double min0, c
   char tmpname[128];
   FILE *tmp;
   tmpFile(&tmp,".c3dFindC",tmpname,"w+");
+
+  cube.max[0] = cube.min[0] + (cube.pts[0] - 1 ) * cube.hvec[0];
+  cube.max[1] = cube.min[1] + (cube.pts[1] - 1 ) * cube.hvec[1];
+  cube.max[2] = cube.min[2] + (cube.pts[2] - 1 ) * cube.hvec[2];
 
 
   double norm;
@@ -614,7 +620,7 @@ int  refineCrit(int npc, double min0, dataCube cube, dataRun param, double *coor
 
   createArrayDou(3*npc,&xyz,"Coordinates Intermediate");
 
-  //printPoss(npc,coorIn,matU); //  XXX- Delete after test
+  printPoss(npc,coorIn,matU); //  XXX- Delete after test
 
   nu=0;
   for( mu = 0; mu < npc; mu++){
@@ -648,7 +654,8 @@ int  refineCrit(int npc, double min0, dataCube cube, dataRun param, double *coor
         } // end of WHILE
     }
 
-    if( norm < 1.E-4 && inMacroCube(x,y,z,cube.min,cube.max) == 0 ){
+    if( norm < 1.E-3 && inMacroCube(x,y,z,cube.min,cube.max) == 0 ){
+    //if( norm < 1.E-4 && inMacroCube(x,y,z,cube.min,cube.max) == 0 ){ original
       xyz[ 3*nu    ] = x;
       xyz[ 3*nu+ 1 ] = y;
       xyz[ 3*nu+ 2 ] = z;
@@ -889,7 +896,10 @@ int describeCrit(int ncrit, double min0, dataCube cube,
   logFile (bcp,rcp,ccp,ncp,bondCrit,ringCrit,cageCrit,nnucCrit,cube,param, min0,
        bonding,cells,matU,name);
   
-  logFileCSV(bcp,bondCrit,cube,param,min0,matU,name);
+  logFileCSV(bcp,bondCrit,cube,param,min0,matU,name,"BCP");
+  logFileCSV(rcp,ringCrit,cube,param,min0,matU,name,"RCP");
+  logFileCSV(ccp,cageCrit,cube,param,min0,matU,name,"CCP");
+  logFileCSV(xcp,degeCrit,cube,param,min0,matU,name,"XCP");
 
   //axesCrit (bcp,rcp,ccp,ncp,bondCrit,ringCrit,cageCrit,nnucCrit,cube,param, min0,
   //     matU,name);

@@ -6,6 +6,7 @@
 #include "utils.h"
 #include "numBondPath.h"
 #include "transU.h"
+#include "tableP.h"
 
 int getFieldInLine(double min0,dataCube cube, dataRun param, const double *matU,char *name){
 
@@ -229,8 +230,49 @@ int getFieldInPlane(double min0,dataCube cube, dataRun param, const double *matU
   double f0;
   double ejeL,ejeM;
   double cgL,cgM;
+  char sym1[6];
+  char sym2[6];
+  char sym3[6];
+  if( at1 < cube.natm ) 
+    getAtomicSymbol(cube.zatm[at1],6,sym1);
+  else
+    strcpy(sym1,"NNA");
+  if( at2 < cube.natm ) 
+    getAtomicSymbol(cube.zatm[at2],6,sym2);
+  else
+    strcpy(sym2,"NNA");
+  if( at3 < cube.natm ) 
+    getAtomicSymbol(cube.zatm[at3],6,sym3);
+  else
+    strcpy(sym3,"NNA");
 
-  fprintf(out,"# eje L    eje M   field    field0\n");
+  fprintf(out,"#  FILE of information in 2D in the plane %d-%d-%d\n",at1+1,at2+1,at3+1);
+  ejeL = dotProduct(r1,vL);
+  ejeM = dotProduct(r1,vM);
+  cgL  = dotProduct(cg,vL);
+  cgM  = dotProduct(cg,vM);
+  ejeL -= cgL;
+  ejeM -= cgM;
+  fprintf(out,"#  %5d %6s % 7.3lf % 7.3lf % 7.3lf -> (% 7.3lf, % 7.3lf) [A]\n",
+               at1+1,sym1,r1[0]*B2A,r1[1]*B2A,r1[2]*B2A,ejeL*B2A,ejeM*B2A);
+  ejeL = dotProduct(r2,vL);
+  ejeM = dotProduct(r2,vM);
+  cgL  = dotProduct(cg,vL);
+  cgM  = dotProduct(cg,vM);
+  ejeL -= cgL;
+  ejeM -= cgM;
+  fprintf(out,"#  %5d %6s % 7.3lf % 7.3lf % 7.3lf -> (% 7.3lf, % 7.3lf) [A]\n",
+               at2+1,sym2,r2[0]*B2A,r2[1]*B2A,r2[2]*B2A,ejeL*B2A,ejeM*B2A);
+  ejeL = dotProduct(r3,vL);
+  ejeM = dotProduct(r3,vM);
+  cgL  = dotProduct(cg,vL);
+  cgM  = dotProduct(cg,vM);
+  ejeL -= cgL;
+  ejeM -= cgM;
+  fprintf(out,"#  %5d %6s % 7.3lf % 7.3lf % 7.3lf -> (% 7.3lf, % 7.3lf) [A]\n",
+               at3+1,sym3,r3[0]*B2A,r3[1]*B2A,r3[2]*B2A,ejeL*B2A,ejeM*B2A);
+
+  fprintf(out,"#     L axis       M axis      field eval        field 0\n");
   for(i=0;i<n;i++){
     for(j=0;j<n;j++){
       r[0] = r0[0] + i*h*vL[0] + j*h*vM[0];

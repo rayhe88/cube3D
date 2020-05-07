@@ -22,6 +22,12 @@
  #define TOL_DIST_ATM 0.1
  #define MAXPTS 3000
 
+ typedef struct{
+    int bcp;
+    double r[3];
+    double dij;
+ } dataBpath;
+
  int myIsNanInf( double);
  int myIsNanInf_V3(double*);
 
@@ -40,7 +46,7 @@
               dataCube cube, dataRun param, double min0, int*,int*,const double *matU, char *name);
 
  int logFileCSV( int bcp,dataCritP *bondCrit,
-              dataCube cube, dataRun param, double min0,const double *matU, char *name);
+              dataCube cube, dataRun param, double min0,const double *matU, char *name,char *string);
 
  int axesCrit(int bcp, int rcp, int ccp, int ncp, dataCritP *bondCrit,
               dataCritP *ringCrit, dataCritP *cageCrit, dataCritP *nnucCrit,
@@ -53,6 +59,17 @@
 
  void getEnergies( double,double,double*,double*,double*);
 
+ void printBpaths(int,int,FILE*,FILE*);
+
+ void sortBpaths (int, int, int*, dataBpath*);
+
+ void createArrayDataBpath(int,dataBpath**,char *);
+
+ void mergeBPathBCP(dataBpath*,int, int);
+ void sortBPathBCP(dataBpath*,int,int,int);
+
+ void mergeBPathDist(dataBpath*,int, int);
+ void sortBPathDist(dataBpath*,int,int,int);
 
 
 

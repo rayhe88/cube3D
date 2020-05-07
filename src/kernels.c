@@ -48,10 +48,6 @@ void selectExec(dataCube cube, dataRun param, double *matU, char *name){
     getFieldInPlane(min,cube,param,matU,name);
   }
 
-  
-  
-
-
   if( param.geotask != LIN && param.geotask != PLA || planeLine == 0 ){
     switch(param.task){
         case RED:

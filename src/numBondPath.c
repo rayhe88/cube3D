@@ -39,9 +39,7 @@ void getKnRungeKuta( double k[3], double val[10]){
   k[0] = val[1]/norm;
   k[1] = val[2]/norm;
   k[2] = val[3]/norm;
-
 }
-
 
 int bondPath( int bcp, dataCritP *bondCrit, int ncp, dataCritP *nnucCrit,int *bonding,
               int *cellInfo, dataCube cube, dataRun param, double min0,
@@ -54,14 +52,14 @@ int bondPath( int bcp, dataCritP *bondCrit, int ncp, dataCritP *nnucCrit,int *bo
   int nucleo1,nucleo2,itmp;
   int cell1,cell2;
   double ratm[3],rij;
-  double dist,norm,difmin;
+  double dist,norm,difmin,dij;
   double val[10];
   double matH[9],eval[3],evec[9];
   char nameOut[128],tmpname[128];
 
   double vec[3],vec2[3];
   double ri[3],qi[3],rn[3],qn[3];
-  double qc[3],q[3];
+  double qc[3],q[3],rc[3];
 
   double k1[3],k3[3],k4[3],k6[3];
   double a3 = 0.300*BPATH_EPS;
@@ -108,7 +106,7 @@ int bondPath( int bcp, dataCritP *bondCrit, int ncp, dataCritP *nnucCrit,int *bo
 #pragma omp parallel private(i,nucleo1,nucleo2,val,matH,eval,evec,vec,vec2,    \
                              norm,ri,rn,qi,qn,iterp,itern,dist,qc,q,k,k1,k3,k4,\
                              k6,amico,difmin,step,ratm,rij,flagPos,flagNeg,    \
-                             cell1, cell2)                                     \
+                             cell1, cell2,rc)                                  \
                      shared(bcp,bondCrit,cube,param,matU,matT,min0,a3,a4,      \
                             a6,c1,c3,c4,c6,attractors,coorAttr,tmp,cellInfo)
 {
@@ -127,6 +125,11 @@ int bondPath( int bcp, dataCritP *bondCrit, int ncp, dataCritP *nnucCrit,int *bo
     qc[0] = bondCrit[i].x;
     qc[1] = bondCrit[i].y;
     qc[2] = bondCrit[i].z;
+    
+    getRiU(qc,matU,rc);
+    dij = 0.;
+    fprintf(tmp,"%d % 10.6lf % 10.6lf % 10.6lf % 10.6lf\n",
+                  i+1,rc[0]*B2A,rc[1]*B2A,rc[2]*B2A,dij);
 
     numCritical02Vec(qc,cube,param,matU,min0,val); 
 
@@ -141,16 +144,15 @@ int bondPath( int bcp, dataCritP *bondCrit, int ncp, dataCritP *nnucCrit,int *bo
     norm = getNormVec(vec2);
     vec2[0] /= norm; vec2[1] /= norm; vec2[2] /= norm;
 
-    qi[0] = qc[0] + BPATH_EPS * vec2[0];
-    qi[1] = qc[1] + BPATH_EPS * vec2[1];
-    qi[2] = qc[2] + BPATH_EPS * vec2[2];
-
-    step = iterp= 0; dist = 6.;
-
+    ri[0] = rc[0] + 2.0 * BPATH_EPS * vec2[0];
+    ri[1] = rc[1] + 2.0 * BPATH_EPS * vec2[1];
+    ri[2] = rc[2] + 2.0 * BPATH_EPS * vec2[2];
+    getRiU(ri,matT,qi);
 
     cellInfo[2*i  ] = 0;
     cellInfo[2*i+1] = 0;
    
+    step = iterp= 0; dist = 6.;
     flagPos = 0;
     flagPos += perfectCube ( param.pbc,qi,cube.min,cube.max);
     while( iterp < MAXPTS && dist > 0.0 ){
@@ -231,8 +233,9 @@ int bondPath( int bcp, dataCritP *bondCrit, int ncp, dataCritP *nnucCrit,int *bo
         if( step == NSTEP ){
           if( myIsNanInf_V3(qn) == 0 ){
             getRiU(qn,matU,rn);
-            fprintf(tmp," BP%04d  % 10.6lf   % 10.6lf  % 10.6lf\n",
-                            i+1,rn[0]*B2A,rn[1]*B2A,rn[2]*B2A);
+            dij = distance(rn,rc);
+            fprintf(tmp,"%d % 10.6lf % 10.6lf % 10.6lf % 10.6lf\n",
+                            i+1,rn[0]*B2A,rn[1]*B2A,rn[2]*B2A,dij);
           }
           step = 0;
         }
@@ -243,12 +246,12 @@ int bondPath( int bcp, dataCritP *bondCrit, int ncp, dataCritP *nnucCrit,int *bo
 
 
  // At this moment we change the direction
-    qi[0] = qc[0] - BPATH_EPS * vec2[0]; 
-    qi[1] = qc[1] - BPATH_EPS * vec2[1];
-    qi[2] = qc[2] - BPATH_EPS * vec2[2];
+    ri[0] = rc[0] - 2.0 * BPATH_EPS * vec2[0]; 
+    ri[1] = rc[1] - 2.0 * BPATH_EPS * vec2[1];
+    ri[2] = rc[2] - 2.0 * BPATH_EPS * vec2[2];
+    getRiU(ri,matT,qi);
 
     step = itern = 0; dist = 6.;
-    
     flagNeg = 0;
     flagNeg += perfectCube ( param.pbc,qi,cube.min,cube.max);
     while( itern < MAXPTS && dist > 0. ){
@@ -326,8 +329,10 @@ int bondPath( int bcp, dataCritP *bondCrit, int ncp, dataCritP *nnucCrit,int *bo
         if( step == NSTEP ){
           if( myIsNanInf_V3(qn) == 0 ){
             getRiU(qn,matU,rn);
-            fprintf(tmp," BP%04d  % 10.6lf   % 10.6lf  % 10.6lf\n",
-                          i+1,rn[0]*B2A,rn[1]*B2A,rn[2]*B2A);
+            dij = -distance(rn,rc);
+            fprintf(tmp,"%d % 10.6lf % 10.6lf % 10.6lf % 10.6lf\n",
+                          i+1,rn[0]*B2A,rn[1]*B2A,rn[2]*B2A,dij);
+
           }
          step = 0;
         }
@@ -399,13 +404,7 @@ int bondPath( int bcp, dataCritP *bondCrit, int ncp, dataCritP *nnucCrit,int *bo
 
   openFile(&out,nameOut,"w+");
 
-  fprintf(out," %10d\n",npoints);
-  fprintf(out," Bond path file in Aangstrom\n");
-
-  while( (c = fgetc(tmp)) != EOF ){
-    fprintf(out,"%c",c);
-  }
-
+  printBpaths(npoints,bcp,tmp,out);
 
   fclose(tmp);
   fclose(out);
@@ -1226,35 +1225,36 @@ int axesCrit( int bcp, int rcp, int ccp, int ncp, dataCritP *bondCrit,
 }
 
 
-int logFileCSV( int bcp, dataCritP *bondCrit, dataCube cube, 
+int logFileCSV( int ncp, dataCritP *crit, dataCube cube, 
                 dataRun param, double min0, 
-                const double *matU, char *name){
+                const double *matU, char *name, char *string){
 
   int i;
   char nameOut[128];
   double fun,lap,val[10];
+  double ngrad;
   double l1,l2,l3,matH[9];
   double eval[3],evec[9];
   double r[3],q[3],ellep;
-  double kinG,kinK,virial,eneH;
+  double kinG,kinK,virial,eneH,eneHb;
   FILE *out;
 
-  sprintf(nameOut,"%sCritP.csv",name);
+  sprintf(nameOut,"%sCritP_%s.csv",name,string);
   openFile(&out,nameOut,"w+");
   
-  fprintf(out,"Index, Type, Coor X, Coor Y, Coor Z, Density, ");
+  fprintf(out,"Index, Type, Coor X, Coor Y, Coor Z, Density, Ngrad, ");
   fprintf(out,"Laplacian, Kinetic G, Kinetic K, Virial, energy H, ");
-  fprintf(out,"lambda_1, lambda_2, lambda_3, ellepticiy\n");
+  fprintf(out,"lambda_1, lambda_2, lambda_3, ellepticiy, energyInt(kcal/mol)\n");
 
-  for(i=0;i<bcp;i++){
-      q[0] = bondCrit[i].x;
-      q[1] = bondCrit[i].y;
-      q[2] = bondCrit[i].z;
+  for(i=0;i<ncp;i++){
+      q[0] = crit[i].x;
+      q[1] = crit[i].y;
+      q[2] = crit[i].z;
       numCritical02Vec_exp(q,cube,param,matU,min0,val);
 
       fun  = val[0];
 	  lap   = getLap(val);
-
+      ngrad = sqrt( val[1]*val[1] + val[2]*val[2] + val[3]*val[3]);
 	  getEnergies(fun,lap,&kinG,&kinK,&virial);
 	  eneH = kinG + virial;
 	
@@ -1266,16 +1266,17 @@ int logFileCSV( int bcp, dataCritP *bondCrit, dataCube cube,
       //valoresPropios3x3(matH,eval);
 	   l1 = eval[0]; l2 = eval[1]; l3 = eval[2];
       ellep = (l1/l2)-1.;
+      eneHb = 0.5 * virial * 627.509;
       
       getRiU(q,matU,r);
       r[0] *= B2A;
       r[1] *= B2A;
       r[2] *= B2A;
-      fprintf(out,"%3d,BCP,%10.6lf,%10.6lf,%10.6lf,",i+1,r[0],r[1],r[2]);
-      fprintf(out,"%10.6lf,%10.6lf,%10.6lf,%10.6lf,",fun,lap,kinG,kinK);
+      fprintf(out,"%3d,%s,%10.6lf,%10.6lf,%10.6lf,",i+1,string,r[0],r[1],r[2]);
+      fprintf(out,"%10.6lf,%10.6lf,%10.6lf,%10.6lf,%10.6lf,",fun,ngrad,lap,kinG,kinK);
       fprintf(out,"%10.6lf,%10.6lf,",virial,eneH);
       fprintf(out,"%10.6lf,%10.6lf,%10.6lf,",l1,l2,l3);
-      fprintf(out,"%10.6lf\n",ellep);
+      fprintf(out,"%10.6lf,%10.6lf\n",ellep,eneHb);
 
   }
 
@@ -1285,4 +1286,197 @@ int logFileCSV( int bcp, dataCritP *bondCrit, dataCube cube,
   printf("  File %s was generated\n",nameOut);
 
   return 0;
+}
+
+void printBpaths(int npoints, int nbcp, FILE *tmp, FILE *out){
+    int *type=NULL;
+    dataBpath *bpaths=NULL;
+    double dij,rx,ry,rz;
+    int i,bond;
+
+    rewind(tmp);
+
+    createArrayInt(nbcp,&type,"print Bond Paths");
+    for(i=0;i<nbcp;i++)
+        type[i] = 0;
+
+    createArrayDataBpath(npoints,&bpaths,"bond paths");
+
+    for(i=0;i<npoints;i++){
+        fscanf(tmp,"%d %lf %lf %lf %lf",&bond,&rx,&ry,&rz,&dij);
+        bpaths[i].bcp  = bond;
+        bpaths[i].r[0] = rx;
+        bpaths[i].r[1] = ry;
+        bpaths[i].r[2] = rz;
+        bpaths[i].dij  = dij;
+        type[bond-1]++;
+    }
+
+    sortBpaths(npoints,nbcp,type,bpaths);
+
+    fprintf(out," %6d\n",npoints);
+    fprintf(out,"    \n");
+    for(i=0;i<npoints;i++)
+        fprintf(out," BP%04d  % 10.6lf % 10.6lf % 10.6lf % 10.6lf\n",
+                    bpaths[i].bcp,
+                    bpaths[i].r[0], bpaths[i].r[1], bpaths[i].r[2],bpaths[i].dij);
+
+
+    free(type);
+    free(bpaths);
+}
+
+void sortBpaths(int np, int nbcp, int* type, dataBpath* bpaths){
+    int k;
+    int min,max;
+
+
+    mergeBPathBCP(bpaths,0,np);
+    
+    min = 0;
+    for(k=0;k<nbcp;k++){
+        max = min + type[k];
+        mergeBPathDist(bpaths,min,max);
+        min = max;
+    }
+}
+
+void createArrayDataBpath(int n, dataBpath **ptr, char *mess){
+    if( n < 1 ){
+        printf(" There is an error in the size for [%s]\n",mess);
+        exit(EXIT_FAILURE);
+    }
+
+    *ptr = (dataBpath*) malloc(n*sizeof(dataBpath));
+    if( *ptr == NULL){
+        printf(" Failed to allocate memory: [%s]\n",mess);
+        exit(EXIT_FAILURE);
+    }
+}
+
+void mergeBPathDist(dataBpath *array, int l, int r){
+    if(l < r ){
+        int m  = l + (r-l)/2;
+
+        mergeBPathDist(array,l,m);
+        mergeBPathDist(array,m+1,r);
+
+        sortBPathDist(array,l,m,r);
+
+    }
+
+}
+
+void sortBPathDist( dataBpath *array, int l, int m, int r){
+    int i, j, k; 
+    int n1 = m - l + 1; 
+    int n2 =  r - m; 
+    dataBpath *leftArray, *rightArray;
+  
+    createArrayDataBpath(n1,&leftArray,"Temporal array L");
+    createArrayDataBpath(n1,&rightArray,"Temporal array R");
+  
+    for (i = 0; i < n1; i++) 
+        leftArray[i] = array[l + i]; 
+    for (j = 0; j < n2; j++) 
+        rightArray[j] = array[m + 1+ j]; 
+  
+    i = 0; 
+    j = 0; 
+    k = l;
+    while (i < n1 && j < n2) 
+    { 
+        if (leftArray[i].dij <= rightArray[j].dij) 
+        { 
+            array[k] = leftArray[i]; 
+            i++; 
+        } 
+        else
+        { 
+            array[k] = rightArray[j]; 
+            j++; 
+        } 
+        k++; 
+    } 
+  
+    while (i < n1) 
+    { 
+        array[k] = leftArray[i]; 
+        i++; 
+        k++; 
+    } 
+  
+    while (j < n2) 
+    { 
+        array[k] = rightArray[j]; 
+        j++; 
+        k++; 
+    } 
+
+    free(leftArray);
+    free(rightArray);
+}
+
+void mergeBPathBCP(dataBpath *array, int l, int r){
+    if(l < r ){
+        int m  = l + (r-l)/2;
+
+        mergeBPathBCP(array,l,m);
+        mergeBPathBCP(array,m+1,r);
+
+        sortBPathBCP(array,l,m,r);
+
+    }
+
+}
+
+void sortBPathBCP( dataBpath *array, int l, int m, int r){
+    int i, j, k; 
+    int n1 = m - l + 1; 
+    int n2 =  r - m; 
+    dataBpath *leftArray, *rightArray;
+  
+    createArrayDataBpath(n1,&leftArray,"Temporal array L");
+    createArrayDataBpath(n1,&rightArray,"Temporal array R");
+  
+    for (i = 0; i < n1; i++) 
+        leftArray[i] = array[l + i]; 
+    for (j = 0; j < n2; j++) 
+        rightArray[j] = array[m + 1+ j]; 
+  
+    i = 0; 
+    j = 0; 
+    k = l;
+    while (i < n1 && j < n2) 
+    { 
+        if (leftArray[i].bcp <= rightArray[j].bcp) 
+        { 
+            array[k] = leftArray[i]; 
+            i++; 
+        } 
+        else
+        { 
+            array[k] = rightArray[j]; 
+            j++; 
+        } 
+        k++; 
+    } 
+  
+    while (i < n1) 
+    { 
+        array[k] = leftArray[i]; 
+        i++; 
+        k++; 
+    } 
+  
+    while (j < n2) 
+    { 
+        array[k] = rightArray[j]; 
+        j++; 
+        k++; 
+    } 
+
+    free(leftArray);
+    free(rightArray);
+
 }
