@@ -113,6 +113,6 @@ install:
 
 .PHONY: clean
 clean:
-	rm $(OBJS) utils.o $(EXE) *.cube *.dat *.xyz *.log *.pdf *.eps *.gp
+	rm $(OBJS) utils.o $(EXE) *.dat *.xyz *.log *.pdf *.eps *.gp
 
 

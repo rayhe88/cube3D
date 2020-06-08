@@ -144,11 +144,8 @@ int getFieldInPlane(double min0,dataCube cube, dataRun param, const double *matU
   double dist,h;
   double r1[3],r2[3],r3[3];
   double r[3],q[3];
-
+  double r0[3],vL[3],vM[3],vN[3],cg[3];
   double matT[9];
-
-  getMatInv(matU,matT);
-
   double f[param.size];
   double xx[param.pol + 1];
   double yy[param.pol + 1];
@@ -157,6 +154,9 @@ int getFieldInPlane(double min0,dataCube cube, dataRun param, const double *matU
   FILE *out;
   char nameOut[128];
 
+  getMatInv(matU,matT);
+
+  transCube(cube,matU);
 
   at1 = param.geom[0];
   at2 = param.geom[1];
@@ -165,16 +165,19 @@ int getFieldInPlane(double min0,dataCube cube, dataRun param, const double *matU
   if( at1 > cube.natm || at2 > cube.natm || at3 > cube.natm )
     return 1;
    
-
   sprintf(nameOut,"%s_plane%d-%d-%d.dat",name,at1,at2,at3);
   openFile(&out,nameOut,"w+");
 
   printf("  Plane conformed by the atoms %3d, %3d and %3d\n",at1,at2,at3);
-  reOrderAtoms(&at1,&at2,&at3,cube);
+  reOrderAtoms(&at1,&at2,&at3,cube,matU);
 
   at1--;
   at2--;
   at3--;
+
+  int ij;
+  for(ij=0;ij<cube.natm;ij++)
+    printf(" H  % 10.6lf % 10.6lf % 10.6lf\n",cube.coor[3*ij]*B2A, cube.coor[3*ij+1]*B2A, cube.coor[3*ij+2]*B2A);
 
   r1[0] = cube.coor[3*at1];
   r1[1] = cube.coor[3*at1+1];
@@ -188,11 +191,16 @@ int getFieldInPlane(double min0,dataCube cube, dataRun param, const double *matU
   r3[1] = cube.coor[3*at3+1];
   r3[2] = cube.coor[3*at3+2];
 
-  double r0[3],vL[3],vM[3],vN[3],cg[3];
+  trans00(r1,matT);
+  trans00(r2,matT);
+  trans00(r3,matT);
+
+  printf(" At1 r : % 10.6lf % 10.6lf % 10.6lf\n",r1[0],r1[1],r1[2]);
+  printf(" At2 r : % 10.6lf % 10.6lf % 10.6lf\n",r2[0],r2[1],r2[2]);
+  printf(" At3 r : % 10.6lf % 10.6lf % 10.6lf\n",r3[0],r3[1],r3[2]);
 
   dist = getVecLMN(r1,r2,r3,r0,cg,vL,vM,vN);
 
-  //dist = distance(r0,cg);
   n = ceil(dist*(NPUA1));
   h = dist/(double) (n-1);
 
@@ -233,44 +241,56 @@ int getFieldInPlane(double min0,dataCube cube, dataRun param, const double *matU
   char sym1[6];
   char sym2[6];
   char sym3[6];
-  if( at1 < cube.natm ) 
-    getAtomicSymbol(cube.zatm[at1],6,sym1);
-  else
-    strcpy(sym1,"NNA");
-  if( at2 < cube.natm ) 
-    getAtomicSymbol(cube.zatm[at2],6,sym2);
-  else
-    strcpy(sym2,"NNA");
-  if( at3 < cube.natm ) 
-    getAtomicSymbol(cube.zatm[at3],6,sym3);
-  else
-    strcpy(sym3,"NNA");
+
+  cgL  = dotProduct(cg,vL);
+  cgM  = dotProduct(cg,vM);
+
+  if( at1 < cube.natm ) getAtomicSymbol(cube.zatm[at1],6,sym1);
+  else strcpy(sym1,"NNA");
+
+  if( at2 < cube.natm ) getAtomicSymbol(cube.zatm[at2],6,sym2);
+  else strcpy(sym2,"NNA");
+
+  if( at3 < cube.natm ) getAtomicSymbol(cube.zatm[at3],6,sym3);
+  else strcpy(sym3,"NNA");
 
   fprintf(out,"#  FILE of information in 2D in the plane %d-%d-%d\n",at1+1,at2+1,at3+1);
+
   ejeL = dotProduct(r1,vL);
   ejeM = dotProduct(r1,vM);
-  cgL  = dotProduct(cg,vL);
-  cgM  = dotProduct(cg,vM);
   ejeL -= cgL;
   ejeM -= cgM;
   fprintf(out,"#  %5d %6s % 7.3lf % 7.3lf % 7.3lf -> (% 7.3lf, % 7.3lf) [A]\n",
-               at1+1,sym1,r1[0]*B2A,r1[1]*B2A,r1[2]*B2A,ejeL*B2A,ejeM*B2A);
+               at1+1,sym1,r1[0]*B2A,r1[1]*B2A,r1[2]*B2A,ejeM*B2A,ejeL*B2A);
+
   ejeL = dotProduct(r2,vL);
   ejeM = dotProduct(r2,vM);
-  cgL  = dotProduct(cg,vL);
-  cgM  = dotProduct(cg,vM);
   ejeL -= cgL;
   ejeM -= cgM;
   fprintf(out,"#  %5d %6s % 7.3lf % 7.3lf % 7.3lf -> (% 7.3lf, % 7.3lf) [A]\n",
-               at2+1,sym2,r2[0]*B2A,r2[1]*B2A,r2[2]*B2A,ejeL*B2A,ejeM*B2A);
+               at2+1,sym2,r2[0]*B2A,r2[1]*B2A,r2[2]*B2A,ejeM*B2A,ejeL*B2A);
+
   ejeL = dotProduct(r3,vL);
   ejeM = dotProduct(r3,vM);
-  cgL  = dotProduct(cg,vL);
-  cgM  = dotProduct(cg,vM);
   ejeL -= cgL;
   ejeM -= cgM;
   fprintf(out,"#  %5d %6s % 7.3lf % 7.3lf % 7.3lf -> (% 7.3lf, % 7.3lf) [A]\n",
-               at3+1,sym3,r3[0]*B2A,r3[1]*B2A,r3[2]*B2A,ejeL*B2A,ejeM*B2A);
+               at3+1,sym3,r3[0]*B2A,r3[1]*B2A,r3[2]*B2A,ejeM*B2A,ejeL*B2A);
+
+  ejeL = dotProduct(cg,vL);
+  ejeM = dotProduct(cg,vM);
+  ejeL -= cgL;
+  ejeM -= cgM;
+  fprintf(out,"#  Geometrical centre: % 7.3lf % 7.3lf % 7.3lf -> (% 7.3lf, % 7.3lf) [A]\n",
+               r3[0]*B2A,r3[1]*B2A,r3[2]*B2A,ejeM*B2A,ejeL*B2A);
+
+  ejeL = dotProduct(r0,vL);
+  ejeM = dotProduct(r0,vM);
+  ejeL -= cgL;
+  ejeM -= cgM;
+  fprintf(out,"#  r0 % 7.3lf % 7.3lf % 7.3lf -> (% 7.3lf, % 7.3lf) [A]\n",
+               r0[0]*B2A,r0[1]*B2A,r0[2]*B2A,ejeM*B2A,ejeL*B2A);
+
 
   fprintf(out,"#     L axis       M axis      field eval        field 0\n");
   for(i=0;i<n;i++){
@@ -278,28 +298,26 @@ int getFieldInPlane(double min0,dataCube cube, dataRun param, const double *matU
       r[0] = r0[0] + i*h*vL[0] + j*h*vM[0];
       r[1] = r0[1] + i*h*vL[1] + j*h*vM[1];
       r[2] = r0[2] + i*h*vL[2] + j*h*vM[2];
-
-      getRiU(r,matT,q);
+  
 
       ejeL = dotProduct(r,vL);
       ejeM = dotProduct(r,vM);
-      cgL  = dotProduct(cg,vL);
-      cgM  = dotProduct(cg,vM);
 
       ejeL -= cgL;
       ejeM -= cgM;
 
+      getRiU(r,matT,q);
 
       getIndex3D(cube.pts,q,cube.min,cube.hvec,idx);
       loadLocalField(idx,cube,param,xx,yy,zz,f);
-
       gNum(q[0],q[1],q[2],xx,yy,zz,f,param.pol,param.orth,matU,min0,val);
       f0 = gfun(val);
 
-      fprintf(out," % 12.6lf % 12.6lf  % 14.8lf % 14.8lf \n",ejeL*B2A,ejeM*B2A,f0,val[0]);
+//      fprintf(out," % 12.6lf % 12.6lf  % 14.8lf % 14.8lf \n",ejeM*B2A,ejeL*B2A,f0,val[0]);
+      fprintf(out,"H  % 10.6lf  % 10.6lf  % 10.6lf\n",r[0]*B2A,r[1]*B2A,r[2]*B2A);
 
     }
-      fprintf(out," \n");
+    //  fprintf(out," \n");
   }
 
   fclose(out);
@@ -321,6 +339,12 @@ double getVecLMN( double r1[3], double r2[3], double r3[3], double r0[3], double
   cg[1] = (r1[1] + r2[1] + r3[1])/(double) 3.;
   cg[2] = (r1[2] + r2[2] + r3[2])/(double) 3.;
 
+  printf(" Distance baricentre - v1 : % 10.6lf\n",distance(r1,cg));
+  printf(" Distance baricentre - v2 : % 10.6lf\n",distance(r2,cg));
+  printf(" Distance baricentre - v3 : % 10.6lf\n",distance(r3,cg));
+
+  getCircumcentre(r1, r2, r3, cg);
+
   dist = 1.75*distance(r1,cg);
 
   tmp1[0] = (r1[0] - r2[0]);
@@ -331,9 +355,9 @@ double getVecLMN( double r1[3], double r2[3], double r3[3], double r0[3], double
   tmp2[1] = (r3[1] - r2[1]);
   tmp2[2] = (r3[2] - r2[2]);
 
-  vecACm[0] = 0.5*(r1[0] - r3[0]);
-  vecACm[1] = 0.5*(r1[1] - r3[1]);
-  vecACm[2] = 0.5*(r1[2] - r3[2]);
+  vecACm[0] = r2[0] - 0.5*(r1[0] + r3[0]);
+  vecACm[1] = r2[1] - 0.5*(r1[1] + r3[1]);
+  vecACm[2] = r2[2] - 0.5*(r1[2] + r3[2]);
 
   crossProduct(tmp1,tmp2,vecN);
   norm = getNormVec(vecN);
@@ -347,11 +371,15 @@ double getVecLMN( double r1[3], double r2[3], double r3[3], double r0[3], double
   vecM[1] /=(-1.*norm);
   vecM[2] /=(-1.*norm);
 
-  crossProduct(vecN,vecM,vecL);
+  /*crossProduct(vecN,vecM,vecL);
   norm = getNormVec(vecL);
   vecL[0] /= norm;
   vecL[1] /= norm;
-  vecL[2] /= norm;
+  vecL[2] /= norm;*/
+  norm = getNormVec(vecACm);
+  vecL[0] = vecACm[0]/norm;
+  vecL[1] = vecACm[1]/norm;
+  vecL[2] = vecACm[2]/norm;
   
   r0[0] = cg[0] - dist*vecL[0] - dist*vecM[0];
   r0[1] = cg[1] - dist*vecL[1] - dist*vecM[1];
@@ -456,7 +484,7 @@ void origin( double vecL[3], double vecM[3], double vecN[3],double minmax[2], do
   r0[2] = rz/det;
  
 }
-void  reOrderAtoms(int *at1,int *at2, int *at3,dataCube cube){
+void  reOrderAtoms(int *at1,int *at2, int *at3,dataCube cube,const double *matU){
   int i;
   int atA,atB,atC;
 
@@ -474,7 +502,13 @@ void  reOrderAtoms(int *at1,int *at2, int *at3,dataCube cube){
     coorA[i] = cube.coor[3*atA+i];
     coorB[i] = cube.coor[3*atB+i];
     coorC[i] = cube.coor[3*atC+i];
+  }
 
+  itrans00(coorA,matU);
+  itrans00(coorB,matU);
+  itrans00(coorC,matU);
+
+  for( i = 0; i < 3; i++){
     vecAB[i] = coorA[i] - coorB[i];
     vecAC[i] = coorA[i] - coorC[i];
     vecBC[i] = coorB[i] - coorC[i];
@@ -486,18 +520,18 @@ void  reOrderAtoms(int *at1,int *at2, int *at3,dataCube cube){
 
 
   if( nAB > nAC && nAB > nBC ){
-    (*at2) = atC+1;
     (*at1) = atA+1;
+    (*at2) = atC+1;
     (*at3) = atB+1;
   }else{
     if( nAC > nAB && nAC > nBC){
-      (*at2) = atB+1;
       (*at1) = atA+1;
+      (*at2) = atB+1;
       (*at3) = atC+1;
     }else{
       if( nBC > nAB && nBC > nAC){
-        (*at2) = atA+1;
         (*at1) = atB+1;
+        (*at2) = atA+1;
         (*at3) = atC+1;
       }else{
         (*at1) = atA+1;
@@ -507,5 +541,73 @@ void  reOrderAtoms(int *at1,int *at2, int *at3,dataCube cube){
       }
     }
   }
+
+}
+
+void getCircumcentre(double rA[3],double rB[3], double rC[3], double c0[3]){
+    double tmpa[3], tmpb[3]; 
+    double tmp1[3],tmp2[3];
+    double normA,normB;
+    double normcrossAB;
+    double crossAB[3];
+
+    tmpa[0] = rA[0] - rC[0];
+    tmpa[1] = rA[1] - rC[1];
+    tmpa[2] = rA[2] - rC[2];
+    normA = getNormVec(tmpa);
+    normA = normA * normA;
+
+    tmpb[0] = rB[0] - rC[0];
+    tmpb[1] = rB[1] - rC[1];
+    tmpb[2] = rB[2] - rC[2];
+    normB = getNormVec(tmpb);
+    normB = normB * normB;
+
+    crossProduct(tmpa,tmpb,crossAB);
+    normcrossAB = getNormVec(crossAB);
+    normcrossAB = normcrossAB * normcrossAB;
+
+
+    tmp1[0] = normA * tmpb[0] - normB * tmpa[0];
+    tmp1[1] = normA * tmpb[1] - normB * tmpa[1];
+    tmp1[2] = normA * tmpb[2] - normB * tmpa[2];
+
+    crossProduct(tmp1,crossAB,tmp2);
+
+    c0[0] = tmp2[0] / (2. * normcrossAB ) + rC[0];
+    c0[1] = tmp2[1] / (2. * normcrossAB ) + rC[1];
+    c0[2] = tmp2[2] / (2. * normcrossAB ) + rC[2];
+
+
+    printf(" Distance c0 - v1 : % 10.6lf\n",distance(c0,rA));
+    printf(" Distance c0 - v2 : % 10.6lf\n",distance(c0,rB));
+    printf(" Distance c0 - v3 : % 10.6lf\n",distance(c0,rC));
+}
+
+void transCube(dataCube cube, const double *matU){
+    int i;
+    double rin[3];
+
+    for(i=0;i<cube.natm;i++){
+        rin[0] = cube.coor[3*i];
+        rin[1] = cube.coor[3*i+1];
+        rin[2] = cube.coor[3*i+2];
+        trans00(rin,matU);
+        cube.coor[3*i]   = rin[0];
+        cube.coor[3*i+1] = rin[1];
+        cube.coor[3*i+2] = rin[2];
+    }
+
+    rin[0] = cube.min[0];
+    rin[1] = cube.min[1];
+    rin[2] = cube.min[2];
+    trans00(rin,matU);
+    cube.min[0] = rin[0];
+    cube.min[1] = rin[1];
+    cube.min[2] = rin[2];
+
+    cube.max[0] = cube.min[0] + (cube.pts[0] - 1) * cube.hvec[0];
+    cube.max[1] = cube.min[1] + (cube.pts[1] - 1) * cube.hvec[1];
+    cube.max[2] = cube.min[2] + (cube.pts[2] - 1) * cube.hvec[2];
 
 }

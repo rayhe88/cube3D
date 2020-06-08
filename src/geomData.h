@@ -18,9 +18,13 @@
 
   void sortCoor(double[3],double[3],double[2]);
 
-  void reOrderAtoms(int*,int*,int*,dataCube);
+  void reOrderAtoms(int*,int*,int*,dataCube,const double*);
 
   void origin(double[3],double[3],double[3],double[2],double[3]);
+
+  void getCircumcentre(double[3],double[3],double[3],double[3]);
+
+  void transCube(dataCube,const double*);
 
 #endif
 

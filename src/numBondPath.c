@@ -1297,10 +1297,10 @@ void printBpaths(int npoints, int nbcp, FILE *tmp, FILE *out){
     rewind(tmp);
 
     createArrayInt(nbcp,&type,"print Bond Paths");
+    createArrayDataBpath(npoints,&bpaths,"bond paths");
+
     for(i=0;i<nbcp;i++)
         type[i] = 0;
-
-    createArrayDataBpath(npoints,&bpaths,"bond paths");
 
     for(i=0;i<npoints;i++){
         fscanf(tmp,"%d %lf %lf %lf %lf",&bond,&rx,&ry,&rz,&dij);
@@ -1315,11 +1315,12 @@ void printBpaths(int npoints, int nbcp, FILE *tmp, FILE *out){
     sortBpaths(npoints,nbcp,type,bpaths);
 
     fprintf(out," %6d\n",npoints);
-    fprintf(out,"    \n");
+    fprintf(out," Bond Path file Coordinates in Angstroms \n");
     for(i=0;i<npoints;i++)
-        fprintf(out," BP%04d  % 10.6lf % 10.6lf % 10.6lf % 10.6lf\n",
+        fprintf(out," BP%04d  % 10.6lf % 10.6lf % 10.6lf \n",
                     bpaths[i].bcp,
-                    bpaths[i].r[0], bpaths[i].r[1], bpaths[i].r[2],bpaths[i].dij);
+                    bpaths[i].r[0], bpaths[i].r[1], bpaths[i].r[2]);
+                 //   bpaths[i].r[0], bpaths[i].r[1], bpaths[i].r[2],bpaths[i].dij);
 
 
     free(type);
@@ -1330,25 +1331,24 @@ void sortBpaths(int np, int nbcp, int* type, dataBpath* bpaths){
     int k;
     int min,max;
 
-
-    mergeBPathBCP(bpaths,0,np);
+    mergeBPathBCP(bpaths,0,np-1);
     
     min = 0;
     for(k=0;k<nbcp;k++){
         max = min + type[k];
-        mergeBPathDist(bpaths,min,max);
+        mergeBPathDist(bpaths,min,max-1);
         min = max;
     }
 }
 
 void createArrayDataBpath(int n, dataBpath **ptr, char *mess){
-    if( n < 1 ){
-        printf(" There is an error in the size for [%s]\n",mess);
+    if( n <= 0 ){
+        printf(" There is an error in the size (%d) for [%s] \n",n, mess);
         exit(EXIT_FAILURE);
     }
 
-    *ptr = (dataBpath*) malloc(n*sizeof(dataBpath));
-    if( *ptr == NULL){
+    (*ptr) = (dataBpath*) malloc((n)*sizeof(dataBpath));
+    if( (*ptr) == NULL){
         printf(" Failed to allocate memory: [%s]\n",mess);
         exit(EXIT_FAILURE);
     }
@@ -1373,8 +1373,8 @@ void sortBPathDist( dataBpath *array, int l, int m, int r){
     int n2 =  r - m; 
     dataBpath *leftArray, *rightArray;
   
-    createArrayDataBpath(n1,&leftArray,"Temporal array L");
-    createArrayDataBpath(n1,&rightArray,"Temporal array R");
+    createArrayDataBpath(n1+1,&leftArray,"Temporal array L");
+    createArrayDataBpath(n2+1,&rightArray,"Temporal array R");
   
     for (i = 0; i < n1; i++) 
         leftArray[i] = array[l + i]; 
@@ -1413,14 +1413,14 @@ void sortBPathDist( dataBpath *array, int l, int m, int r){
         k++; 
     } 
 
-    free(leftArray);
     free(rightArray);
+    free(leftArray);
 }
 
 void mergeBPathBCP(dataBpath *array, int l, int r){
-    if(l < r ){
-        int m  = l + (r-l)/2;
 
+    if ( l < r ){
+        int m  = l + (r - l) / 2;
         mergeBPathBCP(array,l,m);
         mergeBPathBCP(array,m+1,r);
 
@@ -1432,51 +1432,48 @@ void mergeBPathBCP(dataBpath *array, int l, int r){
 
 void sortBPathBCP( dataBpath *array, int l, int m, int r){
     int i, j, k; 
-    int n1 = m - l + 1; 
+    int n1 =  m - l + 1; 
     int n2 =  r - m; 
-    dataBpath *leftArray, *rightArray;
+    dataBpath *leftArray;
+    dataBpath *rightArray;
   
     createArrayDataBpath(n1,&leftArray,"Temporal array L");
-    createArrayDataBpath(n1,&rightArray,"Temporal array R");
+
+    createArrayDataBpath(n2,&rightArray,"Temporal array R");
   
     for (i = 0; i < n1; i++) 
         leftArray[i] = array[l + i]; 
+
     for (j = 0; j < n2; j++) 
-        rightArray[j] = array[m + 1+ j]; 
+        rightArray[j] = array[m + 1 + j]; 
   
     i = 0; 
     j = 0; 
     k = l;
-    while (i < n1 && j < n2) 
-    { 
-        if (leftArray[i].bcp <= rightArray[j].bcp) 
-        { 
+    while (i < n1 && j < n2){ 
+        if (leftArray[i].bcp <= rightArray[j].bcp){
             array[k] = leftArray[i]; 
             i++; 
-        } 
-        else
-        { 
+        }else{ 
             array[k] = rightArray[j]; 
             j++; 
         } 
         k++; 
     } 
   
-    while (i < n1) 
-    { 
+    while (i < n1){ 
         array[k] = leftArray[i]; 
         i++; 
         k++; 
     } 
   
-    while (j < n2) 
-    { 
+    while (j < n2){ 
         array[k] = rightArray[j]; 
         j++; 
         k++; 
     } 
 
+
     free(leftArray);
     free(rightArray);
-
 }
