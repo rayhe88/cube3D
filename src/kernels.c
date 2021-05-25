@@ -34,8 +34,6 @@ void selectExec(dataCube cube, dataRun param, double *matU, char *name){
       planeLine = 1;
   }
 
-  printf(" GeomTAsk == %d\n",param.geoTask );
-
   if( param.geoTask == LIN && planeLine == 1){
     fieldMinMax (cube,&min,&max);
     min2 = min - DELTA;
