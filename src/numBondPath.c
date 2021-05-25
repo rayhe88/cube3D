@@ -1,4 +1,4 @@
-/** 
+/**
  * @file   numBondPath.c
  * @brief
  * @author Raymundo Hernández-Esparza.
@@ -74,8 +74,8 @@ int bondPath( int bcp, dataCritP *bondCrit, int ncp, dataCritP *nnucCrit,int *bo
   FILE *tmp;
   FILE *out;
   /**********************************************************
-    TODO  this is only a form to repair the gradient lines 
-          (bpaths). In the future may do a structure for 
+    TODO  this is only a form to repair the gradient lines
+          (bpaths). In the future may do a structure for
           matrix of transformation and rotation.
   **********************************************************/
   double matT[9];
@@ -111,27 +111,27 @@ int bondPath( int bcp, dataCritP *bondCrit, int ncp, dataCritP *nnucCrit,int *bo
                             a6,c1,c3,c4,c6,attractors,coorAttr,tmp,cellInfo)
 {
 
-#pragma omp single 
+#pragma omp single
 {
   printf("  Number of threads in bond path  : %6d\n",omp_get_num_threads());
 }
-#pragma omp barrier 
+#pragma omp barrier
 
 
-#pragma omp for schedule (dynamic) 
+#pragma omp for schedule (dynamic)
   for(i=0; i < bcp; i++){
     nucleo1 = nucleo2 = 0;
 
     qc[0] = bondCrit[i].x;
     qc[1] = bondCrit[i].y;
     qc[2] = bondCrit[i].z;
-    
+
     getRiU(qc,matU,rc);
     dij = 0.;
     fprintf(tmp,"%d % 10.6lf % 10.6lf % 10.6lf % 10.6lf\n",
                   i+1,rc[0]*B2A,rc[1]*B2A,rc[2]*B2A,dij);
 
-    numCritical02Vec(qc,cube,param,matU,min0,val); 
+    numCritical02Vec(qc,cube,param,matU,min0,val);
 
     matH[0] = val[4]; matH[1] = val[7]; matH[2] = val[8];
     matH[3] = val[7]; matH[4] = val[5]; matH[5] = val[9];
@@ -139,8 +139,8 @@ int bondPath( int bcp, dataCritP *bondCrit, int ncp, dataCritP *nnucCrit,int *bo
 
     JacobiNxN(matH,eval,evec);
 /*  The 3rd eigenvector is taken */
-    vec2[0] = evec[6];  vec2[1] = evec[7];  vec2[2] = evec[8]; 
-    
+    vec2[0] = evec[6];  vec2[1] = evec[7];  vec2[2] = evec[8];
+
     norm = getNormVec(vec2);
     vec2[0] /= norm; vec2[1] /= norm; vec2[2] /= norm;
 
@@ -151,7 +151,7 @@ int bondPath( int bcp, dataCritP *bondCrit, int ncp, dataCritP *nnucCrit,int *bo
 
     cellInfo[2*i  ] = 0;
     cellInfo[2*i+1] = 0;
-   
+
     step = iterp= 0; dist = 6.;
     flagPos = 0;
     flagPos += perfectCube ( param.pbc,qi,cube.min,cube.max);
@@ -159,7 +159,7 @@ int bondPath( int bcp, dataCritP *bondCrit, int ncp, dataCritP *nnucCrit,int *bo
 
       getRiU(qi,matU,ri);
       numCritical01Vec(qi,cube,param,matU,min0,val);
-      getKnRungeKuta(k1,val);   
+      getKnRungeKuta(k1,val);
 
       q[0] = qi[0] + a3;
       q[1] = qi[1] + a3;
@@ -187,14 +187,14 @@ int bondPath( int bcp, dataCritP *bondCrit, int ncp, dataCritP *nnucCrit,int *bo
       numCritical01Vec(q,cube,param,matU,min0,val);
 
       getKnRungeKuta(k6,val);
-      
+
       vec[0] = c1*k1[0] + c3*k3[0] + c4*k4[0] + c6*k6[0];
       vec[1] = c1*k1[1] + c3*k3[1] + c4*k4[1] + c6*k6[1];
       vec[2] = c1*k1[2] + c3*k3[2] + c4*k4[2] + c6*k6[2];
 
       //if( param.orth != YES) trans01(vec,matU);
-      
-      
+
+
       rn[0] = ri[0] + BPATH_EPS * vec[0];
       rn[1] = ri[1] + BPATH_EPS * vec[1];
       rn[2] = ri[2] + BPATH_EPS * vec[2];
@@ -202,7 +202,7 @@ int bondPath( int bcp, dataCritP *bondCrit, int ncp, dataCritP *nnucCrit,int *bo
       getRiU(rn,matT,qn);
 
       flagPos += perfectCube ( param.pbc,qn,cube.min,cube.max);
-       
+
       step++;
 
       amico = 0;
@@ -246,7 +246,7 @@ int bondPath( int bcp, dataCritP *bondCrit, int ncp, dataCritP *nnucCrit,int *bo
 
 
  // At this moment we change the direction
-    ri[0] = rc[0] - 2.0 * BPATH_EPS * vec2[0]; 
+    ri[0] = rc[0] - 2.0 * BPATH_EPS * vec2[0];
     ri[1] = rc[1] - 2.0 * BPATH_EPS * vec2[1];
     ri[2] = rc[2] - 2.0 * BPATH_EPS * vec2[2];
     getRiU(ri,matT,qi);
@@ -287,11 +287,11 @@ int bondPath( int bcp, dataCritP *bondCrit, int ncp, dataCritP *nnucCrit,int *bo
       vec[0] = c1*k1[0] + c3*k3[0] + c4*k4[0] + c6*k6[0];
       vec[1] = c1*k1[1] + c3*k3[1] + c4*k4[1] + c6*k6[1];
       vec[2] = c1*k1[2] + c3*k3[2] + c4*k4[2] + c6*k6[2];
-      
+
       rn[0] = ri[0] + BPATH_EPS * vec[0];
       rn[1] = ri[1] + BPATH_EPS * vec[1];
       rn[2] = ri[2] + BPATH_EPS * vec[2];
- 
+
       getRiU(rn,matT,qn);
 
       flagNeg += perfectCube ( param.pbc,qn,cube.min,cube.max);
@@ -367,7 +367,7 @@ int bondPath( int bcp, dataCritP *bondCrit, int ncp, dataCritP *nnucCrit,int *bo
   char symb1[6],symb2[6];
   char cc1,cc2;
   for( i = 0; i < bcp ; i++ ){
-    
+
     cc1=' ';
     cc2=' ';
     if( cellInfo[2*i] != 0 )
@@ -386,7 +386,7 @@ int bondPath( int bcp, dataCritP *bondCrit, int ncp, dataCritP *nnucCrit,int *bo
       getAtomicSymbol(cube.zatm[nucleo2],4,symb2);
     else
       strcpy(symb2,"NNA");
-  
+
     printf("     Critical point %4d between  : %3d %c%-4s %3d %c%-4s\n",i+1,nucleo1+1,cc1,symb1,nucleo2+1,cc2,symb2);
   }
 
@@ -417,7 +417,7 @@ int bondPath( int bcp, dataCritP *bondCrit, int ncp, dataCritP *nnucCrit,int *bo
 
 
 int perfectCube ( int bcp, double *r, double *min, double *max){
-  
+
   int flag = 0;
   if( bcp == YES ){
     double dx = fabs( max[0] - min[0]);
@@ -426,7 +426,7 @@ int perfectCube ( int bcp, double *r, double *min, double *max){
 
     if ( r[0] <= min[0] ){ r[0] += dx; flag += 1;}
     if ( r[0]  > max[0] ){ r[0] -= dx; flag += 1;}
-        
+
     if ( r[1] <= min[1] ){ r[1] += dy; flag += 1;}
     if ( r[1]  > max[1] ){ r[1] -= dy; flag += 1;}
 
@@ -512,7 +512,7 @@ int logFile( int bcp, int rcp, int ccp, int ncp, dataCritP *bondCrit,
     fprintf(out," % 10.6lf % 10.6lf % 10.6lf % 14.8lf % 16.7lf\n",r[0],r[1],r[2],fun,lap);
   }
 
-  if( rcp > 0 ) 
+  if( rcp > 0 )
     printBar82(out);
   for(i=0;i<rcp;i++){
     x = ringCrit[i].x;
@@ -526,7 +526,7 @@ int logFile( int bcp, int rcp, int ccp, int ncp, dataCritP *bondCrit,
     itrans00(r,matU);
     fprintf(out," % 10.6lf % 10.6lf % 10.6lf % 14.8lf % 16.7lf\n",r[0],r[1],r[2],fun,lap);
   }
-  if( ccp > 0 ) 
+  if( ccp > 0 )
     printBar82(out);
   for(i=0;i<ccp;i++){
     x = cageCrit[i].x;
@@ -541,7 +541,7 @@ int logFile( int bcp, int rcp, int ccp, int ncp, dataCritP *bondCrit,
     fprintf(out," % 10.6lf % 10.6lf % 10.6lf % 14.8lf % 16.7lf\n",r[0],r[1],r[2],fun,lap);
   }
 
-  /////////////////////////////////////////INFORMACION DETALLADA 
+  /////////////////////////////////////////INFORMACION DETALLADA
   if( ncp > 0 ){
     printBar82(out);
     centraMess("No-nuclear Attractor Critical Points",out);
@@ -558,7 +558,7 @@ int logFile( int bcp, int rcp, int ccp, int ncp, dataCritP *bondCrit,
 
 	   getEnergies(fun,lap,&kinG,&kinK,&virial);
 	   eneH = kinG + virial;
-	
+
       matH[0] = val[4]; matH[1] = val[7]; matH[2] = val[8];
       matH[3] = val[7]; matH[4] = val[5]; matH[5] = val[9];
       matH[6] = val[8]; matH[7] = val[9]; matH[8] = val[6];
@@ -598,7 +598,7 @@ int logFile( int bcp, int rcp, int ccp, int ncp, dataCritP *bondCrit,
     printBar82(out);
     centraMess("Bond Critical Points",out);
     for(i=0;i<bcp;i++){
-      
+
       printBar82(out);
       x = bondCrit[i].x;
       y = bondCrit[i].y;
@@ -611,7 +611,7 @@ int logFile( int bcp, int rcp, int ccp, int ncp, dataCritP *bondCrit,
 
 	  getEnergies(fun,lap,&kinG,&kinK,&virial);
 	  eneH = kinG + virial;
-	
+
       matH[0] = val[4]; matH[1] = val[7]; matH[2] = val[8];
       matH[3] = val[7]; matH[4] = val[5]; matH[5] = val[9];
       matH[6] = val[8]; matH[7] = val[9]; matH[8] = val[6];
@@ -619,7 +619,7 @@ int logFile( int bcp, int rcp, int ccp, int ncp, dataCritP *bondCrit,
       //JacobiNxN(matH,eval,evec);
       valoresPropios3x3(matH,eval);
 	  l1 = eval[0]; l2 = eval[1]; l3 = eval[2];
-      
+
       at1 = bonding[2*i];
       at2 = bonding[2*i+1];
 
@@ -638,9 +638,9 @@ int logFile( int bcp, int rcp, int ccp, int ncp, dataCritP *bondCrit,
 
       cc1 = ' ';
       if( cells[2*i]   != 0 ) cc1 = '*';
-      cc2 = ' '; 
+      cc2 = ' ';
       if( cells[2*i+1] != 0 ) cc2 = '*';
-      
+
 
       r[0] = x*B2A; r[1] = y*B2A; r[2] = z*B2A;
       itrans00(r,matU);
@@ -688,7 +688,7 @@ int logFile( int bcp, int rcp, int ccp, int ncp, dataCritP *bondCrit,
 
 	   getEnergies(fun,lap,&kinG,&kinK,&virial);
 	   eneH = kinG + virial;
-	
+
       matH[0] = val[4]; matH[1] = val[7]; matH[2] = val[8];
       matH[3] = val[7]; matH[4] = val[5]; matH[5] = val[9];
       matH[6] = val[8]; matH[7] = val[9]; matH[8] = val[6];
@@ -738,7 +738,7 @@ int logFile( int bcp, int rcp, int ccp, int ncp, dataCritP *bondCrit,
 
 	   getEnergies(fun,lap,&kinG,&kinK,&virial);
 	   eneH = kinG + virial;
-	
+
       matH[0] = val[4]; matH[1] = val[7]; matH[2] = val[8];
       matH[3] = val[7]; matH[4] = val[5]; matH[5] = val[9];
       matH[6] = val[8]; matH[7] = val[9]; matH[8] = val[6];
@@ -784,7 +784,7 @@ int logFile( int bcp, int rcp, int ccp, int ncp, dataCritP *bondCrit,
   return 0;
 }
 
-  
+
 void getEnergies(double rho, double lap, double *kinG,double *kinK,double *vir){
 
   double kG,kK;
@@ -810,23 +810,23 @@ int myIsNanInf(double val){
   ret += isnan(val);
   ret += isinf(val);
 
-  return ret; 
+  return ret;
 }
 
 int myIsNanInf_V3(double vec[3]){
 
-  int ret = 0; 
-  
+  int ret = 0;
+
   ret += myIsNanInf(vec[0]);
   ret += myIsNanInf(vec[1]);
   ret += myIsNanInf(vec[2]);
 
-  return ret; 
+  return ret;
 
 }
 
 void printLog1(int nbc, int nrc, int ncc, int nna, int nnu, FILE *out){
-  
+
   char tchar[128];
 
   time_t t= time(NULL);
@@ -841,7 +841,7 @@ void printLog1(int nbc, int nrc, int ncc, int nna, int nnu, FILE *out){
   printBar82(out);
   fprintf(out,"%82s\n",tchar);
   printBar82(out);
-  
+
   fprintf(out," This file contains information about critical points and properties, these\n");
   fprintf(out," information are determineted by code Cube3D-%s\n",VERSION);
   fprintf(out," The units in this  file for  distance are  Angstrom and  the units for fields are\n");
@@ -856,7 +856,7 @@ void printLog1(int nbc, int nrc, int ncc, int nna, int nnu, FILE *out){
   fprintf(out,"  Virial Field        Or Potential Energy Density  V = -K - G\n");
   //fprintf(out,"  Lagrangian Density  -(1/4) Laplacian or K - G\n");
  // fprintf(out,"  KenergyG/Density    Kinetic Energy Density per electron\n");
-  
+
   fprintf(out,"  Eigenvalues         Eigenvalues for Hessian matrix: lambda_1<lambda_2<lambda_3\n");
   fprintf(out,"  Bond Ellipiticy     lambda_1/lambda_2 - 1\n");
   fprintf(out,"  Eta index           |lambda_1|/lambda_3\n\n");
@@ -927,11 +927,11 @@ int axesCrit( int bcp, int rcp, int ccp, int ncp, dataCritP *bondCrit,
     y0 = bondCrit[i].y;
     z0 = bondCrit[i].z;
     numCritical02(x0,y0,z0,cube,param,matU,min0,val);
-  
+
     matH[0] = val[4]; matH[1] = val[7]; matH[2] = val[8];
     matH[3] = val[7]; matH[4] = val[5]; matH[5] = val[9];
     matH[6] = val[8]; matH[7] = val[9]; matH[8] = val[6];
-  
+
     JacobiNxN(matH,eval,evec);
 
     r[0] = x0;
@@ -947,14 +947,14 @@ int axesCrit( int bcp, int rcp, int ccp, int ncp, dataCritP *bondCrit,
 
     for(j=1;j<=5;j++){
       r[0] = x0 + j*v1;
-      r[1] = y0 + j*v2; 
+      r[1] = y0 + j*v2;
       r[2] = z0 + j*v3;
       itrans00(r,matU);
       fprintf(out," LA3B  % 10.6lf % 10.6lf % 10.6lf\n",r[0]*B2A,r[1]*B2A,r[2]*B2A);
     }
     for(j=1;j<=5;j++){
       r[0] = x0 - j*v1;
-      r[1] = y0 - j*v2; 
+      r[1] = y0 - j*v2;
       r[2] = z0 - j*v3;
       itrans00(r,matU);
       fprintf(out," LA3B  % 10.6lf % 10.6lf % 10.6lf\n",r[0]*B2A,r[1]*B2A,r[2]*B2A);
@@ -965,14 +965,14 @@ int axesCrit( int bcp, int rcp, int ccp, int ncp, dataCritP *bondCrit,
     v1 = v1*0.05/norm; v2 = v2*0.05/norm; v3 = v3*0.05/norm;
     for(j=1;j<=5;j++){
       r[0] = x0 + j*v1;
-      r[1] = y0 + j*v2; 
+      r[1] = y0 + j*v2;
       r[2] = z0 + j*v3;
       itrans00(r,matU);
       fprintf(out," LA2B  % 10.6lf % 10.6lf % 10.6lf\n",r[0]*B2A,r[1]*B2A,r[2]*B2A);
     }
     for(j=1;j<=5;j++){
       r[0] = x0 - j*v1;
-      r[1] = y0 - j*v2; 
+      r[1] = y0 - j*v2;
       r[2] = z0 - j*v3;
       itrans00(r,matU);
       fprintf(out," LA2B  % 10.6lf % 10.6lf % 10.6lf\n",r[0]*B2A,r[1]*B2A,r[2]*B2A);
@@ -982,19 +982,19 @@ int axesCrit( int bcp, int rcp, int ccp, int ncp, dataCritP *bondCrit,
     v1 = v1*0.05/norm; v2 = v2*0.05/norm; v3 = v3*0.05/norm;
     for(j=1;j<=5;j++){
       r[0] = x0 + j*v1;
-      r[1] = y0 + j*v2; 
+      r[1] = y0 + j*v2;
       r[2] = z0 + j*v3;
       itrans00(r,matU);
       fprintf(out," LA1B  % 10.6lf % 10.6lf % 10.6lf\n",r[0]*B2A,r[1]*B2A,r[2]*B2A);
     }
     for(j=1;j<=5;j++){
       r[0] = x0 - j*v1;
-      r[1] = y0 - j*v2; 
+      r[1] = y0 - j*v2;
       r[2] = z0 - j*v3;
       itrans00(r,matU);
       fprintf(out," LA1B  % 10.6lf % 10.6lf % 10.6lf\n",r[0]*B2A,r[1]*B2A,r[2]*B2A);
     }
-  
+
   } // fin BCP
 
   for(i=0; i < rcp; i++){
@@ -1002,11 +1002,11 @@ int axesCrit( int bcp, int rcp, int ccp, int ncp, dataCritP *bondCrit,
     y0 = ringCrit[i].y;
     z0 = ringCrit[i].z;
     numCritical02(x0,y0,z0,cube,param,matU,min0,val);
-  
+
     matH[0] = val[4]; matH[1] = val[7]; matH[2] = val[8];
     matH[3] = val[7]; matH[4] = val[5]; matH[5] = val[9];
     matH[6] = val[8]; matH[7] = val[9]; matH[8] = val[6];
-  
+
     JacobiNxN(matH,eval,evec);
 
     r[0] = x0;
@@ -1022,14 +1022,14 @@ int axesCrit( int bcp, int rcp, int ccp, int ncp, dataCritP *bondCrit,
 
     for(j=1;j<=5;j++){
       r[0] = x0 + j*v1;
-      r[1] = y0 + j*v2; 
+      r[1] = y0 + j*v2;
       r[2] = z0 + j*v3;
       itrans00(r,matU);
       fprintf(out," LA3R  % 10.6lf % 10.6lf % 10.6lf\n",r[0]*B2A,r[1]*B2A,r[2]*B2A);
     }
     for(j=1;j<=5;j++){
       r[0] = x0 - j*v1;
-      r[1] = y0 - j*v2; 
+      r[1] = y0 - j*v2;
       r[2] = z0 - j*v3;
       itrans00(r,matU);
       fprintf(out," LA3R  % 10.6lf % 10.6lf % 10.6lf\n",r[0]*B2A,r[1]*B2A,r[2]*B2A);
@@ -1040,14 +1040,14 @@ int axesCrit( int bcp, int rcp, int ccp, int ncp, dataCritP *bondCrit,
     v1 = v1*0.05/norm; v2 = v2*0.05/norm; v3 = v3*0.05/norm;
     for(j=1;j<=5;j++){
       r[0] = x0 + j*v1;
-      r[1] = y0 + j*v2; 
+      r[1] = y0 + j*v2;
       r[2] = z0 + j*v3;
       itrans00(r,matU);
       fprintf(out," LA2R  % 10.6lf % 10.6lf % 10.6lf\n",r[0]*B2A,r[1]*B2A,r[2]*B2A);
     }
     for(j=1;j<=5;j++){
       r[0] = x0 - j*v1;
-      r[1] = y0 - j*v2; 
+      r[1] = y0 - j*v2;
       r[2] = z0 - j*v3;
       itrans00(r,matU);
       fprintf(out," LA2R  % 10.6lf % 10.6lf % 10.6lf\n",r[0]*B2A,r[1]*B2A,r[2]*B2A);
@@ -1057,19 +1057,19 @@ int axesCrit( int bcp, int rcp, int ccp, int ncp, dataCritP *bondCrit,
     v1 = v1*0.05/norm; v2 = v2*0.05/norm; v3 = v3*0.05/norm;
     for(j=1;j<=5;j++){
       r[0] = x0 + j*v1;
-      r[1] = y0 + j*v2; 
+      r[1] = y0 + j*v2;
       r[2] = z0 + j*v3;
       itrans00(r,matU);
       fprintf(out," LA1R  % 10.6lf % 10.6lf % 10.6lf\n",r[0]*B2A,r[1]*B2A,r[2]*B2A);
     }
     for(j=1;j<=5;j++){
       r[0] = x0 - j*v1;
-      r[1] = y0 - j*v2; 
+      r[1] = y0 - j*v2;
       r[2] = z0 - j*v3;
       itrans00(r,matU);
       fprintf(out," LA1R  % 10.6lf % 10.6lf % 10.6lf\n",r[0]*B2A,r[1]*B2A,r[2]*B2A);
     }
-  
+
   } // fin RCP
 
   for(i=0; i < ccp; i++){
@@ -1077,11 +1077,11 @@ int axesCrit( int bcp, int rcp, int ccp, int ncp, dataCritP *bondCrit,
     y0 = cageCrit[i].y;
     z0 = cageCrit[i].z;
     numCritical02(x0,y0,z0,cube,param,matU,min0,val);
-  
+
     matH[0] = val[4]; matH[1] = val[7]; matH[2] = val[8];
     matH[3] = val[7]; matH[4] = val[5]; matH[5] = val[9];
     matH[6] = val[8]; matH[7] = val[9]; matH[8] = val[6];
-  
+
     JacobiNxN(matH,eval,evec);
 
     r[0] = x0;
@@ -1097,14 +1097,14 @@ int axesCrit( int bcp, int rcp, int ccp, int ncp, dataCritP *bondCrit,
 
     for(j=1;j<=5;j++){
       r[0] = x0 + j*v1;
-      r[1] = y0 + j*v2; 
+      r[1] = y0 + j*v2;
       r[2] = z0 + j*v3;
       itrans00(r,matU);
       fprintf(out," LA3C  % 10.6lf % 10.6lf % 10.6lf\n",r[0]*B2A,r[1]*B2A,r[2]*B2A);
     }
     for(j=1;j<=5;j++){
       r[0] = x0 - j*v1;
-      r[1] = y0 - j*v2; 
+      r[1] = y0 - j*v2;
       r[2] = z0 - j*v3;
       itrans00(r,matU);
       fprintf(out," LA3C  % 10.6lf % 10.6lf % 10.6lf\n",r[0]*B2A,r[1]*B2A,r[2]*B2A);
@@ -1115,14 +1115,14 @@ int axesCrit( int bcp, int rcp, int ccp, int ncp, dataCritP *bondCrit,
     v1 = v1*0.05/norm; v2 = v2*0.05/norm; v3 = v3*0.05/norm;
     for(j=1;j<=5;j++){
       r[0] = x0 + j*v1;
-      r[1] = y0 + j*v2; 
+      r[1] = y0 + j*v2;
       r[2] = z0 + j*v3;
       itrans00(r,matU);
       fprintf(out," LA2C  % 10.6lf % 10.6lf % 10.6lf\n",r[0]*B2A,r[1]*B2A,r[2]*B2A);
     }
     for(j=1;j<=5;j++){
       r[0] = x0 - j*v1;
-      r[1] = y0 - j*v2; 
+      r[1] = y0 - j*v2;
       r[2] = z0 - j*v3;
       itrans00(r,matU);
       fprintf(out," LA2C  % 10.6lf % 10.6lf % 10.6lf\n",r[0]*B2A,r[1]*B2A,r[2]*B2A);
@@ -1132,19 +1132,19 @@ int axesCrit( int bcp, int rcp, int ccp, int ncp, dataCritP *bondCrit,
     v1 = v1*0.05/norm; v2 = v2*0.05/norm; v3 = v3*0.05/norm;
     for(j=1;j<=5;j++){
       r[0] = x0 + j*v1;
-      r[1] = y0 + j*v2; 
+      r[1] = y0 + j*v2;
       r[2] = z0 + j*v3;
       itrans00(r,matU);
       fprintf(out," LA1C  % 10.6lf % 10.6lf % 10.6lf\n",r[0]*B2A,r[1]*B2A,r[2]*B2A);
     }
     for(j=1;j<=5;j++){
       r[0] = x0 - j*v1;
-      r[1] = y0 - j*v2; 
+      r[1] = y0 - j*v2;
       r[2] = z0 - j*v3;
       itrans00(r,matU);
       fprintf(out," LA1C  % 10.6lf % 10.6lf % 10.6lf\n",r[0]*B2A,r[1]*B2A,r[2]*B2A);
     }
-  
+
   } // fin CCP
 
   for(i=0; i < ncp; i++){
@@ -1152,11 +1152,11 @@ int axesCrit( int bcp, int rcp, int ccp, int ncp, dataCritP *bondCrit,
     y0 = nnucCrit[i].y;
     z0 = nnucCrit[i].z;
     numCritical02(x0,y0,z0,cube,param,matU,min0,val);
-  
+
     matH[0] = val[4]; matH[1] = val[7]; matH[2] = val[8];
     matH[3] = val[7]; matH[4] = val[5]; matH[5] = val[9];
     matH[6] = val[8]; matH[7] = val[9]; matH[8] = val[6];
-  
+
     JacobiNxN(matH,eval,evec);
 
     r[0] = x0;
@@ -1172,14 +1172,14 @@ int axesCrit( int bcp, int rcp, int ccp, int ncp, dataCritP *bondCrit,
 
     for(j=1;j<=5;j++){
       r[0] = x0 + j*v1;
-      r[1] = y0 + j*v2; 
+      r[1] = y0 + j*v2;
       r[2] = z0 + j*v3;
       itrans00(r,matU);
       fprintf(out," LA3N  % 10.6lf % 10.6lf % 10.6lf\n",r[0]*B2A,r[1]*B2A,r[2]*B2A);
     }
     for(j=1;j<=5;j++){
       r[0] = x0 - j*v1;
-      r[1] = y0 - j*v2; 
+      r[1] = y0 - j*v2;
       r[2] = z0 - j*v3;
       itrans00(r,matU);
       fprintf(out," LA3N  % 10.6lf % 10.6lf % 10.6lf\n",r[0]*B2A,r[1]*B2A,r[2]*B2A);
@@ -1190,14 +1190,14 @@ int axesCrit( int bcp, int rcp, int ccp, int ncp, dataCritP *bondCrit,
     v1 = v1*0.05/norm; v2 = v2*0.05/norm; v3 = v3*0.05/norm;
     for(j=1;j<=5;j++){
       r[0] = x0 + j*v1;
-      r[1] = y0 + j*v2; 
+      r[1] = y0 + j*v2;
       r[2] = z0 + j*v3;
       itrans00(r,matU);
       fprintf(out," LA2N  % 10.6lf % 10.6lf % 10.6lf\n",r[0]*B2A,r[1]*B2A,r[2]*B2A);
     }
     for(j=1;j<=5;j++){
       r[0] = x0 - j*v1;
-      r[1] = y0 - j*v2; 
+      r[1] = y0 - j*v2;
       r[2] = z0 - j*v3;
       itrans00(r,matU);
       fprintf(out," LA2N  % 10.6lf % 10.6lf % 10.6lf\n",r[0]*B2A,r[1]*B2A,r[2]*B2A);
@@ -1207,26 +1207,26 @@ int axesCrit( int bcp, int rcp, int ccp, int ncp, dataCritP *bondCrit,
     v1 = v1*0.05/norm; v2 = v2*0.05/norm; v3 = v3*0.05/norm;
     for(j=1;j<=5;j++){
       r[0] = x0 + j*v1;
-      r[1] = y0 + j*v2; 
+      r[1] = y0 + j*v2;
       r[2] = z0 + j*v3;
       itrans00(r,matU);
       fprintf(out," LA1N  % 10.6lf % 10.6lf % 10.6lf\n",r[0]*B2A,r[1]*B2A,r[2]*B2A);
     }
     for(j=1;j<=5;j++){
       r[0] = x0 - j*v1;
-      r[1] = y0 - j*v2; 
+      r[1] = y0 - j*v2;
       r[2] = z0 - j*v3;
       itrans00(r,matU);
       fprintf(out," LA1N  % 10.6lf % 10.6lf % 10.6lf\n",r[0]*B2A,r[1]*B2A,r[2]*B2A);
     }
-  
+
   } // fin NCP
 
 }
 
 
-int logFileCSV( int ncp, dataCritP *crit, dataCube cube, 
-                dataRun param, double min0, 
+int logFileCSV( int ncp, dataCritP *crit, dataCube cube,
+                dataRun param, double min0,
                 const double *matU, char *name, char *string){
 
   int i;
@@ -1241,7 +1241,7 @@ int logFileCSV( int ncp, dataCritP *crit, dataCube cube,
 
   sprintf(nameOut,"%sCritP_%s.csv",name,string);
   openFile(&out,nameOut,"w+");
-  
+
   fprintf(out,"Index, Type, Coor X, Coor Y, Coor Z, Density, Ngrad, ");
   fprintf(out,"Laplacian, Kinetic G, Kinetic K, Virial, energy H, ");
   fprintf(out,"lambda_1, lambda_2, lambda_3, ellepticiy, energyInt(kcal/mol)\n");
@@ -1257,7 +1257,7 @@ int logFileCSV( int ncp, dataCritP *crit, dataCube cube,
       ngrad = sqrt( val[1]*val[1] + val[2]*val[2] + val[3]*val[3]);
 	  getEnergies(fun,lap,&kinG,&kinK,&virial);
 	  eneH = kinG + virial;
-	
+
       matH[0] = val[4]; matH[1] = val[7]; matH[2] = val[8];
       matH[3] = val[7]; matH[4] = val[5]; matH[5] = val[9];
       matH[6] = val[8]; matH[7] = val[9]; matH[8] = val[6];
@@ -1267,7 +1267,7 @@ int logFileCSV( int ncp, dataCritP *crit, dataCube cube,
 	   l1 = eval[0]; l2 = eval[1]; l3 = eval[2];
       ellep = (l1/l2)-1.;
       eneHb = 0.5 * virial * 627.509;
-      
+
       getRiU(q,matU,r);
       r[0] *= B2A;
       r[1] *= B2A;
@@ -1332,7 +1332,7 @@ void sortBpaths(int np, int nbcp, int* type, dataBpath* bpaths){
     int min,max;
 
     mergeBPathBCP(bpaths,0,np-1);
-    
+
     min = 0;
     for(k=0;k<nbcp;k++){
         max = min + type[k];
@@ -1368,50 +1368,50 @@ void mergeBPathDist(dataBpath *array, int l, int r){
 }
 
 void sortBPathDist( dataBpath *array, int l, int m, int r){
-    int i, j, k; 
-    int n1 = m - l + 1; 
-    int n2 =  r - m; 
+    int i, j, k;
+    int n1 = m - l + 1;
+    int n2 =  r - m;
     dataBpath *leftArray, *rightArray;
-  
+
     createArrayDataBpath(n1+1,&leftArray,"Temporal array L");
     createArrayDataBpath(n2+1,&rightArray,"Temporal array R");
-  
-    for (i = 0; i < n1; i++) 
-        leftArray[i] = array[l + i]; 
-    for (j = 0; j < n2; j++) 
-        rightArray[j] = array[m + 1+ j]; 
-  
-    i = 0; 
-    j = 0; 
+
+    for (i = 0; i < n1; i++)
+        leftArray[i] = array[l + i];
+    for (j = 0; j < n2; j++)
+        rightArray[j] = array[m + 1+ j];
+
+    i = 0;
+    j = 0;
     k = l;
-    while (i < n1 && j < n2) 
-    { 
-        if (leftArray[i].dij <= rightArray[j].dij) 
-        { 
-            array[k] = leftArray[i]; 
-            i++; 
-        } 
+    while (i < n1 && j < n2)
+    {
+        if (leftArray[i].dij <= rightArray[j].dij)
+        {
+            array[k] = leftArray[i];
+            i++;
+        }
         else
-        { 
-            array[k] = rightArray[j]; 
-            j++; 
-        } 
-        k++; 
-    } 
-  
-    while (i < n1) 
-    { 
-        array[k] = leftArray[i]; 
-        i++; 
-        k++; 
-    } 
-  
-    while (j < n2) 
-    { 
-        array[k] = rightArray[j]; 
-        j++; 
-        k++; 
-    } 
+        {
+            array[k] = rightArray[j];
+            j++;
+        }
+        k++;
+    }
+
+    while (i < n1)
+    {
+        array[k] = leftArray[i];
+        i++;
+        k++;
+    }
+
+    while (j < n2)
+    {
+        array[k] = rightArray[j];
+        j++;
+        k++;
+    }
 
     free(rightArray);
     free(leftArray);
@@ -1431,47 +1431,47 @@ void mergeBPathBCP(dataBpath *array, int l, int r){
 }
 
 void sortBPathBCP( dataBpath *array, int l, int m, int r){
-    int i, j, k; 
-    int n1 =  m - l + 1; 
-    int n2 =  r - m; 
+    int i, j, k;
+    int n1 =  m - l + 1;
+    int n2 =  r - m;
     dataBpath *leftArray;
     dataBpath *rightArray;
-  
+
     createArrayDataBpath(n1,&leftArray,"Temporal array L");
 
     createArrayDataBpath(n2,&rightArray,"Temporal array R");
-  
-    for (i = 0; i < n1; i++) 
-        leftArray[i] = array[l + i]; 
 
-    for (j = 0; j < n2; j++) 
-        rightArray[j] = array[m + 1 + j]; 
-  
-    i = 0; 
-    j = 0; 
+    for (i = 0; i < n1; i++)
+        leftArray[i] = array[l + i];
+
+    for (j = 0; j < n2; j++)
+        rightArray[j] = array[m + 1 + j];
+
+    i = 0;
+    j = 0;
     k = l;
-    while (i < n1 && j < n2){ 
+    while (i < n1 && j < n2){
         if (leftArray[i].bcp <= rightArray[j].bcp){
-            array[k] = leftArray[i]; 
-            i++; 
-        }else{ 
-            array[k] = rightArray[j]; 
-            j++; 
-        } 
-        k++; 
-    } 
-  
-    while (i < n1){ 
-        array[k] = leftArray[i]; 
-        i++; 
-        k++; 
-    } 
-  
-    while (j < n2){ 
-        array[k] = rightArray[j]; 
-        j++; 
-        k++; 
-    } 
+            array[k] = leftArray[i];
+            i++;
+        }else{
+            array[k] = rightArray[j];
+            j++;
+        }
+        k++;
+    }
+
+    while (i < n1){
+        array[k] = leftArray[i];
+        i++;
+        k++;
+    }
+
+    while (j < n2){
+        array[k] = rightArray[j];
+        j++;
+        k++;
+    }
 
 
     free(leftArray);

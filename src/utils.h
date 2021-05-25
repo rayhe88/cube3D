@@ -8,7 +8,7 @@
 
 #ifndef _UTILS_H_
   #define _UTILS_H_
-  
+
   #define NCHAR 60
 
   #define TGBI "\033[1;3;92m"

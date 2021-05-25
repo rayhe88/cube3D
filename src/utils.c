@@ -20,7 +20,7 @@ void printSizeCube(dataCube cube){
   memory +=   cube.npt *sizeof(double);
 
   sizeUnits(memory,ascmem);
-  
+
   printBar(stdout);
   printBanner(" Memory Info ",stdout);
   printf(" Size of  int         : %10ld (B)\n",sizeof(int));
@@ -34,7 +34,7 @@ void fieldMinMax(dataCube cube, double *min, double *max){
   double val,fmin,fmax;
   fmin = 1.E10;
   fmax = -fmin;
-  
+
   for(i=0;i<cube.npt;i++){
     val = cube.field[i];
     if( val < fmin )
@@ -79,7 +79,7 @@ void printBanner (char *mess, FILE *out){
 
   int i;
   int nd,nz;
-  int nc; 
+  int nc;
   int nco2;
 
   char c = ' ';
@@ -89,15 +89,15 @@ void printBanner (char *mess, FILE *out){
   if((nc-4) > NCHAR )
     fprintf(out,"%s\n",mess);
 
-  if( nc%2 == 0 ) 
+  if( nc%2 == 0 )
     nco2 = nc/2;
   else{
     nco2 = (nc+1)/2;
     fprintf(out,"%c",c);
   }
 
-  nz = (NCHAR/2) - nco2 -2; 
-  nd = (NCHAR/2) - nco2 -2; 
+  nz = (NCHAR/2) - nco2 -2;
+  nd = (NCHAR/2) - nco2 -2;
 
   for(i=0;i<nz;i++)
     fprintf(out,"%c",c);
@@ -120,7 +120,7 @@ void printBanner82 (char *mess, FILE *out){
 
   int i;
   int nd,nz;
-  int nc; 
+  int nc;
   int nco2;
 
   char c = ' ';
@@ -130,15 +130,15 @@ void printBanner82 (char *mess, FILE *out){
   if((nc-4) > 82 )
     fprintf(out,"%s\n",mess);
 
-  if( nc%2 == 0 ) 
+  if( nc%2 == 0 )
     nco2 = nc/2;
   else{
     nco2 = (nc+1)/2;
     fprintf(out,"%c",c);
   }
 
-  nz = (41) - nco2 -2; 
-  nd = (41) - nco2 -2; 
+  nz = (41) - nco2 -2;
+  nd = (41) - nco2 -2;
 
   for(i=0;i<nz;i++)
     fprintf(out,"%c",c);
@@ -189,6 +189,7 @@ void printRunning (dataRun param){
   switch( task ){
     case RED: strcpy(ascTask,"  RED"); break;
     case GRA: strcpy(ascTask," GRAD"); break;
+    case KEW: strcpy(ascTask," KEDW"); break;
     case LAP: strcpy(ascTask,"  LAP"); break;
     case KIN: strcpy(ascTask,"  KIN"); break;
     case VIR: strcpy(ascTask,"  VIR"); break;
@@ -232,7 +233,7 @@ void printInfoCube(dataCube c){
 
   printf("        H vector  =  (  % 10.6lf % 10.6lf % 10.6lf )\n\n",c.hvec[0],c.hvec[1],c.hvec[2]);
 
-  
+
   //SkewParameters(c.mvec);
 
   printf(" Minimum and maximun  : % 10.6lf  % 10.6lf\n",min,max);
@@ -246,7 +247,7 @@ void printInfoCube(dataCube c){
 
 void printCubeRot(int rotate,const char *name, dataCube cube ){
 
-  char nameOut[128]; 
+  char nameOut[128];
   FILE *out;
 
   if( rotate == YES ){
@@ -292,13 +293,13 @@ void printCube(char *text, dataCube c,FILE *out){
 }
 
 int sizeUnits(int memory, char *out){
- 
+
   double tmp = (double) memory;
   if( tmp <=  1024.) {
     sprintf(out," %6.2lf (B)",tmp);
     return 0;
   }
-  
+
   tmp /= 1024.;
   if( tmp <= 1024.){
     sprintf(out," %6.2lf (kiB)",tmp);
@@ -318,7 +319,7 @@ int sizeUnits(int memory, char *out){
 
 
 void printTapas(dataCube cube ){
-  
+
   int i,j,k;
   int npx,npy,npz;
   double x0,y0,z0;
@@ -342,7 +343,7 @@ void printTapas(dataCube cube ){
   x0 = cube.min[0];
   xf = x0 + (npx-1)*hx;
 
-  y0 = cube.min[1]; 
+  y0 = cube.min[1];
   yf = y0 + (npy-1)*hy;
 
   z0 = cube.min[2];
@@ -370,7 +371,7 @@ void printTapas(dataCube cube ){
   }
   fclose(out);
 
-  
+
   printBanner("TAPA XZ",stdout);
   openFile(&out,"TapaXZ.dat","w+");
   fprintf(out,"#Tapa XZ a Y constante\n");
@@ -514,7 +515,7 @@ void SkewParameters(double *mvec){
 
 
 void checkBoundaryCond(dataCube cube, int *check){
-  
+
   int i,j,k;
   int npx,npy,npz;
   double t1,t2;
@@ -523,9 +524,9 @@ void checkBoundaryCond(dataCube cube, int *check){
 
   err1 = err2 = err3 = (double) 0.;
 
-  npx = cube.pts[0]; 
-  npy = cube.pts[1]; 
-  npz = cube.pts[2]; 
+  npx = cube.pts[0];
+  npy = cube.pts[1];
+  npz = cube.pts[2];
 
   n1 = npy*npz;
   n2 = npz;
@@ -539,7 +540,7 @@ void checkBoundaryCond(dataCube cube, int *check){
       err1 += fabs(t2-t1);
     }
   }
-  
+
   for(i=0;i<npx;i++){
     for(k=0;k<npz;k++){
       j=0;
@@ -578,7 +579,7 @@ void checkCommandLine(int argc, char *argv[]){
     int flags[4]={0,0,0,0};
     char nameCube[64];
     char nameInput[64];
-    
+
     if( argc == 1 ){
         printf(" Try to run the program as:\n");
         printf(" %s  input.in \n\n",argv[0]);
@@ -631,7 +632,7 @@ void getNameOut(char *nameInp, char *nameOut){
     nchar = strlen(nameInp);
 
     strcpy(nameOut,nameInp);
-    
+
     for(i=0;i<nchar;i++){
         c = nameInp[i];
         if( c == '.')
@@ -645,7 +646,7 @@ void createInput (char* nameCube, char* nameInp ){
 
     FILE *fin;
     openFile(&fin,nameInp,"w+");
-    
+
     getNameOut(nameCube,nameOut);
 
     fprintf(fin,"#Name of input file\n");
@@ -663,6 +664,7 @@ void createInput (char* nameCube, char* nameInp ){
     fprintf(fin,"#       Yu.A. Abramov, Acta Cryst. A53 1997 264–272.\n");
     fprintf(fin,"#\n");
     fprintf(fin,"# VIR   virial... (lap/4 - 2 kin)\n");
+    fprintf(fin,"# KEDW  Kinetic energy density of Weizsacker^1/2\n");
     fprintf(fin,"# NCI   Index of non-covalent interactions\n");
     fprintf(fin,"# CRIT  to search critical points \n");
     fprintf(fin,"# VOID  to determine the percentage of the void\n");
@@ -694,11 +696,26 @@ void createInput (char* nameCube, char* nameInp ){
     fprintf(fin,"# given by at1 and at2 (integers)\n");
     fprintf(fin,"# or by the plane formed by at1, at2 and at3 (integers)\n");
     fprintf(fin,"#>> GEOM\n");
-    fprintf(fin,"#LINE at1 at2\n");
+    fprintf(fin,"#LINE At1 At2\n");
     fprintf(fin,"# or\n");
     fprintf(fin,"#>> GEOM\n");
-    fprintf(fin,"#PLANE at1 at2 at3\n");
-
+    fprintf(fin,"#PLANE At1 At2 At3\n");
+    fprintf(fin,"# The following line has been added to give more control to GEOM PLANE,\n");
+    fprintf(fin,"# it only works when the latter flag is activated.\n");
+    fprintf(fin,"# FIELD   Calculates the field given by TASK( REDU, GRAD, LAP, KIN, VIR, KEDW).\n");
+    fprintf(fin,"#         A gnuplot file with name *planeAt1-At2-At3.dat is generated with\n");
+    fprintf(fin,"#         information of the coordinates, the TASK field and the value of the\n");
+    fprintf(fin,"#         original field at that point.\n");
+    fprintf(fin,"# GLINE   Determines the streamlines, in the 2D plane, of the vector field\n");
+    fprintf(fin,"#         formed by the scalar field read from the cube file. This option\n");
+    fprintf(fin,"#         generates 2 files gnuplot.\n");
+    fprintf(fin,"#         The streamlines are in the *planeAt1-At2-At3-gLine.dat file, while\n");
+    fprintf(fin,"#         the stream direction is given like vectors in the file *-gLineVec.dat.\n");
+    fprintf(fin,"# GVECTOR Calculates the vector field in the 2D plane, from the scalar field\n");
+    fprintf(fin,"#         read from the cube file.\n");
+    fprintf(fin,"#>> PLANE PROP\n");
+    fprintf(fin,"#FIELD\n");
+    fprintf(fin,"#GLINE\n");
+    fprintf(fin,"#GVECTOR\n");
     fclose(fin);
-
 }

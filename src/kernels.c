@@ -14,7 +14,7 @@
 #include "replicate.h"
 
 /**
- * @brief 
+ * @brief
  * @param
  * @param
  * @param
@@ -30,33 +30,41 @@ void selectExec(dataCube cube, dataRun param, double *matU, char *name){
 
   if( param.task == RED || param.task == GRA ||
       param.task == LAP || param.task == KIN ||
-      param.task == VIR ){
+      param.task == VIR || param.task == KEW ){
       planeLine = 1;
   }
 
-  if( param.geotask == LIN && planeLine == 1){
+  printf(" GeomTAsk == %d\n",param.geoTask );
+
+  if( param.geoTask == LIN && planeLine == 1){
     fieldMinMax (cube,&min,&max);
     min2 = min - DELTA;
     getLogField (cube,min2);
     getFieldInLine(min,cube,param,matU,name);
   }
 
-  if( param.geotask == PLA && planeLine == 1){
+  if( param.geoTask == PLA && planeLine == 1){
     fieldMinMax (cube,&min,&max);
     min2 = min - DELTA;
     getLogField (cube,min2);
-    getFieldInPlane(min,cube,param,matU,name);
+    if( param.geoProp == PLA_F)
+        getFieldInPlane(min,cube,param,matU,name);
+    if( param.geoProp == PLA_V)
+        getGradVectorsInPlane(min,cube,param,matU,name);
+    if( param.geoProp == PLA_S)
+        getStreamLinesInPlane(min,cube,param,matU,name);
   }
 
-  if( param.geotask != LIN && param.geotask != PLA || planeLine == 0 ){
+  if( param.geoTask != LIN && param.geoTask != PLA || planeLine == 0 ){
     switch(param.task){
         case RED:
         case GRA:
-        case LAP: 
+        case LAP:
         case KIN:
+        case KEW:
         case VIR: evalRGL     (cube,param,matU,name); break;
         case NCI: evalNCI     (cube,param,matU,name); break;
-        case CRI: 
+        case CRI:
                   fieldMinMax (cube,&min,&max);
                   min2 = min - DELTA;
                   getLogField (cube,min2);
@@ -71,14 +79,14 @@ void selectExec(dataCube cube, dataRun param, double *matU, char *name){
 }
 
 /**
- * @brief 
+ * @brief
  * @param
  * @param
  * @param
  * @param
  */
 int evalRGL (dataCube cube, dataRun param, double *matU, char *name){
- 
+
   int i;
   char text[64];
   char nameOut[128];
@@ -95,22 +103,23 @@ int evalRGL (dataCube cube, dataRun param, double *matU, char *name){
   strcpy(nameOut,name);
 
   switch( param.task ){
-
-    case RED: strcpy(text,"Reduced Gradient of field"); 
+    case RED: strcpy(text,"Reduced Gradient of field");
               strcat(nameOut,"Red.cube"); break;
 
-    case GRA: strcpy(text,"Gradient of field"); 
+    case GRA: strcpy(text,"Gradient of field");
               strcat(nameOut,"Grd.cube"); break;
 
-    case LAP: strcpy(text,"Laplacian of field"); 
+    case LAP: strcpy(text,"Laplacian of field");
               strcat(nameOut,"Lap.cube"); break;
 
-    case KIN: strcpy(text,"Abramov kinetic energy"); 
+    case KIN: strcpy(text,"Abramov kinetic energy");
               strcat(nameOut,"Kin.cube"); break;
 
-    case VIR: strcpy(text,"Virial field using Abramov kinetic energy"); 
+    case VIR: strcpy(text,"Virial field using Abramov kinetic energy");
               strcat(nameOut,"Vir.cube"); break;
 
+    case KEW: strcpy(text,"Weiszacker Kinetic energy density");
+              strcat(nameOut,"KiW.cube"); break;
   }
 
 
@@ -119,13 +128,13 @@ int evalRGL (dataCube cube, dataRun param, double *matU, char *name){
     getFieldPer  (cube,param,matU,field2);
   else
     getFieldNoPer(cube,param,matU,field2);
-  
+
   openFile(&out,nameOut,"w+");
 
   cpyDataCube(cube,&cube2);
   cube2.field = NULL;
   cube2.field = field2;
-  
+
   printCube(text,cube2,out);
 
   printBar(stdout);
@@ -138,14 +147,14 @@ int evalRGL (dataCube cube, dataRun param, double *matU, char *name){
 }
 
 /**
- * @brief 
+ * @brief
  * @param
  * @param
  * @param
  * @param
  */
 int evalNCI (dataCube cube, dataRun param, double *matU, char *name){
- 
+
   int i;
   char text1[64],text2[64];
   char nameOut1[128],nameOut2[128];
@@ -219,7 +228,7 @@ int evalNCI (dataCube cube, dataRun param, double *matU, char *name){
 int evalRepCube ( dataCube cube, dataRun param, char *name){
 
   char nameOut[128];
-  sprintf(nameOut,"%s_%d%d%d.cube",name, 
+  sprintf(nameOut,"%s_%d%d%d.cube",name,
           param.rep[0], param.rep[1], param.rep[2]);
 
 
@@ -269,8 +278,8 @@ int evalVoidVol(dataCube cube, dataRun param, char *name){
     printf(" Error in the allocation memory");
     exit(EXIT_FAILURE);
   }
-  
-  
+
+
   vecA[0] = cube.mvec[0]; vecA[1] = cube.mvec[1]; vecA[2] = cube.mvec[2];
   vecB[0] = cube.mvec[3]; vecB[1] = cube.mvec[4]; vecB[2] = cube.mvec[5];
   vecC[0] = cube.mvec[6]; vecC[1] = cube.mvec[7]; vecC[2] = cube.mvec[8];
@@ -282,13 +291,13 @@ int evalVoidVol(dataCube cube, dataRun param, char *name){
 
   n1 = cube.pts[1]*cube.pts[2];
   n2 = cube.pts[2];
-  
+
   cbs=0;
   int idxcube=0;
   for( i = 0 ; i < ncx ; i++ ){
     for( j = 0 ; j < ncy ; j++ ){
       for( k = 0 ; k < ncz ; k++ ){
-         den = getDenInCube(i,j,k,n1,n2,cube.field); 
+         den = getDenInCube(i,j,k,n1,n2,cube.field);
          dvoi[idxcube].stat = 0;
          if( den <= param.vac ){
            x = cube.min[0]  + ((double) i + 0.5 )*cube.hvec[0];
@@ -346,8 +355,8 @@ int evalVoidVol(dataCube cube, dataRun param, char *name){
 
   volvac = cbs*vol0;
 
-  
-   
+
+
   printf("   Cutoff in the density  : % 12.6lf a.u.\n",param.vac);
   printf("   Volume of the element  : % 12.6lf a.u.\n",vol0);
   printf("   Volume of the cell     : % 12.6lf a.u.\n",volt);
@@ -380,12 +389,12 @@ int evalVoidVol(dataCube cube, dataRun param, char *name){
   fclose(out);
 
   free(dvoi);
-  
+
   return 0;
 }
 
 double getDenInCube(int i, int j, int k, int n1, int n2, double *field){
-  
+
   int ip = i+1;
   int jp = j+1;
   int kp = k+1;
@@ -396,7 +405,7 @@ double getDenInCube(int i, int j, int k, int n1, int n2, double *field){
   den += field[i *n1 + j *n2 + kp];
   den += field[i *n1 + jp*n2 + k ];
   den += field[i *n1 + jp*n2 + kp];
-  
+
   den += field[ip*n1 + j * n2 + k ];
   den += field[ip*n1 + j * n2 + kp];
   den += field[ip*n1 + jp* n2 + k ];

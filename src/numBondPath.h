@@ -1,6 +1,6 @@
 /**
  * @file   numBondPath.h
- * @brief 
+ * @brief
  * @author Raymundo Hernández-Esparza.
  * @date   November 2018.
  */
@@ -32,7 +32,7 @@
  int myIsNanInf_V3(double*);
 
  void cpyVec3(double[3], double[3]);
- 
+
  void getRiU(double[3], const double*, double[3]);
 
  void getKnRungeKuta( double[],double[]);

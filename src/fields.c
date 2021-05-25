@@ -1,6 +1,6 @@
 /**
  * @file   fields.c
- * @brief  
+ * @brief
  * @author Raymundo Hernández-Esparza.
  * @date   August 2018.
  */
@@ -9,10 +9,10 @@
 #include <omp.h>
 
 /**
- * @brief 
- * @param 
+ * @brief
  * @param
- * @return 
+ * @param
+ * @return
  */
 int myTernary(int i, int izq, int der, int n){
 
@@ -24,15 +24,15 @@ int myTernary(int i, int izq, int der, int n){
   }else{
     outOfRange = NOT;
   }
-   
+
   return outOfRange;
 }
 ///////////////////////////////////////////////////////////////////////////////
 /**
- * @brief 
- * @param 
+ * @brief
  * @param
- * @return 
+ * @param
+ * @return
  */
 double getGrd  (double *val){
   double ret;
@@ -40,21 +40,21 @@ double getGrd  (double *val){
 
   ret = sqrt(ret);
 
-  return ret; 
+  return ret;
 }
 
 /**
- * @brief 
- * @param 
+ * @brief
  * @param
- * @return 
+ * @param
+ * @return
  */
 double getRed (double *val){
   double ret;
   double den;
   ret  = val[1]*val[1] + val[2]*val[2] + val[3]*val[3];
   ret = sqrt(ret);
-  
+
   den = fabs(val[0]);
 
   if( den < 1.E-9)
@@ -64,14 +64,14 @@ double getRed (double *val){
 
   ret *= (CF*den);
 
-  return ret; 
+  return ret;
 }
 
 /**
- * @brief 
- * @param 
+ * @brief
  * @param
- * @return 
+ * @param
+ * @return
  */
 double getLap (double *val){
 
@@ -79,27 +79,35 @@ double getLap (double *val){
 }
 
 /**
- * @brief This function get the kinetic energy from density 
- * and the first and second derivative. The expresion can be 
+ * @brief This function get the kinetic energy from density
+ * and the first and second derivative. The expresion can be
  * found in the article:
  * Yu.A. Abramov, Acta Cryst. A53 1997 264–272.
  * On the Possibility of Kinetic Energy Density Evaluation
  * from the Experimental Electron-Density Distribution.
- * @param 
  * @param
- * @return 
+ * @param
+ * @return
  */
 double getKin (double *val){
   double term1,term2,term3;
   double grad2;
 
   grad2= val[1]*val[1] + val[2]*val[2] + val[3]*val[3];
-  
-  term1 = 2.871234000188192*pow( val[0],1.66666666666); 
-  term2 = 0.01388888888888889*grad2/val[0]; 
+
+  term1 = 2.871234000188192*pow( val[0],1.66666666666);
+  term2 = 0.01388888888888889*grad2/val[0];
   term3 = 0.1666666666666667* ( val[4] + val[5] + val[6]);
 
   return term1+term2+term3;
+}
+
+double getKEW (double *val){
+    double grad;
+    grad = val[1] * val[1] + val[2] * val[2] + val[3] * val[3];
+    grad = sqrt(grad);
+
+    return grad / val[0];
 }
 
 double getVir (double *val){
@@ -109,10 +117,10 @@ double getVir (double *val){
   return (0.25*lap - 2.*kinG);
 }
 /**
- * @brief 
- * @param 
+ * @brief
  * @param
- * @return 
+ * @param
+ * @return
  */
 int getFieldNoPer (dataCube cube, dataRun param, const double *matU, double *field2){
   int i,j,k;
@@ -122,7 +130,7 @@ int getFieldNoPer (dataCube cube, dataRun param, const double *matU, double *fie
   int index[3];
   int vecn[3];
   double x,y,z,tmp;
-  
+
   double (*gfunc)(double*);
 
   nx = cube.pts[0]; ny = cube.pts[1]; nz = cube.pts[2];
@@ -139,10 +147,11 @@ int getFieldNoPer (dataCube cube, dataRun param, const double *matU, double *fie
     case GRA: gfunc = &getGrd; break;
     case LAP: gfunc = &getLap; break;
     case KIN: gfunc = &getKin; break;
+    case KEW: gfunc = &getKEW; break;
     case VIR: gfunc = &getVir; break;
   }
 
- 
+
 
   int npt = nx*ny*nz;
 
@@ -155,7 +164,7 @@ int getFieldNoPer (dataCube cube, dataRun param, const double *matU, double *fie
 
 #pragma omp barrier
 
-#pragma omp for schedule (dynamic) 
+#pragma omp for schedule (dynamic)
   for( idxGlobal = 0; idxGlobal < npt; idxGlobal++){
     i = idxGlobal/n1;
     j = (idxGlobal - i*n1)/n2;
@@ -179,10 +188,10 @@ int getFieldNoPer (dataCube cube, dataRun param, const double *matU, double *fie
 }
 
 /**
- * @brief 
- * @param 
+ * @brief
  * @param
- * @return 
+ * @param
+ * @return
  */
 int getFieldPer (dataCube cube, dataRun p, const double *matU, double *field2){
   int i,j,k;
@@ -204,26 +213,26 @@ int getFieldPer (dataCube cube, dataRun p, const double *matU, double *field2){
   n1 = ny*nz;
   n2 = nz;
 
-  if( p.task == GRA || p.task == RED ){
+  if( p.task == GRA || p.task == RED || p.task == KEW){
     switch( p.pol ) {
-      case  1: fpol = &gradPol01; break; 
-      case  2: fpol = &gradPol02; break; 
-      case  3: fpol = &gradPol03; break; 
-      case  4: fpol = &gradPol04; break; 
-      case  5: fpol = &gradPol05; break; 
-      case  6: fpol = &gradPol06; break; 
+      case  1: fpol = &gradPol01; break;
+      case  2: fpol = &gradPol02; break;
+      case  3: fpol = &gradPol03; break;
+      case  4: fpol = &gradPol04; break;
+      case  5: fpol = &gradPol05; break;
+      case  6: fpol = &gradPol06; break;
       default: fpol = &gradPol02;
     }
   }
 
   if( p.task == LAP || p.task == KIN || p.task == VIR ){
     switch( p.pol ) {
-      case  1: fpol = &hessPol01; break; 
-      case  2: fpol = &hessPol02; break; 
-      case  3: fpol = &hessPol03; break; 
-      case  4: fpol = &hessPol04; break; 
-      case  5: fpol = &hessPol05; break; 
-      case  6: fpol = &hessPol06; break; 
+      case  1: fpol = &hessPol01; break;
+      case  2: fpol = &hessPol02; break;
+      case  3: fpol = &hessPol03; break;
+      case  4: fpol = &hessPol04; break;
+      case  5: fpol = &hessPol05; break;
+      case  6: fpol = &hessPol06; break;
       default: fpol = &hessPol02;
     }
   }
@@ -234,12 +243,13 @@ int getFieldPer (dataCube cube, dataRun p, const double *matU, double *field2){
     case LAP: gfunc = &getLap; break;
     case KIN: gfunc = &getKin; break;
     case VIR: gfunc = &getVir; break;
+    case KEW: gfunc = &getKEW; break;
   }
 
   int npt = nx*ny*nz;
 
 #pragma omp parallel private(idxGlobal,i,j,k,index) \
-                     shared(field2,vecn,p,cube,matU) 
+                     shared(field2,vecn,p,cube,matU)
 {
 #pragma omp single
   printf(" Number of threads for evaluation : %4d\n",omp_get_num_threads());
@@ -265,20 +275,20 @@ int getFieldPer (dataCube cube, dataRun p, const double *matU, double *field2){
 
 
 /**
- * @brief 
- * @param 
+ * @brief
  * @param
- * @return 
+ * @param
+ * @return
  */
 double campoPer (int *index,int *vecn, dataRun param,
-                 double *h,double *field,const double *matU, 
+                 double *h,double *field,const double *matU,
                  int(*fpol) (double,double,double,double*,double*),
                  double (*gfun) (double*) ) {
    int i,j,k;
    int p,q,r,mu;
    int p2,q2,r2;
    int n1,n2;
-   double f[param.size]; 
+   double f[param.size];
    double val[10];
 
    n1 = vecn[1]*vecn[2];
@@ -295,27 +305,27 @@ double campoPer (int *index,int *vecn, dataRun param,
 
        for(r = k + param.izq; r <= k + param.der; r++){
          r2 =  getPeriodicIndex( r , vecn[2] );
-        
+
          f[mu] = field[ p2*n1 + q2*n2 + r2];
          mu++;
 
        }
      }
    }
-   
+
    fpol(h[0],h[1],h[2],f,val);
 
   if( param.orth != YES )
     trans02(val,matU);
-  
+
   return  gfun(val);
 }
 
 /**
- * @brief 
- * @param 
+ * @brief
  * @param
- * @return 
+ * @param
+ * @return
  */
 int getNCIPer (dataCube cube, dataRun p,const double *matU, double *red1,double *rho2){
   int i,j,k;
@@ -338,7 +348,7 @@ int getNCIPer (dataCube cube, dataRun p,const double *matU, double *red1,double 
   int npt = nx*ny*nz;
 
 #pragma omp parallel private(idxGlobal,i,j,k,index,ret) \
-                     shared(red1,rho2,vecn,p,cube,matU) 
+                     shared(red1,rho2,vecn,p,cube,matU)
 {
 #pragma omp single
   printf(" Number of threads for evaluation : %4d\n",omp_get_num_threads());
@@ -375,25 +385,25 @@ int getNCIPer (dataCube cube, dataRun p,const double *matU, double *red1,double 
       }
     }
   }
- */    
+ */
 
   return 0;
 }
 
 /**
- * @brief 
- * @param 
+ * @brief
  * @param
- * @return 
+ * @param
+ * @return
  */
 int NCIPer   (int *index,int *vecn, dataRun param,
-              double *h,double *field,const double *matU, 
+              double *h,double *field,const double *matU,
               double *ret){
    int i,j,k;
    int p,q,r,mu;
    int p2,q2,r2;
    int n1,n2;
-   double f[param.size]; 
+   double f[param.size];
    double l2;
    double val[10];
    double rgd,rho,tmp;
@@ -422,14 +432,14 @@ int NCIPer   (int *index,int *vecn, dataRun param,
 
        for(r = k + param.izq; r <= k + param.der; r++){
          r2 =  getPeriodicIndex( r , vecn[2] );
-        
+
          f[mu] = field[ p2*n1 + q2*n2 + r2];
          mu++;
 
        }
      }
    }
-   
+
    switch( param.pol ){
      case 1: gradPol01(h[0],h[1],h[2],f,val); break;
      case 2: gradPol02(h[0],h[1],h[2],f,val); break;
@@ -442,10 +452,10 @@ int NCIPer   (int *index,int *vecn, dataRun param,
 
   if( param.orth != YES )
     trans01(val,matU);
-  
+
   rho = val[0];
   rgd = getRed(val);
-  
+
   tmp = fabs(rho);
 
 
@@ -462,7 +472,7 @@ int NCIPer   (int *index,int *vecn, dataRun param,
 
     if( param.orth != YES )
       trans02(val,matU);
-   
+
       l2 = eValNci(val);
 
       rgd = getRed(val);
@@ -481,19 +491,19 @@ int NCIPer   (int *index,int *vecn, dataRun param,
 
 
 /**
- * @brief 
- * @param 
+ * @brief
  * @param
- * @return 
+ * @param
+ * @return
  */
 double campoNoPer ( double x, double y, double z, int *index,
-                    int *vecn, dataRun param, double *h,double *field,const double *matU, 
+                    int *vecn, dataRun param, double *h,double *field,const double *matU,
                     double (*gfun) (double*),
                     double *min) {
    int i,j,k;
    int p,q,r,mu;
    int n1,n2;
-   double f[param.size]; 
+   double f[param.size];
    double xx[param.pol + 1];
    double yy[param.pol + 1];
    double zz[param.pol + 1];
@@ -521,7 +531,7 @@ double campoNoPer ( double x, double y, double z, int *index,
      zz[mu] = min[2] + r*h[2];
      mu++;
    }
-   
+
    mu = 0;
    for(p = i + param.izq; p <= i + param.der; p++){
 
@@ -540,15 +550,15 @@ double campoNoPer ( double x, double y, double z, int *index,
   else
     getDerivatives3D  (x,y,z,xx,yy,zz,f,param.pol,param.orth,matU,val);
 
-  
+
   return  gfun(val);
 }
 
 /**
- * @brief 
- * @param 
+ * @brief
  * @param
- * @return 
+ * @param
+ * @return
  */
 int getNCINoPer (dataCube cube, dataRun param,const double *matU, double *red1,double *rho2){
   int i,j,k;
@@ -574,7 +584,7 @@ int getNCINoPer (dataCube cube, dataRun param,const double *matU, double *red1,d
   int npt = nx*ny*nz;
 
 #pragma omp parallel private(idxGlobal,i,j,k,index,ret,orx,ory,orz) \
-                     shared(red1,rho2,vecn,param,cube,nx,ny,nz,matU) 
+                     shared(red1,rho2,vecn,param,cube,nx,ny,nz,matU)
 {
 #pragma omp single
   printf(" Number of threads for evaluation : %4d\n",omp_get_num_threads());
@@ -587,7 +597,7 @@ int getNCINoPer (dataCube cube, dataRun param,const double *matU, double *red1,d
     j = (idxGlobal - i*n1)/n2;
     k = idxGlobal%n2;
     index[0] = i;
-    index[1] = j; 
+    index[1] = j;
     index[2] = k;
 
     orx = myTernary( i, param.izq, param.der,nx);
@@ -638,15 +648,15 @@ int getNCINoPer (dataCube cube, dataRun param,const double *matU, double *red1,d
     }
   }
   */
-     
+
 
   return 0;
 }
 /**
- * @brief 
- * @param 
+ * @brief
  * @param
- * @return 
+ * @param
+ * @return
  */
 int NCINoPer ( double x, double y, double z, int *index,
                int *vecn, dataRun param, double *h,
@@ -656,7 +666,7 @@ int NCINoPer ( double x, double y, double z, int *index,
    int i,j,k;
    int p,q,r,mu;
    int n1,n2;
-   double f[param.size]; 
+   double f[param.size];
    double xx[param.pol + 1];
    double yy[param.pol + 1];
    double zz[param.pol + 1];
@@ -694,7 +704,7 @@ int NCINoPer ( double x, double y, double z, int *index,
      zz[mu] = min[2] + r*h[2];
      mu++;
    }
-   
+
    mu = 0;
    for(p = i + param.izq; p <= i + param.der; p++){
 
@@ -717,7 +727,7 @@ int NCINoPer ( double x, double y, double z, int *index,
   if( tmp < param.la2  )
     if( rgd < param.rgd ){
       getDerivatives3D(x,y,z,xx,yy,zz,f,param.pol,param.orth,matU,val);
-    
+
       l2 = eValNci(val);
 
       rgd = getRed(val);
@@ -731,22 +741,22 @@ int NCINoPer ( double x, double y, double z, int *index,
   ret[1] = rho;
 
 
-  
+
   return  0;
 }
 
 /***********************************************************/
 
 int gradientVec (int *index,int *vecn, dataRun param,
-                     double *h,double *field,const double *matU, 
+                     double *h,double *field,const double *matU,
                       int(*fpol) (double,double,double,double*,double*),
                       double grad[]){
-                     
+
    int i,j,k;
    int p,q,r,mu;
    int p2,q2,r2;
    int n1,n2;
-   double f[param.size]; 
+   double f[param.size];
    double val[10];
    double gnorm;
 
@@ -778,10 +788,10 @@ int gradientVec (int *index,int *vecn, dataRun param,
      trans01(val,matU);
 
 
-   grad[0] = val[1]; 
-   grad[1] = val[2]; 
-   grad[2] = val[3]; 
-   
+   grad[0] = val[1];
+   grad[1] = val[2];
+   grad[2] = val[3];
+
 
    gnorm = sqrt( grad[0]*grad[0] + grad[1]*grad[1] + grad[2]*grad[2] );
 

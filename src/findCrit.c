@@ -1,6 +1,6 @@
 /**
  * @file  findCrit.c
- * @brief 
+ * @brief
  * @author Raymundo Hernández-Esparza.
  * @date   August 2018.
  */
@@ -48,7 +48,7 @@ void printPoss(int npc, double* coorIn, const double *matU){
 }
 
 int createArrayCritP( int n, dataCritP **ptr, const char *mess){
-  
+
   if ( n < 1 ){
     printf(" There is an error in the size for [%s]\n",mess);
     exit(EXIT_FAILURE);
@@ -102,16 +102,16 @@ int critPoints ( dataCube cube, dataRun param,const double *matU, double min0, c
     rin[2] = cube.coor[3*i+2];
     trans00(rin,matU);
 
-    cube.coor[3*i]   = rin[0]; 
-    cube.coor[3*i+1] = rin[1]; 
+    cube.coor[3*i]   = rin[0];
+    cube.coor[3*i+1] = rin[1];
     cube.coor[3*i+2] = rin[2];
   }
   rin[0] = cube.min[0];
   rin[1] = cube.min[1];
   rin[2] = cube.min[2];
   trans00(rin,matU);
-  cube.min[0] = rin[0]; 
-  cube.min[1] = rin[1]; 
+  cube.min[0] = rin[0];
+  cube.min[1] = rin[1];
   cube.min[2] = rin[2];
 
   /*
@@ -119,8 +119,8 @@ int critPoints ( dataCube cube, dataRun param,const double *matU, double min0, c
   rin[1] = cube.max[1];
   rin[2] = cube.max[2];
   trans00(rin,matU);
-  cube.max[0] = rin[0]; 
-  cube.max[1] = rin[1]; 
+  cube.max[0] = rin[0];
+  cube.max[1] = rin[1];
   cube.max[2] = rin[2];
   */
 
@@ -142,7 +142,7 @@ int critPoints ( dataCube cube, dataRun param,const double *matU, double min0, c
   for( i = 0; i < nct ; i++ )
     ctrl[i] = -1;
 
-  // Primer discriminante Elimamos los puntos donde el campo es menor a 
+  // Primer discriminante Elimamos los puntos donde el campo es menor a
   // TOLFUN0
   npc = 0;
   for( i = 0; i < ncx ; i++ ){
@@ -209,7 +209,7 @@ int critPoints ( dataCube cube, dataRun param,const double *matU, double min0, c
        loadLocalField(idx,cube,param,xx,yy,zz,f);
 
        getLimits(rin,cube.hvec,limits);
-       
+
        xp = x + 0.25*hx;
        yp = y + 0.25*hy;
        zp = z + 0.25*hz;
@@ -217,7 +217,7 @@ int critPoints ( dataCube cube, dataRun param,const double *matU, double min0, c
        xpp = x + 0.75*hx;
        ypp = y + 0.75*hy;
        zpp = z + 0.75*hz;
-       
+
 
        rin[0] = xp; rin[1] = yp; rin[2] = zp;
        ret[0] = rejectCube(rin,min0,cube,matU,param,limits,xx,yy,zz,f,rout[0]);
@@ -242,19 +242,19 @@ int critPoints ( dataCube cube, dataRun param,const double *matU, double min0, c
 
        rin[0] = xpp; rin[1] = ypp; rin[2] = zpp;
        ret[7] = rejectCube(rin,min0,cube,matU,param,limits,xx,yy,zz,f,rout[7]);
-       
+
 #pragma omp critical
 {
        for( nu = 0; nu < 8 ; nu++ ){
          if( ret[nu] == 1 )
-             fprintf(tmp," % 20.12lf % 20.12lf % 20.12lf \n",rout[nu][0],rout[nu][1],rout[nu][2]); 
+             fprintf(tmp," % 20.12lf % 20.12lf % 20.12lf \n",rout[nu][0],rout[nu][1],rout[nu][2]);
        }
 
 } // fin omp critical
 
 
     } // fin if
-           
+
   }//fin for
 
 }//fin omp
@@ -275,7 +275,7 @@ int critPoints ( dataCube cube, dataRun param,const double *matU, double min0, c
 
   fclose(tmp);
   remove(tmpname);
-  
+
   printf("  Possible critical points        : %6d \n",npc);
 
   refineCrit(npc,min0,cube,param,xyz1,matU,name);
@@ -299,7 +299,7 @@ int rejectCube(double *rin, double min0, dataCube cube, const double *matU, data
   double alphay = ALPHA(cube.hvec[1]);
   double alphaz = ALPHA(cube.hvec[2]);
 
-  
+
   gradient3DLog(xi,yi,zi,xx,yy,zz,f,param.pol,param.orth,matU,min0,val);
   //gradient3D(xi,yi,zi,xx,yy,zz,f,param.pol,param.orth,matU,val);
 
@@ -316,7 +316,7 @@ int rejectCube(double *rin, double min0, dataCube cube, const double *matU, data
     norm = 1.E4;
     difcoor = 0;
     x = xi; y = yi; z = zi;
-    
+
     while( (iter < MAXITER1) && (norm > TOLGRD) && (difcoor == 0) ){
 
       getDerivatives3DLog(x,y,z,xx,yy,zz,f,param.pol,param.orth,matU,min0,val);
@@ -341,14 +341,14 @@ int rejectCube(double *rin, double min0, dataCube cube, const double *matU, data
       if( difcoor == 0 && norm <= TOLNRM){
         gradient3DLog(x,y,z,xx,yy,zz,f,param.pol,param.orth,matU,min0,val);
        // gradient3D(x,y,z,xx,yy,zz,f,param.pol,param.orth,matU,val);
-       
+
         fun  = fabs(val[0]);
         norm = getGrd(val);
         ret = 1;
         rout[0] = x;
         rout[1] = y;
         rout[2] = z;
-        
+
         if( inMacroCube(x,y,z,cube.min,cube.max) == 1 )
           ret = -1;
 
@@ -439,7 +439,7 @@ int inCube(double x, double y, double z, double limits[6]){
 // las distancias limite estan dadas por limits
 
   int flag = 0;
-  
+
   if( limits[0] < x && limits[1] > x )
     flag += 1;
 
@@ -448,7 +448,7 @@ int inCube(double x, double y, double z, double limits[6]){
 
   if( limits[4] < z && limits[5] > z )
     flag += 4;
-  
+
   if( flag == 7 )
     return 0;
   else
@@ -481,7 +481,7 @@ int numCritical01Vec(double r[3], dataCube cube, dataRun param, const double *ma
   return ret;
 }
 
-int numCritical01(double x, double y, double z, dataCube cube, 
+int numCritical01(double x, double y, double z, dataCube cube,
                   dataRun param, const double *matU,double min0,double *val){
 
   int idx[3];
@@ -509,7 +509,7 @@ int numCritical02Vec(double r[3], dataCube cube, dataRun param, const double *ma
   return ret;
 }
 
-int numCritical02(double x, double y, double z, dataCube cube, 
+int numCritical02(double x, double y, double z, dataCube cube,
                   dataRun param, const double *matU,double min0,double *val){
 
   int idx[3];
@@ -552,7 +552,7 @@ int numCritical02Vec_exp(double r[3], dataCube cube, dataRun param, const double
 }
 
 double getFunInCube(int i, int j, int k, int n1, int n2, double min0, double *h,double *field,double *norm){
-  
+
   int ip = i+1;
   int jp = j+1;
   int kp = k+1;
@@ -567,7 +567,7 @@ double getFunInCube(int i, int j, int k, int n1, int n2, double min0, double *h,
   val[1] = field[i *n1 + j *n2 + kp];
   val[2] = field[i *n1 + jp*n2 + k ];
   val[3] = field[i *n1 + jp*n2 + kp];
-  
+
   val[4] = field[ip*n1 + j *n2 + k ];
   val[5] = field[ip*n1 + j *n2 + kp];
   val[6] = field[ip*n1 + jp*n2 + k ];
@@ -583,7 +583,7 @@ double getFunInCube(int i, int j, int k, int n1, int n2, double min0, double *h,
   dz  = -val[0] + val[1] - val[2] + val[3] - val[4] + val[5] - val[6] + val[7];
 
   f  *= 0.125;
-  
+
   efx = exp(f);;
 
   den = efx + min0 - DELTA;
@@ -606,7 +606,7 @@ double getFunInCube(int i, int j, int k, int n1, int n2, double min0, double *h,
 
 
 int  refineCrit(int npc, double min0, dataCube cube, dataRun param, double *coorIn, const double *matU, char *name){
-  
+
   int mu,nu;
   int ncrit,ncrit2,ncrit3;
   int iter;
@@ -628,7 +628,7 @@ int  refineCrit(int npc, double min0, dataCube cube, dataRun param, double *coor
     y = coorIn[3*mu+1];
     z = coorIn[3*mu+2];
 
-    
+
     iter=0; norm = 1.E5;
 
     while( iter < MAXITER2 && norm > TOLGRD ){
@@ -661,7 +661,7 @@ int  refineCrit(int npc, double min0, dataCube cube, dataRun param, double *coor
       xyz[ 3*nu+ 2 ] = z;
       nu++;
     }
-  }// end of FOR 
+  }// end of FOR
 
   createArrayDou(3*npc,&coorOut,"Coordinates Finale");
 
@@ -679,10 +679,10 @@ int  refineCrit(int npc, double min0, dataCube cube, dataRun param, double *coor
 
   // Caraterizamos los puntos criticos
   describeCrit(ncrit3,min0,cube,param,coorOut,matU,name);
-  
+
   free(coorOut);
 
-    
+
   return 0;
 }
 
@@ -704,7 +704,7 @@ int describeCrit(int ncrit, double min0, dataCube cube,
   double eval[3];
   double fun;
 
-  dataCritP *pointC = NULL; 
+  dataCritP *pointC = NULL;
 
   dataCritP *bondCrit = NULL;
   dataCritP *ringCrit = NULL;
@@ -713,7 +713,7 @@ int describeCrit(int ncrit, double min0, dataCube cube,
   dataCritP *degeCrit = NULL;
 
   createArrayCritP(ncrit, &pointC,"Critical 1");
-   
+
   for( mu = 0; mu < ncrit; mu++ ){
     x = coor[3*mu];
     y = coor[3*mu+1];
@@ -744,7 +744,7 @@ int describeCrit(int ncrit, double min0, dataCube cube,
       case BCP : bcp++; break;
       case RCP : rcp++; break;
       case CCP : ccp++; break;
-      default  : xcp++; 
+      default  : xcp++;
     }
 
   } // end of for
@@ -804,7 +804,7 @@ int describeCrit(int ncrit, double min0, dataCube cube,
   if ( ncp != 0 ) sortCritPoints( ncp, nnucCrit);
   if ( xcp != 0 ) sortCritPoints( xcp, degeCrit);
 
-  poincare = ncp+cube.natm - bcp + rcp - ccp; 
+  poincare = ncp+cube.natm - bcp + rcp - ccp;
 
   printBar(stdout);
   printBanner(" Critical points Info ",stdout);
@@ -827,7 +827,7 @@ int describeCrit(int ncrit, double min0, dataCube cube,
 
   sprintf(nameOut,"%sCritP.xyz",name);
   openFile(&out,nameOut,"w+");
- 
+
   /**** Imprimimos el xyz ****/
   /**** Geometria del sistema ****/
   fprintf(out,"  %5d\n",cube.natm + ncrit);
@@ -895,7 +895,7 @@ int describeCrit(int ncrit, double min0, dataCube cube,
   printf("  File %s was generated\n",nameOut);
   logFile (bcp,rcp,ccp,ncp,bondCrit,ringCrit,cageCrit,nnucCrit,cube,param, min0,
        bonding,cells,matU,name);
-  
+
   logFileCSV(bcp,bondCrit,cube,param,min0,matU,name,"BCP");
   logFileCSV(rcp,ringCrit,cube,param,min0,matU,name,"RCP");
   logFileCSV(ccp,cageCrit,cube,param,min0,matU,name,"CCP");
@@ -950,7 +950,7 @@ int delRepCoor(int n, double *xyzIn, double *xyzOut){
           control[j] = 'U';
       }
     }
-    
+
   }
 
   int npc2=0;
@@ -976,7 +976,7 @@ void getSignature( double *eval, int *ran, int *sig){
   int i;
   int rint=0,sint=0;
   double tmp;
-  
+
   for( i = 0; i < 3; i++ ){
     tmp = eval[i];
     if ( tmp != 0. ){
@@ -992,9 +992,9 @@ void getSignature( double *eval, int *ran, int *sig){
 }
 
 int getTypeCrit( int ran, int sig){
-  
+
   int ret = 0;
-  
+
   if ( ran != 3 ) {
     ret = XCP;
   } else {
@@ -1005,7 +1005,7 @@ int getTypeCrit( int ran, int sig){
       case  3: ret = CCP; break;
     }
   }
-  
+
   return ret;
 }
 
@@ -1052,7 +1052,7 @@ int sortCritPoints( int n, dataCritP *cp){
 
 
       }
-    
+
     }
   }
 
@@ -1100,7 +1100,7 @@ int delCoorAtomic(int n,double *coor, const double *matU, dataCube cube){
           control[j] = 'U';
       }
     }
-    
+
   }
 
   int npc2=0;
@@ -1154,7 +1154,7 @@ int delCoorPseudo(int n,double *coor1, double min0,const double *matU,
     fun = fabs(val[0]);
     lap = getLap(val);
 
-    if ( fun < 0.5 && lap > 0. ){ // If these condition is true, I have  pseudopotential 
+    if ( fun < 0.5 && lap > 0. ){ // If these condition is true, I have  pseudopotential
                                   // in the nuclei i;
       for( j = 0; j < n; j++ ){
         if( control[j] != 'D' ){
@@ -1169,7 +1169,7 @@ int delCoorPseudo(int n,double *coor1, double min0,const double *matU,
           else
             control[j] = 'U';
         }
-        
+
       }
     }
   }

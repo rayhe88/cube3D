@@ -1,7 +1,7 @@
 /***************************   ---- MAIN ----   ******************************/
 /**
  *  @file main.c
- *  @brief Code to analize numerically scalar fields in quantum 
+ *  @brief Code to analize numerically scalar fields in quantum
  *         chemistry.
  *
  *  @mainpage Cube3D code v1.2
@@ -13,7 +13,7 @@
  *    - Gradients.
  *    - Laplacians.
  *
- *  If the field is density it can  determine 
+ *  If the field is density it can  determine
  *  the reduced gradient and
  *  the index of non-covalent interactions (NCI).
  *
@@ -37,7 +37,6 @@
 #include "kernels.h"
 #include "lectura.h"
 
-
 double getDenInCube2(int i, int j, int k, int n1, int n2, double *field);
 void chargeOfSystem(dataCube cube);
 
@@ -60,7 +59,7 @@ int main(int argc, char* argv[]){
 
   dataCube cube;
   dataRun  parameters;
-  
+
   checkCommandLine(argc, argv);
 
   tmpFile(&aux,".c3dInp",nametmp,"w+");
@@ -86,8 +85,8 @@ int main(int argc, char* argv[]){
   parameters.orth = rec;
 
   getMatInv(matT,matU);
-
-  /*dataCube cube2;
+/*
+  dataCube cube2;
   int *zatm2;
   double *coor2,*field2;
   FILE *out2;
@@ -96,14 +95,14 @@ int main(int argc, char* argv[]){
   printCube("Ortogonal",cube2,out2);
   fclose(out2);
   unloadData(&cube2,&zatm2,&coor2,&field2);
-  */
+ */
 
   //comienza la ejecución real
-  
+
   //printTapas(cube);
   selectExec(cube,parameters,matU,nameout);
-  
-  unloadData(&cube,&zatm1,&coor1,&field1);  
+
+  unloadData(&cube,&zatm1,&coor1,&field1);
 
   printTime("  End  time: ");
 

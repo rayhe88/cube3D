@@ -56,12 +56,12 @@ void getMatT(dataCube cube, int *rec, double *matT){
   matT[3] = 0.;
   matT[4] = sin(gamma);
   matT[5] = cos(alpha)/sin(gamma) - cos(beta)/tan(gamma);
-  
+
   matT[6] = 0.;
   matT[7] = 0.;
   matT[8] = vol/(sin(gamma)*normA*normB*normC);
   // Matriz de transformacion T version 2
-  /* 
+  /*
   matT[0] = vecA[0]/normA;
   matT[1] = vecB[0]/normB;
   matT[2] = vecC[0]/normC;
@@ -125,15 +125,15 @@ void transformCube (dataCube inp, dataCube *out,
 
   tmp[0] = inp.min[0]; tmp[1] = inp.min[1]; tmp[2] = inp.min[2];
   trans00(tmp,matU);
-  out->min[0] = tmp[0]; 
-  out->min[1] = tmp[1]; 
+  out->min[0] = tmp[0];
+  out->min[1] = tmp[1];
   out->min[2] = tmp[2];
 
 
   tmp[0] = inp.max[0]; tmp[1] = inp.max[1]; tmp[2] = inp.max[2];
   trans00(tmp,matU);
   out->max[0] = tmp[0];
-  out->max[1] = tmp[1]; 
+  out->max[1] = tmp[1];
   out->max[2] = tmp[2];
 
   tmp[0] = inp.mvec[0]; tmp[1] = inp.mvec[1]; tmp[2] = inp.mvec[2];
@@ -155,14 +155,14 @@ void transformCube (dataCube inp, dataCube *out,
   out->hvec[0] = sqrt( pow(tmvec[0],2) +  pow(tmvec[1],2) +  pow(tmvec[2],2) );
   out->hvec[1] = sqrt( pow(tmvec[3],2) +  pow(tmvec[4],2) +  pow(tmvec[5],2) );
   out->hvec[2] = sqrt( pow(tmvec[6],2) +  pow(tmvec[7],2) +  pow(tmvec[8],2) );
-  
+
 
   createArrays(zatm2,coor2,field2,inp.natm,inp.npt);
 
   out->zatm = (*zatm2);
   out->coor = (*coor2);
   out->field = (*field2);
-  
+
   for(i=0;i<inp.natm;i++){
     out -> zatm[i] = inp.zatm[i];
     tmp[0]   = inp.coor[3*i];
@@ -198,7 +198,7 @@ void getMatInv(const double *matT,double *matU){
   matU[6] = 0.;
   matU[7] = 0.;
   matU[8] = 1/matT[8];
-  
+
   /*
   printf(" ------------------------------------------------------\n");
   printf("              MATRIZ DE TRANSFORMACION \n");
@@ -218,20 +218,22 @@ void getMatInv(const double *matT,double *matU){
 }
 
 /**
- * @brief
- * @param
- * @param
+ * @brief This function returns inv(U).vec
+ * @param vec  the vector 3D
+ * @param u    the matrix transformation
+ *
  *        |  1   u1   u2 |
  *   u  = |  0   u4   u5 |
  *        |  0    0   u8 |
  *
- *   r  = ( rx   ry   rz )
+ *   vec  = ( rx   ry   rz )
  *
- * return grad
+ *   vec = U^-1 . vec
+ *
  */
 
 void itrans00(double *vec, const double *u){
-  
+
   double rx,ry,rz;
 
   rx = vec[0]; ry = vec[1]; rz = vec[2];
@@ -255,7 +257,7 @@ void itrans00(double *vec, const double *u){
  *
  */
 void trans00(double *vec, const double *u){
-  
+
   double rx,ry,rz;
 
   rx = vec[0]; ry = vec[1]; rz = vec[2];
@@ -274,11 +276,11 @@ void trans00(double *vec, const double *u){
  *        |  0    0   u8 |
  *
  * grad = ( v1 , v2 , v3 )
- * 
+ *
  * return grad.u
  */
 void trans01(double *val, const double *u){
-  
+
   double v1,v2,v3;
 
   v1 = val[1]; v2 = val[2]; v3 = val[3];
@@ -304,7 +306,7 @@ void trans01(double *val, const double *u){
  *
  */
 void trans02(double *val, const double *u){
-  
+
   double v1,v2,v3;
 
   double v4,v5,v6;
@@ -328,5 +330,5 @@ void trans02(double *val, const double *u){
   val[7]  = u[1]*v4 + u[4]*v7;
   val[8]  = u[2]*v4 + u[5]*v7 + u[8]*v8;
   val[9]  = u[1]*(u[2]*v4 + u[5]*v7 + u[8]*v8);
-  val[9] += u[4]*(u[5]*v5 + u[2]*v7 + u[8]*v9); 
+  val[9] += u[4]*(u[5]*v5 + u[2]*v7 + u[8]*v9);
 }

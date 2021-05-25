@@ -61,7 +61,7 @@ int loadData(dataCube *data, int **zatm, double **coor, double **field, int *rot
   readData2((*zatm),(*coor),(*field),n,npt,inp);
 
   fclose(inp);
-  
+
   // Asignamos la lectura que se realizo de manera temporal
   // a la estructura dataCube.
   data->natm = n;
@@ -96,8 +96,8 @@ int loadData(dataCube *data, int **zatm, double **coor, double **field, int *rot
   return 0;
 }
 
-/** 
- * @brief 
+/**
+ * @brief
  * @param
  * @param
  * @param
@@ -131,14 +131,14 @@ int readData1(int *nnuc, int *points, double *min, double *vec, FILE *inp){
   vec[3] = v4;  vec[4] = v5;  vec[5] = v6;
   vec[6] = v7;  vec[7] = v8;  vec[8] = v9;
 
-  
+
   rewind(inp);
 
   return 0;
 }
 
-/** 
- * @brief 
+/**
+ * @brief
  * @param
  * @param
  * @param
@@ -178,8 +178,8 @@ int readData2( int *natom, double *coor,double *field,int n, int npt, FILE *inp)
   return 0;
 }
 
-/** 
- * @brief 
+/**
+ * @brief
  * @param
  * @param
  * @param
@@ -204,7 +204,7 @@ int createArrays(int **natom, double **coor, double **field, int n, int npt){
     printf(" Failed to allocate memory for coordinates\n");
     exit(EXIT_FAILURE);
   }
-  
+
   *field = (double*) malloc(npt*sizeof(double));
   if( *field == NULL ){
     printf(" Failed to allocate memory for field\n");
@@ -215,7 +215,7 @@ int createArrays(int **natom, double **coor, double **field, int n, int npt){
 }
 
 /**
- * @brief  This function reads the input file to load 
+ * @brief  This function reads the input file to load
  *         the general data.
  * @param  namefld is the name of the cube file.
  * @param  nameout is the gneral name for output files.
@@ -237,6 +237,7 @@ int readInput (char *namefld, char *nameout, dataRun *param, char *nameinp){
   int izq,der,size;
   int at1,at2,at3;
   int gt=0;
+  int gprop=0;
   double tmpden,tmpgra;
   double tmpvac;
   FILE *inp;
@@ -257,10 +258,11 @@ int readInput (char *namefld, char *nameout, dataRun *param, char *nameinp){
   const char flag_6[] = ">> REP PROP";
   const char flag_7[] = ">> VOI PROP";
   const char flag_8[] = ">> GEOM";
+  const char flag_9[] = ">> PLANE PROP";
 
   for(i=0;i<10;i++)
     bin[i] = 0;
- 
+
   openFile(&inp,nameinp,"r");
 
   tmpFile(&tmp,".c3dLec",nametmp,"w+");
@@ -278,7 +280,7 @@ int readInput (char *namefld, char *nameout, dataRun *param, char *nameinp){
     }
 
   }
- 
+
   rewind(inp);
   rewind(tmp);
 
@@ -316,11 +318,11 @@ int readInput (char *namefld, char *nameout, dataRun *param, char *nameinp){
         rpx = 1;
         printf("  [ERROR] n_rep_x must be greater than zero\n");
       }
-      if( rpy <= 0 ){ 
+      if( rpy <= 0 ){
         rpy = 1;
         printf("  [ERROR] n_rep_y must be greater than zero\n");
       }
-      if( rpz <= 0 ){ 
+      if( rpz <= 0 ){
         rpz = 1;
         printf("  [ERROR] n_rep_z must be greater than zero\n");
       }
@@ -349,6 +351,27 @@ int readInput (char *namefld, char *nameout, dataRun *param, char *nameinp){
       }
       bin[8] = 1;
     }
+    if( !strncmp(buffer,flag_9,12)){ // PLANE PROP
+      fgets(buffertmp,120,tmp);
+      sscanf(buffertmp,"%s",bufgeom);
+
+      for(i=0;i<strlen(bufgeom);i++)
+        bufgeom[i] = toupper(bufgeom[i]);
+
+      if( !strncmp(bufgeom,"FIELD",4) ){
+        gprop = PLA_F;
+        bin[9] = 1;
+      }
+      if( !strncmp(bufgeom,"GLINE",4) ){
+        gprop = PLA_S;
+        bin[9] = 1;
+      }
+      if( !strncmp(bufgeom,"GVECTOR",4) ){
+        gprop = PLA_V;
+        bin[9] = 1;
+      }
+
+    }
   }
 
 
@@ -369,10 +392,6 @@ int readInput (char *namefld, char *nameout, dataRun *param, char *nameinp){
     if( tmppoly < 1 || tmppoly > 6)
       tmppoly = 3;
   }
- 
-
-    
-
 
 // Load defaults
 //
@@ -383,15 +402,19 @@ int readInput (char *namefld, char *nameout, dataRun *param, char *nameinp){
   }
 // Default for periodic boundary
   if( bin[5] == 0 ){
-    tmpper = NOT; 
+    tmpper = NOT;
   }
 // Default for replicate
-  if( bin[6] == 0 ){  
+  if( bin[6] == 0 ){
     rpx = rpy = rpz = 1;
-  }  
+  }
 // Default for void
   if( bin[7] == 0 ){
     tmpvac = 0.0003;
+  }
+
+  if( bin[9] == 0 ){
+    gprop = PLA_F;
   }
 
 
@@ -412,7 +435,8 @@ int readInput (char *namefld, char *nameout, dataRun *param, char *nameinp){
   param -> rep[1]  = rpy;
   param -> rep[2]  = rpz;
 
-  param -> geotask = gt;
+  param -> geoTask = gt;
+  param -> geoProp = gprop;
 
   param -> geom[0] = at1;
   param -> geom[1] = at2;
@@ -425,7 +449,7 @@ int readInput (char *namefld, char *nameout, dataRun *param, char *nameinp){
   if(checkInput(bin) == -1)
     exit(EXIT_FAILURE);
 
-  
+
   return 0;
 }
 
@@ -447,6 +471,8 @@ int getTask(char* task){
     valor = KIN;
   if( !strncmp(task,"VIR",3) )
     valor = VIR;
+  if( !strncmp(task,"KEDW",3) )
+    valor = KEW;
   if( !strncmp(task,"NCI",3) )
     valor = NCI;
   if( !strncmp(task,"CRIT",3) )
@@ -455,7 +481,7 @@ int getTask(char* task){
     valor = VOI;
   if( !strncmp(task,"REPI",3) )
     valor = REP;
-  
+
   if( valor == -1 ){
     printf("  [ERROR] There is an error in >> TASK\n");
     exit(EXIT_FAILURE);
@@ -465,8 +491,8 @@ int getTask(char* task){
   return valor;
 }
 
-/** 
- * @brief 
+/**
+ * @brief
  * @param
  * @param
  * @param
@@ -474,13 +500,13 @@ int getTask(char* task){
  * @param
  */
 int checkInput(int bin[8]){
-  
+
   int i,error=0;
   int ret;
 
   for(i=0;i<4;i++)
     error += bin[i];
-  
+
   ret = 0;
 
   if( error != 4) {
