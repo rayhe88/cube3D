@@ -1,16 +1,16 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "file.h"
 #include "array.h"
-#include "utils.h"
 #include "fields.h"
+#include "file.h"
 #include "struct.h"
+#include "utils.h"
 
 #ifndef _KERNELS_H_
-  #define _KERNELS_H_
+#define _KERNELS_H_
 
-  typedef struct {
+typedef struct {
     int stat;
     int idx;
     int idy;
@@ -18,18 +18,18 @@
     double x;
     double y;
     double z;
-  } dataVoids;
+} dataVoids;
 
-  void selectExec (dataCube, dataRun, double *, char*);
-  int evalRGL     (dataCube, dataRun, double *, char*);
-  int evalNCI     (dataCube, dataRun, double *, char*);
-  int evalVoidVol (dataCube, dataRun, char*);
-  int evalRepCube (dataCube, dataRun, char*);
+void selectExec(dataCube, dataRun, double *, char *);
+int evalRGL(dataCube, dataRun, double *, char *);
+int evalNCI(dataCube, dataRun, double *, char *);
+int evalVoidVol(dataCube, dataRun, char *);
+int evalRepCube(dataCube, dataRun, char *);
 
-  double getDenInCube (int,int,int,int,int,double*);
+double getDenInCube(int, int, int, int, int, double *);
 
-  void getLogField( dataCube, double);
+void getLogField(dataCube, double);
 
-  int getCubeIdx( int, int, int, int, int,int);
+int getCubeIdx(int, int, int, int, int, int);
 
 #endif

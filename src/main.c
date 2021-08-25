@@ -29,82 +29,81 @@
  *  @date August 2018
  */
 
-#include "file.h"
 #include "array.h"
-#include "utils.h"
-#include "struct.h"
-#include "transU.h"
+#include "file.h"
 #include "kernels.h"
 #include "lectura.h"
+#include "struct.h"
+#include "transU.h"
+#include "utils.h"
 
 double getDenInCube2(int i, int j, int k, int n1, int n2, double *field);
 void chargeOfSystem(dataCube cube);
 
-int main(int argc, char* argv[]){
+int main(int argc, char *argv[]) {
 
+    char namefld[120];
+    char nameout[120];
+    char nametmp[120];
 
-  char namefld[120];
-  char nameout[120];
-  char nametmp[120];
+    int rec;
+    int *zatm1;
+    int rotate;
 
-  int rec;
-  int *zatm1;
-  int rotate;
+    double matT[9];
+    double matU[9];
+    double *coor1, *field1;
 
-  double matT[9];
-  double matU[9];
-  double *coor1,*field1;
+    FILE *aux;
 
-  FILE *aux;
+    dataCube cube;
+    dataRun parameters;
 
-  dataCube cube;
-  dataRun  parameters;
+    checkCommandLine(argc, argv);
 
-  checkCommandLine(argc, argv);
+    tmpFile(&aux, ".c3dInp", nametmp, "w+");
 
-  tmpFile(&aux,".c3dInp",nametmp,"w+");
+    readInput(namefld, nameout, &parameters, argv[1]);
 
-  readInput(namefld,nameout,&parameters,argv[1]);
+    printHead(argv[1], namefld, nameout);
 
-  printHead(argv[1],namefld,nameout);
+    printRunning(parameters);
 
-  printRunning(parameters);
+    loadData(&cube, &zatm1, &coor1, &field1, &rotate, namefld);
 
-  loadData(&cube,&zatm1,&coor1,&field1,&rotate,namefld);
+    printCubeRot(rotate, nameout, cube);
 
-  printCubeRot(rotate,nameout,cube);
+    printInfoCube(cube);
 
-  printInfoCube(cube);
+    fclose(aux);
 
-  fclose(aux);
+    remove(nametmp);
 
-  remove(nametmp);
+    getMatT(cube, &rec, matT);
 
-  getMatT(cube,&rec,matT);
+    parameters.orth = rec;
 
-  parameters.orth = rec;
+    getMatInv(matT, matU);
+    /*
+      dataCube cube2;
+      int *zatm2;
+      double *coor2,*field2;
+      FILE *out2;
+      transformCube(cube,&cube2,&zatm2,&coor2,&field2,matU);
+      openFile(&out2,"ortogonal.cube","w+");
+      printCube("Ortogonal",cube2,out2);
+      fclose(out2);
+      unloadData(&cube2,&zatm2,&coor2,&field2);
+     */
 
-  getMatInv(matT,matU);
-/*
-  dataCube cube2;
-  int *zatm2;
-  double *coor2,*field2;
-  FILE *out2;
-  transformCube(cube,&cube2,&zatm2,&coor2,&field2,matU);
-  openFile(&out2,"ortogonal.cube","w+");
-  printCube("Ortogonal",cube2,out2);
-  fclose(out2);
-  unloadData(&cube2,&zatm2,&coor2,&field2);
- */
+    // comienza la ejecución real
 
-  //comienza la ejecución real
+    // printTapas(cube);
+    selectExec(cube, parameters, matU, nameout);
 
-  //printTapas(cube);
-  selectExec(cube,parameters,matU,nameout);
+    unloadData(&cube, &zatm1, &coor1, &field1);
 
-  unloadData(&cube,&zatm1,&coor1,&field1);
+    printTime("  End  time: ");
 
-  printTime("  End  time: ");
-
-  exit(EXIT_SUCCESS);
+    exit(EXIT_SUCCESS);
 }
