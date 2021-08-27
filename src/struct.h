@@ -12,22 +12,22 @@
 #ifndef _STRUCT_H_
 #define _STRUCT_H_
 
-#define NOT    0 /**< Macro for NOT.                   */
-#define YES    1 /**< Macro for YES.                   */
+#define NOT 0 /**< Macro for NOT.                   */
+#define YES 1 /**< Macro for YES.                   */
 
-#define RED    0 /**< Macro for Reduced gradient.      */
-#define GRA    1 /**< Macro for gradient.              */
-#define LAP    2 /**< Macro for laplacian.             */
-#define KIN    3 /**< Macro for Kinetic (Abramov) E.   */
-#define VIR    4 /**< Macro for Potencial Energy.      */
-#define KEW    5 /**< Macro for Kin Ene Den Weissaker. */
-#define NCI    6 /**< Macro for NCI index.             */
-#define CRI    7 /**< Macro for critical points.       */
-#define VOI    8 /**< Macro for voids in density.      */
-#define REP    9 /**< Macro for replication.           */
+#define RED 0 /**< Macro for Reduced gradient.      */
+#define GRA 1 /**< Macro for gradient.              */
+#define LAP 2 /**< Macro for laplacian.             */
+#define KIN 3 /**< Macro for Kinetic (Abramov) E.   */
+#define VIR 4 /**< Macro for Potencial Energy.      */
+#define KEW 5 /**< Macro for Kin Ene Den Weissaker. */
+#define NCI 6 /**< Macro for NCI index.             */
+#define CRI 7 /**< Macro for critical points.       */
+#define VOI 8 /**< Macro for voids in density.      */
+#define REP 9 /**< Macro for replication.           */
 
-#define LIN  100 /**< Macro for Geometry Line.         */
-#define PLA  200 /**< Macro for Geometry Plane.        */
+#define LIN 100 /**< Macro for Geometry Line.         */
+#define PLA 200 /**< Macro for Geometry Plane.        */
 
 #define PLA_F 210 /**< Macro for Geom Plane and field. */
 #define PLA_V 220 /**< Macro for Geom Plane and vector.*/

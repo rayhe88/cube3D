@@ -1,6 +1,6 @@
 #include "utils.h"
-#include "version.h"
 #include "runCommands.h"
+#include "version.h"
 
 void printSizeCube(dataCube cube) {
 
@@ -618,7 +618,7 @@ void checkCommandLine(int argc, char *argv[], dataRC config) {
         printf(" To create a example of input file\n");
         printf(" %s -f [file.cube] -i [file.in]\n\n", argv[0]);
         printf(" To export the config parameters try:\n");
-        printf(" %s -r [filerc]\n\n", argv[0] );
+        printf(" %s -r [filerc]\n\n", argv[0]);
 
         exit(EXIT_FAILURE);
     }
@@ -649,7 +649,7 @@ void checkCommandLine(int argc, char *argv[], dataRC config) {
             }
         }
         if (argv[i][0] == '-' && argv[i][1] == 'r') {
-            if( argv[i + 1] != NULL && argv[i + 1][0] != '-'){
+            if (argv[i + 1] != NULL && argv[i + 1][0] != '-') {
                 strcpy(nameConf, argv[i + 1]);
             }
             printf("%s A file [%s] will be created!%s\n", TGBI, nameConf, TRST);

@@ -7,44 +7,39 @@
  */
 #include "runCommands.h"
 
-int checkFile(dataRC *config){
+int checkFile(dataRC *config) {
     char path[120];
     char filename[132];
     uid_t uid = getuid();
     struct passwd *pw = getpwuid(uid);
 
-    if( pw == NULL ){
+    if (pw == NULL) {
         printf(" Failed to acces home directory!\n");
         exit(EXIT_FAILURE);
     }
 
-    strcpy(path, pw -> pw_dir);
+    strcpy(path, pw->pw_dir);
 
-//    printf("path : %s\n", path);
-    sprintf(filename,"%s/.cube3drc",path);
+    //    printf("path : %s\n", path);
+    sprintf(filename, "%s/.cube3drc", path);
 
-//    printf("file : %s\n",filename);
+    //    printf("file : %s\n",filename);
 
     defaultRunCommands(config);
 
-    if(!access(filename, F_OK) ){
-        //printf("The file %s was found\n",filename);
+    if (!access(filename, F_OK)) {
+        // printf("The file %s was found\n",filename);
         readFileRC(path, config);
 
-    }else{
-        //printf("The file %s was not found\n",filename);
+    } else {
+        // printf("The file %s was not found\n",filename);
         createFileRC(filename, *config);
     }
 
-
-
-
-
     return 0;
-
 }
 
-int createFileRC(char* namerc, dataRC config){
+int createFileRC(char *namerc, dataRC config) {
 
     FILE *filerc;
 
@@ -87,7 +82,7 @@ int createFileRC(char* namerc, dataRC config){
     return 0;
 }
 
-int readFileRC(char *path, dataRC *config){
+int readFileRC(char *path, dataRC *config) {
 
     int i, val, idata;
     char namerc[120];
@@ -97,19 +92,18 @@ int readFileRC(char *path, dataRC *config){
     FILE *inp;
     FILE *tmp;
 
-
     sprintf(namerc, "%s/.cube3drc", path);
 
     openFile(&inp, namerc, "r");
 
     tmpFile(&tmp, ".c3drc", nametmp, "w+");
 
-    while( !feof(inp)){
+    while (!feof(inp)) {
         fgets(buffer, 100, inp);
 
-        if(buffer[0] != '#'){
+        if (buffer[0] != '#') {
             i = 0;
-            while( i < 100 && !feof(inp) && buffer[i] != '\n'){
+            while (i < 100 && !feof(inp) && buffer[i] != '\n') {
                 fprintf(tmp, "%c", buffer[i]);
                 i++;
             }
@@ -120,151 +114,166 @@ int readFileRC(char *path, dataRC *config){
     rewind(inp);
     rewind(tmp);
 
-    while( !feof(tmp)){
+    while (!feof(tmp)) {
         fgets(buffer, 100, tmp);
 
-        if( !strncmp(buffer, "CRIT_TOLERANCE_FUN0", strlen("CRIT_TOLERANCE_FUN0") - 1 )){
+        if (!strncmp(buffer, "CRIT_TOLERANCE_FUN0",
+                     strlen("CRIT_TOLERANCE_FUN0") - 1)) {
             val = sscanf(buffer, "CRIT_TOLERANCE_FUN0 %lf", &fdata);
-            if ( val == 1 )
-                config -> crit_tolfun0 = fdata;
-         }
+            if (val == 1)
+                config->crit_tolfun0 = fdata;
+        }
 
-        if( !strncmp(buffer, "CRIT_TOLERANCE_FUN", strlen("CRIT_TOLERANCE_FUN") - 1 )){
+        if (!strncmp(buffer, "CRIT_TOLERANCE_FUN",
+                     strlen("CRIT_TOLERANCE_FUN") - 1)) {
             val = sscanf(buffer, "CRIT_TOLERANCE_FUN %lf", &fdata);
-            if ( val == 1 )
-                config -> crit_tolfun = fdata;
-         }
+            if (val == 1)
+                config->crit_tolfun = fdata;
+        }
 
-        if( !strncmp(buffer, "CRIT_TOLERANCE_GRD", strlen("CRIT_TOLERANCE_GRD") - 1 )){
+        if (!strncmp(buffer, "CRIT_TOLERANCE_GRD",
+                     strlen("CRIT_TOLERANCE_GRD") - 1)) {
             val = sscanf(buffer, "CRIT_TOLERANCE_GRD %lf", &fdata);
-            if ( val == 1 )
-                config -> crit_tolgrd = fdata;
-         }
+            if (val == 1)
+                config->crit_tolgrd = fdata;
+        }
 
-        if( !strncmp(buffer, "CRIT_TOLERANCE_NRM", strlen("CRIT_TOLERANCE_NRM") - 1 )){
+        if (!strncmp(buffer, "CRIT_TOLERANCE_NRM",
+                     strlen("CRIT_TOLERANCE_NRM") - 1)) {
             val = sscanf(buffer, "CRIT_TOLERANCE_NRM %lf", &fdata);
-            if ( val == 1 )
-                config -> crit_tolnrm = fdata;
-         }
+            if (val == 1)
+                config->crit_tolnrm = fdata;
+        }
 
-        if( !strncmp(buffer, "CRIT_MAXITER_STEP1", strlen("CRIT_MAXITER_STEP1") - 1 )){
+        if (!strncmp(buffer, "CRIT_MAXITER_STEP1",
+                     strlen("CRIT_MAXITER_STEP1") - 1)) {
             val = sscanf(buffer, "CRIT_MAXITER_STEP1 %d", &idata);
-            if ( val == 1 )
-                config -> crit_maxiter1 = idata;
-         }
+            if (val == 1)
+                config->crit_maxiter1 = idata;
+        }
 
-        if( !strncmp(buffer, "CRIT_MAXITER_STEP2", strlen("CRIT_MAXITER_STEP2") - 1 )){
+        if (!strncmp(buffer, "CRIT_MAXITER_STEP2",
+                     strlen("CRIT_MAXITER_STEP2") - 1)) {
             val = sscanf(buffer, "CRIT_MAXITER_STEP2 %d", &idata);
-            if ( val == 1 )
-                config -> crit_maxiter2 = idata;
-         }
+            if (val == 1)
+                config->crit_maxiter2 = idata;
+        }
 
-        if( !strncmp(buffer, "CRIT_PERCENT_OVERL", strlen("CRIT_PERCENT_OVERL") - 1 )){
+        if (!strncmp(buffer, "CRIT_PERCENT_OVERL",
+                     strlen("CRIT_PERCENT_OVERL") - 1)) {
             val = sscanf(buffer, "CRIT_PERCENT_OVERL %lf", &fdata);
-            if ( val == 1 )
-                config -> crit_percent = fdata;
-         }
+            if (val == 1)
+                config->crit_percent = fdata;
+        }
 
-        if( !strncmp(buffer, "CRIT_TOL_DISTANCE1", strlen("CRIT_TOL_DISTANCE1") - 1 )){
+        if (!strncmp(buffer, "CRIT_TOL_DISTANCE1",
+                     strlen("CRIT_TOL_DISTANCE1") - 1)) {
             val = sscanf(buffer, "CRIT_TOL_DISTANCE1 %lf", &fdata);
-            if ( val == 1 )
-                config -> crit_toldist1 = fdata;
-         }
+            if (val == 1)
+                config->crit_toldist1 = fdata;
+        }
 
-        if( !strncmp(buffer, "CRIT_TOL_DISTANCE2", strlen("CRIT_TOL_DISTANCE2") - 1 )){
+        if (!strncmp(buffer, "CRIT_TOL_DISTANCE2",
+                     strlen("CRIT_TOL_DISTANCE2") - 1)) {
             val = sscanf(buffer, "CRIT_TOL_DISTANCE2 %lf", &fdata);
-            if ( val == 1 )
-                config -> crit_toldist2 = fdata;
-         }
+            if (val == 1)
+                config->crit_toldist2 = fdata;
+        }
 
-        if( !strncmp(buffer, "CRIT_TOL_DISTANCE3", strlen("CRIT_TOL_DISTANCE3") - 1 )){
+        if (!strncmp(buffer, "CRIT_TOL_DISTANCE3",
+                     strlen("CRIT_TOL_DISTANCE3") - 1)) {
             val = sscanf(buffer, "CRIT_TOL_DISTANCE3 %lf", &fdata);
-            if ( val == 1 )
-                config -> crit_toldist3 = fdata;
-         }
+            if (val == 1)
+                config->crit_toldist3 = fdata;
+        }
 
-        if( !strncmp(buffer, "GEOM_MAXITER", strlen("GEOM_MAXITER") - 1 )){
+        if (!strncmp(buffer, "GEOM_MAXITER", strlen("GEOM_MAXITER") - 1)) {
             val = sscanf(buffer, "GEOM_MAXITER %d", &idata);
-            if ( val == 1 )
-                config -> geom_maxiter = idata;
-         }
+            if (val == 1)
+                config->geom_maxiter = idata;
+        }
 
-        if( !strncmp(buffer, "GEOM_EPSILON", strlen("GEOM_EPSILON") - 1 )){
+        if (!strncmp(buffer, "GEOM_EPSILON", strlen("GEOM_EPSILON") - 1)) {
             val = sscanf(buffer, "GEOM_EPSILON %lf", &fdata);
-            if ( val == 1 )
-                config -> geom_eps = fdata;
-         }
+            if (val == 1)
+                config->geom_eps = fdata;
+        }
 
-        if( !strncmp(buffer, "GEOM_NUM_POINTS_1D", strlen("GEOM_NUM_POINTS_1D") - 1 )){
+        if (!strncmp(buffer, "GEOM_NUM_POINTS_1D",
+                     strlen("GEOM_NUM_POINTS_1D") - 1)) {
             val = sscanf(buffer, "GEOM_NUM_POINTS_1D %d", &idata);
-            if ( val == 1 )
-                config -> geom_npua0 = idata;
-         }
+            if (val == 1)
+                config->geom_npua0 = idata;
+        }
 
-        if( !strncmp(buffer, "GEOM_NUM_POINTS_2D", strlen("GEOM_NUM_POINTS_2D") - 1 )){
+        if (!strncmp(buffer, "GEOM_NUM_POINTS_2D",
+                     strlen("GEOM_NUM_POINTS_2D") - 1)) {
             val = sscanf(buffer, "GEOM_NUM_POINTS_2D %d", &idata);
-            if ( val == 1 )
-                config -> geom_npua1 = idata;
-         }
+            if (val == 1)
+                config->geom_npua1 = idata;
+        }
 
-        if( !strncmp(buffer, "GEOM_NUM_POINTS_2Dv", strlen("GEOM_NUM_POINTS_2Dv") - 1 )){
+        if (!strncmp(buffer, "GEOM_NUM_POINTS_2Dv",
+                     strlen("GEOM_NUM_POINTS_2Dv") - 1)) {
             val = sscanf(buffer, "GEOM_NUM_POINTS_2Dv %d", &idata);
-            if ( val == 1 )
-                config -> geom_npua2 = idata;
-         }
+            if (val == 1)
+                config->geom_npua2 = idata;
+        }
 
-        if( !strncmp(buffer, "GEOM_NUM_ANGPOINTS", strlen("GEOM_NUM_ANGPOINTS") - 1 )){
+        if (!strncmp(buffer, "GEOM_NUM_ANGPOINTS",
+                     strlen("GEOM_NUM_ANGPOINTS") - 1)) {
             val = sscanf(buffer, "GEOM_NUM_ANGPOINTS %d", &idata);
-            if ( val == 1 )
-                config -> geom_nang = idata;
-         }
+            if (val == 1)
+                config->geom_nang = idata;
+        }
 
-        if( !strncmp(buffer, "JACOBI_MAXITER", strlen("JACOBI_MAXITER") - 1 )){
+        if (!strncmp(buffer, "JACOBI_MAXITER", strlen("JACOBI_MAXITER") - 1)) {
             val = sscanf(buffer, "JACOBI_MAXITER %d", &idata);
-            if ( val == 1 )
-                config -> jacobi_maxiter = idata;
-         }
+            if (val == 1)
+                config->jacobi_maxiter = idata;
+        }
 
-        if( !strncmp(buffer, "JACOBI_EPSILON", strlen("JACOBI_EPSILON") - 1 )){
+        if (!strncmp(buffer, "JACOBI_EPSILON", strlen("JACOBI_EPSILON") - 1)) {
             val = sscanf(buffer, "JACOBI_EPSILON %lf", &fdata);
-            if ( val == 1 )
-                config -> jacobi_eps = fdata;
-         }
+            if (val == 1)
+                config->jacobi_eps = fdata;
+        }
 
-        if( !strncmp(buffer, "BOND_PATH_EPSILON", strlen("BOND_PATH_EPSILON") - 1 )){
+        if (!strncmp(buffer, "BOND_PATH_EPSILON",
+                     strlen("BOND_PATH_EPSILON") - 1)) {
             val = sscanf(buffer, "BOND_PATH_EPSILON %lf", &fdata);
-            if ( val == 1 )
-                config -> bpath_eps = fdata;
-         }
+            if (val == 1)
+                config->bpath_eps = fdata;
+        }
 
-        if( !strncmp(buffer, "BOND_PATH_NSTEP", strlen("BOND_PATH_NSTEP") - 1 )){
+        if (!strncmp(buffer, "BOND_PATH_NSTEP",
+                     strlen("BOND_PATH_NSTEP") - 1)) {
             val = sscanf(buffer, "BOND_PATH_NSTEP %d", &idata);
-            if ( val == 1 )
-                config -> bpath_nstep = idata;
-         }
+            if (val == 1)
+                config->bpath_nstep = idata;
+        }
 
-        if( !strncmp(buffer, "BOND_PATH_TOL_DIST", strlen("BOND_PATH_TOL_DIST") - 1 )){
+        if (!strncmp(buffer, "BOND_PATH_TOL_DIST",
+                     strlen("BOND_PATH_TOL_DIST") - 1)) {
             val = sscanf(buffer, "BOND_PATH_TOL_DIST %lf", &fdata);
-            if ( val == 1 )
-                config -> bpath_tol_dist_atm = fdata;
-         }
+            if (val == 1)
+                config->bpath_tol_dist_atm = fdata;
+        }
 
-        if( !strncmp(buffer, "BOND_PATH_MAXPTS", strlen("BOND_PATH_MAXPTS") - 1 )){
+        if (!strncmp(buffer, "BOND_PATH_MAXPTS",
+                     strlen("BOND_PATH_MAXPTS") - 1)) {
             val = sscanf(buffer, "BOND_PATH_MAXPTS %d", &idata);
-            if ( val == 1 )
-                config -> bpath_maxpts = idata;
-         }
+            if (val == 1)
+                config->bpath_maxpts = idata;
+        }
 
-        if( !strncmp(buffer, "GRAD_LINES_EPSILON", strlen("GRAD_LINES_EPSILON") - 1 )){
+        if (!strncmp(buffer, "GRAD_LINES_EPSILON",
+                     strlen("GRAD_LINES_EPSILON") - 1)) {
             val = sscanf(buffer, "GRAD_LINES_EPSILON %lf", &fdata);
-            if ( val == 1 )
-                config -> gradlines_step = fdata;
-         }
-
-
+            if (val == 1)
+                config->gradlines_step = fdata;
+        }
     }
-
-
 
     fclose(inp);
     fclose(tmp);
@@ -273,53 +282,53 @@ int readFileRC(char *path, dataRC *config){
     return 0;
 }
 
-int defaultRunCommands(dataRC *config){
+int defaultRunCommands(dataRC *config) {
     // CRIT_TOLERANCE_FUN0
-    config -> crit_tolfun0 = 1.E-7;
+    config->crit_tolfun0 = 1.E-7;
     // CRIT_TOLERANCE_FUN
-    config -> crit_tolfun = 1.E-7;
+    config->crit_tolfun = 1.E-7;
     // CRIT_TOLERANCE_GRD
-    config -> crit_tolgrd = 1.E-5;
+    config->crit_tolgrd = 1.E-5;
     // CRIT_TOLERANCE_NRM
-    config -> crit_tolnrm = 100.;
+    config->crit_tolnrm = 100.;
     // CRIT_MAXITER_STEP1
-    config -> crit_maxiter1 = 30;
+    config->crit_maxiter1 = 30;
     // CRIT_MAXITER_STEP2
-    config -> crit_maxiter2 = 1000;
+    config->crit_maxiter2 = 1000;
     // CRIT_PERCENT_OVERL
-    config -> crit_percent = 1.5;
+    config->crit_percent = 1.5;
     // CRIT_TOL_DISTANCE1
-    config -> crit_toldist1 = 1.72E-1;
+    config->crit_toldist1 = 1.72E-1;
     // CRIT_TOL_DISTANCE2
-    config -> crit_toldist2 = 0.2;
+    config->crit_toldist2 = 0.2;
     // CRIT_TOL_DISTANCE3
-    config -> crit_toldist3 = 0.7;
+    config->crit_toldist3 = 0.7;
     // GEOM_MAXITER
-    config -> geom_maxiter = 2000;
+    config->geom_maxiter = 2000;
     // GEOM_EPSILON
-    config -> geom_eps = 0.0125;
+    config->geom_eps = 0.0125;
     // GEOM_NUM_POINTS_1D
-    config -> geom_npua0 = 75;
+    config->geom_npua0 = 75;
     // GEOM_NUM_POINTS_2D
-    config -> geom_npua1 = 50;
+    config->geom_npua1 = 50;
     // GEOM_NUM_POINTS_2Dv
-    config -> geom_npua2 = 8;
+    config->geom_npua2 = 8;
     // GEOM_NUM_ANGPOINTS
-    config -> geom_nang = 36;
+    config->geom_nang = 36;
     // JACOBI_MAXITER
-    config -> jacobi_maxiter = 500;
+    config->jacobi_maxiter = 500;
     // JACOBI_EPSILON
-    config -> jacobi_eps = 1.E-8;
+    config->jacobi_eps = 1.E-8;
     // BOND_PATH_EPSILON
-    config -> bpath_eps = 0.005;
+    config->bpath_eps = 0.005;
     // BOND_PATH_NSTEP
-    config -> bpath_nstep = 5;
+    config->bpath_nstep = 5;
     // BOND_PATH_TOL_DIST
-    config -> bpath_tol_dist_atm= 0.1;
+    config->bpath_tol_dist_atm = 0.1;
     // BOND_PATH_MAXPTS
-    config -> bpath_maxpts = 3000;
+    config->bpath_maxpts = 3000;
     // GRAD_LINES_EPSILON
-    config -> gradlines_step = 0.005;
+    config->gradlines_step = 0.005;
 
     return 0;
 }

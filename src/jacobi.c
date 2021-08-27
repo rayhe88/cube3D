@@ -1,6 +1,7 @@
 #include "jacobi.h"
 
-int JacobiNxN(double *matH, double *eval, double *evec, double eps, int maxiter) {
+int JacobiNxN(double *matH, double *eval, double *evec, double eps,
+              int maxiter) {
 
     int i, j;
     int k, l, count;

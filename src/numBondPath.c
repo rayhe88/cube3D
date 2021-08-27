@@ -142,7 +142,8 @@ int bondPath(int bcp, dataCritP *bondCrit, int ncp, dataCritP *nnucCrit,
             matH[7] = val[9];
             matH[8] = val[6];
 
-            JacobiNxN(matH, eval, evec, config.jacobi_eps, config.jacobi_maxiter);
+            JacobiNxN(matH, eval, evec, config.jacobi_eps,
+                      config.jacobi_maxiter);
             /*  The 3rd eigenvector is taken */
             vec2[0] = evec[6];
             vec2[1] = evec[7];
@@ -1008,8 +1009,8 @@ void centraMess(char *mess, FILE *out) {
 
 int axesCrit(int bcp, int rcp, int ccp, int ncp, dataCritP *bondCrit,
              dataCritP *ringCrit, dataCritP *cageCrit, dataCritP *nnucCrit,
-             dataCube cube, dataRun param, dataRC config, double min0, const double *matU,
-             char *name) {
+             dataCube cube, dataRun param, dataRC config, double min0,
+             const double *matU, char *name) {
 
     int i, j;
     char nameOut[128];
@@ -1429,7 +1430,8 @@ int axesCrit(int bcp, int rcp, int ccp, int ncp, dataCritP *bondCrit,
 }
 
 int logFileCSV(int ncp, dataCritP *crit, dataCube cube, dataRun param,
-               dataRC config, double min0, const double *matU, char *name, char *string) {
+               dataRC config, double min0, const double *matU, char *name,
+               char *string) {
 
     int i;
     char nameOut[128];

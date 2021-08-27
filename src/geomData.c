@@ -592,7 +592,6 @@ void origin(double vecL[3], double vecM[3], double vecN[3], double minmax[2],
     r0[2] = rz / det;
 }
 
-
 void reOrderAtoms(int *at1, int *at2, int *at3, dataCube cube,
                   const double *matU) {
     int i;
@@ -708,8 +707,8 @@ void getIncentre(double rA[3], double rB[3], double rC[3], double c0[3]) {
 }
 
 // New feature1
-int getGradLinesInPlane1(double min0, dataCube cube, dataRun param, dataRC config,
-                         const double *matU, char *name) {
+int getGradLinesInPlane1(double min0, dataCube cube, dataRun param,
+                         dataRC config, const double *matU, char *name) {
 
     printBanner("GradLines-plane", stdout);
 
@@ -986,8 +985,8 @@ int getGradLinesInPlane1(double min0, dataCube cube, dataRun param, dataRC confi
     return 0;
 }
 // New feature2
-int getGradVectorsInPlane(double min0, dataCube cube, dataRun param, dataRC config,
-                          const double *matU, char *name) {
+int getGradVectorsInPlane(double min0, dataCube cube, dataRun param,
+                          dataRC config, const double *matU, char *name) {
 
     printBanner("Gradient Vectorial - Plane", stdout);
 
@@ -1249,8 +1248,8 @@ void printInfoCube1(dataCube cube) {
                cube.coor[3 * i + 1], cube.coor[3 * i + 2]);
 }
 
-int getStreamLinesInPlane(double min0, dataCube cube, dataRun param, dataRC config,
-                          const double *matU, char *name) {
+int getStreamLinesInPlane(double min0, dataCube cube, dataRun param,
+                          dataRC config, const double *matU, char *name) {
 
     printBanner("StreamLines plane", stdout);
 
@@ -1492,15 +1491,15 @@ int getStreamLinesInPlane(double min0, dataCube cube, dataRun param, dataRC conf
 
     nline = 1;
     id = firstSeed(n, matrix);
-    getStreamLine(id, n, nline, min0, cube, param, config, matU, matT, basisLMN, min2,
-                  max2, matrix, out, vec);
+    getStreamLine(id, n, nline, min0, cube, param, config, matU, matT, basisLMN,
+                  min2, max2, matrix, out, vec);
 
     int full = checkFullMatrix(n, matrix);
     int jter = 0;
     while (full != 0 && jter < n * n) {
         id = findNeighbours(nline, n, matrix);
-        getStreamLine(id, n, nline, min0, cube, param, config, matU, matT, basisLMN,
-                      min2, max2, matrix, out, vec);
+        getStreamLine(id, n, nline, min0, cube, param, config, matU, matT,
+                      basisLMN, min2, max2, matrix, out, vec);
         full = checkFullMatrix(n, matrix);
         jter++;
         // printf(" Full Matrix : % 10d\n",full);
@@ -1534,10 +1533,9 @@ int firstSeed(int n, dataSLine *matrix) {
     return id;
 }
 
-
 double EulerMethod(double rin[3], double rout[3], dataCube cube, dataRun param,
-                   const double *matU, const double *matT, double min0, double eps,
-                   int sign) {
+                   const double *matU, const double *matT, double min0,
+                   double eps, int sign) {
 
     int i;
     double q[3];
@@ -1559,7 +1557,6 @@ double EulerMethod(double rin[3], double rout[3], dataCube cube, dataRun param,
 
     return val[0];
 }
-
 
 double RungeKutta4_fast(double rin[3], double rout[3], dataCube cube,
                         dataRun param, const double *matU, const double *matT,
@@ -1608,10 +1605,9 @@ double RungeKutta4_fast(double rin[3], double rout[3], dataCube cube,
     return val[0];
 }
 
-
 double RungeKutta4(double rin[3], double rout[3], dataCube cube, dataRun param,
-                   const double *matU, const double *matT, double min0, double eps,
-                   int sign) {
+                   const double *matU, const double *matT, double min0,
+                   double eps, int sign) {
 
     int i;
     double r0[3], r[3], q[3];
@@ -1664,9 +1660,9 @@ double RungeKutta4(double rin[3], double rout[3], dataCube cube, dataRun param,
 }
 
 int getStreamLine(int id0, int n, int nline, double min0, dataCube cube,
-                  dataRun param, dataRC config, const double *matU, const double *matT,
-                  double basisLMN[4][3], double min[2], double max[2],
-                  dataSLine *matrix, FILE *out, FILE *vec) {
+                  dataRun param, dataRC config, const double *matU,
+                  const double *matT, double basisLMN[4][3], double min[2],
+                  double max[2], dataSLine *matrix, FILE *out, FILE *vec) {
 
     int goon;
     int iter;
@@ -1692,7 +1688,8 @@ int getStreamLine(int id0, int n, int nline, double min0, dataCube cube,
     iter = 0;
     while (goon == 0 && iter < config.geom_maxiter) {
 
-        fj = RungeKutta4(ri, rout, cube, param, matU, matT, min0, config.geom_eps, 1);
+        fj = RungeKutta4(ri, rout, cube, param, matU, matT, min0,
+                         config.geom_eps, 1);
 
         trans3Dto2D(rout, basisLMN[0], basisLMN[1], basisLMN[3][0],
                     basisLMN[3][1], &coorL, &coorM);
@@ -1751,7 +1748,8 @@ int getStreamLine(int id0, int n, int nline, double min0, dataCube cube,
     iter = 0;
     while (goon == 0 && iter < config.geom_maxiter) {
 
-        fj = RungeKutta4(ri, rout, cube, param, matU, matT, min0, config.geom_eps, -1);
+        fj = RungeKutta4(ri, rout, cube, param, matU, matT, min0,
+                         config.geom_eps, -1);
 
         trans3Dto2D(rout, basisLMN[0], basisLMN[1], basisLMN[3][0],
                     basisLMN[3][1], &coorL, &coorM);

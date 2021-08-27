@@ -20,7 +20,8 @@
  * @param
  * @param
  */
-void selectExec(dataCube cube, dataRun param, dataRC config, double *matU, char *name) {
+void selectExec(dataCube cube, dataRun param, dataRC config, double *matU,
+                char *name) {
 
     double min, max;
     double min2;

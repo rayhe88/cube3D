@@ -28,9 +28,9 @@
 //#define TOLDIST 1.72E-1
 //#define TOLDIST2  0.2 // Distance for hidrogens 0.06
 //#define TOLDIST3  0.7 // Si hay pseudopotenciales esta
-                      // distancia puede servir para
-                      // quitarlos 0.66 u.a. == 0.35 A.
-                      // 0.7 u.a. == 0.3704240743 A
+// distancia puede servir para
+// quitarlos 0.66 u.a. == 0.35 A.
+// 0.7 u.a. == 0.3704240743 A
 
 #define XCP -5
 #define NCP -4
@@ -52,7 +52,8 @@ int delRepCoor(int, double *, double *, dataRC);
 
 int delCoorAtomic(int, double *, const double *, dataCube, dataRC);
 
-int delCoorPseudo(int, double *, double, const double *, dataCube, dataRun, dataRC);
+int delCoorPseudo(int, double *, double, const double *, dataCube, dataRun,
+                  dataRC);
 
 int getTypeCrit(int, int);
 
@@ -60,14 +61,14 @@ void getSignature(double *, int *, int *);
 
 int critPoints(dataCube, dataRun, dataRC, const double *, double, char *);
 
-int rejectCube(double *, double, dataCube, const double *, dataRun, dataRC, double *,
-               double *, double *, double *, double *, double *);
+int rejectCube(double *, double, dataCube, const double *, dataRun, dataRC,
+               double *, double *, double *, double *, double *, double *);
 
 int refineCrit(int, double, dataCube, dataRun, dataRC, double *, const double *,
                char *);
 
-int describeCrit(int, double, dataCube, dataRun, dataRC, double *, const double *,
-                 char *);
+int describeCrit(int, double, dataCube, dataRun, dataRC, double *,
+                 const double *, char *);
 
 int numCritical01(double, double, double, dataCube, dataRun, const double *,
                   double, double *);

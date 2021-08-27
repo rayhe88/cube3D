@@ -48,12 +48,13 @@ int logFile(int bcp, int rcp, int ccp, int ncp, dataCritP *bondCrit,
             const double *matU, char *name);
 
 int logFileCSV(int bcp, dataCritP *bondCrit, dataCube cube, dataRun param,
-               dataRC config, double min0, const double *matU, char *name, char *string);
+               dataRC config, double min0, const double *matU, char *name,
+               char *string);
 
 int axesCrit(int bcp, int rcp, int ccp, int ncp, dataCritP *bondCrit,
              dataCritP *ringCrit, dataCritP *cageCrit, dataCritP *nnucCrit,
-             dataCube cube, dataRun param, dataRC config, double min0, const double *matU,
-             char *name);
+             dataCube cube, dataRun param, dataRC config, double min0,
+             const double *matU, char *name);
 
 void printLog1(int, int, int, int, int, FILE *);
 

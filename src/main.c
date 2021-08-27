@@ -33,10 +33,10 @@
 #include "file.h"
 #include "kernels.h"
 #include "lectura.h"
+#include "runCommands.h"
 #include "struct.h"
 #include "transU.h"
 #include "utils.h"
-#include "runCommands.h"
 
 int main(int argc, char *argv[]) {
 

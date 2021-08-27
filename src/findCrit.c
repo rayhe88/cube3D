@@ -60,8 +60,8 @@ int createArrayCritP(int n, dataCritP **ptr, const char *mess) {
     return 0;
 }
 
-int critPoints(dataCube cube, dataRun param, dataRC config, const double *matU, double min0,
-               char *name) {
+int critPoints(dataCube cube, dataRun param, dataRC config, const double *matU,
+               double min0, char *name) {
 
     int i, j, k;
     int ncx = cube.pts[0] - 1;
@@ -129,10 +129,11 @@ int critPoints(dataCube cube, dataRun param, dataRC config, const double *matU, 
 
     printBanner(" Searching of critical points ", stdout);
     printf("  Cutoff for the function         : % 10.6E\n", config.crit_tolfun);
-    printf("  Tolerance for the function      : % 10.6E\n", config.crit_tolfun0);
+    printf("  Tolerance for the function      : % 10.6E\n",
+           config.crit_tolfun0);
     printf("  Tolerance in the gradient       : % 10.6E\n", config.crit_tolgrd);
-    printf("  Cube overlap percentage         : % 10.2lf%c \n", config.crit_percent * 100.,
-           '%');
+    printf("  Cube overlap percentage         : % 10.2lf%c \n",
+           config.crit_percent * 100., '%');
     printf("  Maximum iterations step 1       : % 10d\n", config.crit_maxiter1);
     printf("  Maximum iterations step 2       : % 10d\n", config.crit_maxiter2);
     printBar(stdout);
@@ -225,50 +226,50 @@ int critPoints(dataCube cube, dataRun param, dataRC config, const double *matU, 
                 rin[0] = xp;
                 rin[1] = yp;
                 rin[2] = zp;
-                ret[0] = rejectCube(rin, min0, cube, matU, param, config, limits, xx,
-                                    yy, zz, f, rout[0]);
+                ret[0] = rejectCube(rin, min0, cube, matU, param, config,
+                                    limits, xx, yy, zz, f, rout[0]);
 
                 rin[0] = xp;
                 rin[1] = yp;
                 rin[2] = zpp;
-                ret[1] = rejectCube(rin, min0, cube, matU, param, config, limits, xx,
-                                    yy, zz, f, rout[1]);
+                ret[1] = rejectCube(rin, min0, cube, matU, param, config,
+                                    limits, xx, yy, zz, f, rout[1]);
 
                 rin[0] = xp;
                 rin[1] = ypp;
                 rin[2] = zp;
-                ret[2] = rejectCube(rin, min0, cube, matU, param, config, limits, xx,
-                                    yy, zz, f, rout[2]);
+                ret[2] = rejectCube(rin, min0, cube, matU, param, config,
+                                    limits, xx, yy, zz, f, rout[2]);
 
                 rin[0] = xp;
                 rin[1] = ypp;
                 rin[2] = zpp;
-                ret[3] = rejectCube(rin, min0, cube, matU, param, config, limits, xx,
-                                    yy, zz, f, rout[3]);
+                ret[3] = rejectCube(rin, min0, cube, matU, param, config,
+                                    limits, xx, yy, zz, f, rout[3]);
 
                 rin[0] = xpp;
                 rin[1] = yp;
                 rin[2] = zp;
-                ret[4] = rejectCube(rin, min0, cube, matU, param, config, limits, xx,
-                                    yy, zz, f, rout[4]);
+                ret[4] = rejectCube(rin, min0, cube, matU, param, config,
+                                    limits, xx, yy, zz, f, rout[4]);
 
                 rin[0] = xpp;
                 rin[1] = yp;
                 rin[2] = zpp;
-                ret[5] = rejectCube(rin, min0, cube, matU, param, config, limits, xx,
-                                    yy, zz, f, rout[5]);
+                ret[5] = rejectCube(rin, min0, cube, matU, param, config,
+                                    limits, xx, yy, zz, f, rout[5]);
 
                 rin[0] = xpp;
                 rin[1] = ypp;
                 rin[2] = zp;
-                ret[6] = rejectCube(rin, min0, cube, matU, param, config, limits, xx,
-                                    yy, zz, f, rout[6]);
+                ret[6] = rejectCube(rin, min0, cube, matU, param, config,
+                                    limits, xx, yy, zz, f, rout[6]);
 
                 rin[0] = xpp;
                 rin[1] = ypp;
                 rin[2] = zpp;
-                ret[7] = rejectCube(rin, min0, cube, matU, param, config, limits, xx,
-                                    yy, zz, f, rout[7]);
+                ret[7] = rejectCube(rin, min0, cube, matU, param, config,
+                                    limits, xx, yy, zz, f, rout[7]);
 
 #pragma omp critical
                 {
@@ -312,8 +313,8 @@ int critPoints(dataCube cube, dataRun param, dataRC config, const double *matU, 
 }
 
 int rejectCube(double *rin, double min0, dataCube cube, const double *matU,
-               dataRun param, dataRC config, double *limits, double *xx, double *yy,
-               double *zz, double *f, double *rout) {
+               dataRun param, dataRC config, double *limits, double *xx,
+               double *yy, double *zz, double *f, double *rout) {
 
     int ret = -1;
     int iter, difcoor;
@@ -348,7 +349,8 @@ int rejectCube(double *rin, double min0, dataCube cube, const double *matU,
         y = yi;
         z = zi;
 
-        while ((iter < config.crit_maxiter1) && (norm > config.crit_tolgrd) && (difcoor == 0)) {
+        while ((iter < config.crit_maxiter1) && (norm > config.crit_tolgrd) &&
+               (difcoor == 0)) {
 
             getDerivatives3DLog(x, y, z, xx, yy, zz, f, param.pol, param.orth,
                                 matU, min0, val);
@@ -628,8 +630,8 @@ double getFunInCube(int i, int j, int k, int n1, int n2, double min0, double *h,
     return fabs(den);
 }
 
-int refineCrit(int npc, double min0, dataCube cube, dataRun param, dataRC config,
-               double *coorIn, const double *matU, char *name) {
+int refineCrit(int npc, double min0, dataCube cube, dataRun param,
+               dataRC config, double *coorIn, const double *matU, char *name) {
 
     int mu, nu;
     int ncrit, ncrit2, ncrit3;
@@ -664,7 +666,8 @@ int refineCrit(int npc, double min0, dataCube cube, dataRun param, dataRC config
         } // end of WHILE
 
         if (iter == config.crit_maxiter2) {
-            while (iter < 2 * config.crit_maxiter2 && norm > config.crit_tolgrd) {
+            while (iter < 2 * config.crit_maxiter2 &&
+                   norm > config.crit_tolgrd) {
                 x = (x + coorIn[3 * mu]) / 2.;
                 y = (y + coorIn[3 * mu + 1]) / 2.;
                 z = (z + coorIn[3 * mu + 2]) / 2.;
@@ -698,7 +701,6 @@ int refineCrit(int npc, double min0, dataCube cube, dataRun param, dataRC config
     printf("  Critical points (delCoorAtomic) : %6d\n", ncrit2);
     ncrit3 = delCoorPseudo(ncrit2, coorOut, min0, matU, cube, param, config);
     printf("  Critical points (delCoorPseudo) : %6d\n", ncrit3);
-
 
     // Caraterizamos los puntos criticos
     describeCrit(ncrit3, min0, cube, param, config, coorOut, matU, name);
@@ -957,8 +959,8 @@ int describeCrit(int ncrit, double min0, dataCube cube, dataRun param,
                 ri[2]);
     }
 
-    bondPath(bcp, bondCrit, ncp, nnucCrit, bonding, cells, cube, param, config, min0,
-             matU, name);
+    bondPath(bcp, bondCrit, ncp, nnucCrit, bonding, cells, cube, param, config,
+             min0, matU, name);
 
     printBar(stdout);
     printf("  File %s was generated\n", nameOut);
@@ -967,11 +969,11 @@ int describeCrit(int ncrit, double min0, dataCube cube, dataRun param,
 
     logFileCSV(bcp, bondCrit, cube, param, config, min0, matU, name, "BCP");
     logFileCSV(rcp, ringCrit, cube, param, config, min0, matU, name, "RCP");
-    logFileCSV(ccp, cageCrit, cube, param, config,  min0, matU, name, "CCP");
+    logFileCSV(ccp, cageCrit, cube, param, config, min0, matU, name, "CCP");
     logFileCSV(xcp, degeCrit, cube, param, config, min0, matU, name, "XCP");
 
-     //axesCrit (bcp,rcp,ccp,ncp,bondCrit,ringCrit,cageCrit,nnucCrit,cube,param,
-     //          config,min0,matU,name);
+    // axesCrit (bcp,rcp,ccp,ncp,bondCrit,ringCrit,cageCrit,nnucCrit,cube,param,
+    //          config,min0,matU,name);
 
     if (bcp != 0) {
         free(bondCrit);
@@ -1135,7 +1137,8 @@ int sortCritPoints(int n, dataCritP *cp) {
     return 0;
 }
 
-int delCoorAtomic(int n, double *coor, const double *matU, dataCube cube, dataRC config) {
+int delCoorAtomic(int n, double *coor, const double *matU, dataCube cube,
+                  dataRC config) {
 
     // keys for control
     // 'N' is similar to NULL, initialize value

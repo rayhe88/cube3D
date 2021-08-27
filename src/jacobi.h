@@ -18,7 +18,8 @@ void MulMat(int n, double *in1, double *in2, double *out);
 void Mul3Mat(int n, double *in1, double *in2, double *in3, double *out);
 void sortEigen(int n, double *vec, double *mat);
 
-int JacobiNxN(double *matH, double *eval, double *evec, double eps, int maxiter);
+int JacobiNxN(double *matH, double *eval, double *evec, double eps,
+              int maxiter);
 ;
 
 #endif
