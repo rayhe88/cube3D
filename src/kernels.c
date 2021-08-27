@@ -20,7 +20,7 @@
  * @param
  * @param
  */
-void selectExec(dataCube cube, dataRun param, double *matU, char *name) {
+void selectExec(dataCube cube, dataRun param, dataRC config, double *matU, char *name) {
 
     double min, max;
     double min2;
@@ -36,7 +36,7 @@ void selectExec(dataCube cube, dataRun param, double *matU, char *name) {
         fieldMinMax(cube, &min, &max);
         min2 = min - DELTA;
         getLogField(cube, min2);
-        getFieldInLine(min, cube, param, matU, name);
+        getFieldInLine(min, cube, param, config, matU, name);
     }
 
     if (param.geoTask == PLA && planeLine == 1) {
@@ -44,11 +44,11 @@ void selectExec(dataCube cube, dataRun param, double *matU, char *name) {
         min2 = min - DELTA;
         getLogField(cube, min2);
         if (param.geoProp == PLA_F)
-            getFieldInPlane(min, cube, param, matU, name);
+            getFieldInPlane(min, cube, param, config, matU, name);
         if (param.geoProp == PLA_V)
-            getGradVectorsInPlane(min, cube, param, matU, name);
+            getGradVectorsInPlane(min, cube, param, config, matU, name);
         if (param.geoProp == PLA_S)
-            getStreamLinesInPlane(min, cube, param, matU, name);
+            getStreamLinesInPlane(min, cube, param, config, matU, name);
     }
 
     if (param.geoTask != LIN && param.geoTask != PLA || planeLine == 0) {
@@ -68,7 +68,7 @@ void selectExec(dataCube cube, dataRun param, double *matU, char *name) {
             fieldMinMax(cube, &min, &max);
             min2 = min - DELTA;
             getLogField(cube, min2);
-            critPoints(cube, param, matU, min, name);
+            critPoints(cube, param, config, matU, min, name);
             break;
         case VOI:
             evalVoidVol(cube, param, name);

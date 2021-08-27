@@ -32,7 +32,8 @@ OBJS := main.o\
 		  lagrange2.o\
 		  replicate.o\
 		  mathTools.o\
-          numBondPath.o
+          numBondPath.o\
+          runCommands.o
 
 $(PRO) : $(OBJS)
 	$(CC) $(CFLAGS) utils.c
@@ -104,8 +105,11 @@ mathTools.o : mathTools.c mathTools.h
 pruebaCoef.o : pruebaCoef.c pruebaCoef.h
 	$(CC) $(CFLAGS) pruebaCoef.c
 
-numBondPath.o: numBondPath.c numBondPath.h 
+numBondPath.o: numBondPath.c numBondPath.h
 	$(CC) $(CFLAGS) numBondPath.c -fopenmp
+
+runCommands.o: runCommands.c runCommands.h
+	$(CC) $(CFLAGS) runCommands.c -fopenmp
 
 .PHONY: install
 install:

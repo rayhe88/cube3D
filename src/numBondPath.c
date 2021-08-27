@@ -43,7 +43,7 @@ void getKnRungeKuta(double k[3], double val[10]) {
 
 int bondPath(int bcp, dataCritP *bondCrit, int ncp, dataCritP *nnucCrit,
              int *bonding, int *cellInfo, dataCube cube, dataRun param,
-             double min0, const double *matU, char *name) {
+             dataRC config, double min0, const double *matU, char *name) {
 
     int i, j, k, step;
     int iterp, itern, amico;
@@ -61,9 +61,9 @@ int bondPath(int bcp, dataCritP *bondCrit, int ncp, dataCritP *nnucCrit,
     double qc[3], q[3], rc[3];
 
     double k1[3], k3[3], k4[3], k6[3];
-    double a3 = 0.300 * BPATH_EPS;
-    double a4 = 0.600 * BPATH_EPS;
-    double a6 = 0.875 * BPATH_EPS;
+    double a3 = 0.300 * config.bpath_eps;
+    double a4 = 0.600 * config.bpath_eps;
+    double a6 = 0.875 * config.bpath_eps;
     double c1 = 0.097883598;
     double c3 = 0.40257649;
     double c4 = 0.21043771;
@@ -107,7 +107,7 @@ int bondPath(int bcp, dataCritP *bondCrit, int ncp, dataCritP *nnucCrit,
                              qc, q, k, k1, k3, k4, k6, amico, difmin, step,    \
                              ratm, rij, flagPos, flagNeg, cell1, cell2, rc)    \
     shared(bcp, bondCrit, cube, param, matU, matT, min0, a3, a4, a6, c1, c3,   \
-           c4, c6, attractors, coorAttr, tmp, cellInfo)
+           c4, c6, attractors, coorAttr, tmp, cellInfo, config)
     {
 
 #pragma omp single
@@ -142,7 +142,7 @@ int bondPath(int bcp, dataCritP *bondCrit, int ncp, dataCritP *nnucCrit,
             matH[7] = val[9];
             matH[8] = val[6];
 
-            JacobiNxN(matH, eval, evec);
+            JacobiNxN(matH, eval, evec, config.jacobi_eps, config.jacobi_maxiter);
             /*  The 3rd eigenvector is taken */
             vec2[0] = evec[6];
             vec2[1] = evec[7];
@@ -153,9 +153,9 @@ int bondPath(int bcp, dataCritP *bondCrit, int ncp, dataCritP *nnucCrit,
             vec2[1] /= norm;
             vec2[2] /= norm;
 
-            ri[0] = rc[0] + 2.0 * BPATH_EPS * vec2[0];
-            ri[1] = rc[1] + 2.0 * BPATH_EPS * vec2[1];
-            ri[2] = rc[2] + 2.0 * BPATH_EPS * vec2[2];
+            ri[0] = rc[0] + 2.0 * config.bpath_eps * vec2[0];
+            ri[1] = rc[1] + 2.0 * config.bpath_eps * vec2[1];
+            ri[2] = rc[2] + 2.0 * config.bpath_eps * vec2[2];
             getRiU(ri, matT, qi);
 
             cellInfo[2 * i] = 0;
@@ -165,7 +165,7 @@ int bondPath(int bcp, dataCritP *bondCrit, int ncp, dataCritP *nnucCrit,
             dist = 6.;
             flagPos = 0;
             flagPos += perfectCube(param.pbc, qi, cube.min, cube.max);
-            while (iterp < MAXPTS && dist > 0.0) {
+            while (iterp < config.bpath_maxpts && dist > 0.0) {
 
                 getRiU(qi, matU, ri);
                 numCritical01Vec(qi, cube, param, matU, min0, val);
@@ -204,9 +204,9 @@ int bondPath(int bcp, dataCritP *bondCrit, int ncp, dataCritP *nnucCrit,
 
                 // if( param.orth != YES) trans01(vec,matU);
 
-                rn[0] = ri[0] + BPATH_EPS * vec[0];
-                rn[1] = ri[1] + BPATH_EPS * vec[1];
-                rn[2] = ri[2] + BPATH_EPS * vec[2];
+                rn[0] = ri[0] + config.bpath_eps * vec[0];
+                rn[1] = ri[1] + config.bpath_eps * vec[1];
+                rn[2] = ri[2] + config.bpath_eps * vec[2];
 
                 getRiU(rn, matT, qn);
 
@@ -230,7 +230,7 @@ int bondPath(int bcp, dataCritP *bondCrit, int ncp, dataCritP *nnucCrit,
                         difmin = rij;
                         nucleo1 = k;
                     }
-                    if (rij <= TOL_DIST_ATM) {
+                    if (rij <= config.bpath_tol_dist_atm) {
                         amico = 1;
                     }
 
@@ -239,7 +239,7 @@ int bondPath(int bcp, dataCritP *bondCrit, int ncp, dataCritP *nnucCrit,
                 if (amico == 0) {
                     iterp++;
                     dist = 6.;
-                    if (step == NSTEP) {
+                    if (step == config.bpath_nstep) {
                         if (myIsNanInf_V3(qn) == 0) {
                             getRiU(qn, matU, rn);
                             dij = distance(rn, rc);
@@ -256,16 +256,16 @@ int bondPath(int bcp, dataCritP *bondCrit, int ncp, dataCritP *nnucCrit,
             } // end while
 
             // At this moment we change the direction
-            ri[0] = rc[0] - 2.0 * BPATH_EPS * vec2[0];
-            ri[1] = rc[1] - 2.0 * BPATH_EPS * vec2[1];
-            ri[2] = rc[2] - 2.0 * BPATH_EPS * vec2[2];
+            ri[0] = rc[0] - 2.0 * config.bpath_eps * vec2[0];
+            ri[1] = rc[1] - 2.0 * config.bpath_eps * vec2[1];
+            ri[2] = rc[2] - 2.0 * config.bpath_eps * vec2[2];
             getRiU(ri, matT, qi);
 
             step = itern = 0;
             dist = 6.;
             flagNeg = 0;
             flagNeg += perfectCube(param.pbc, qi, cube.min, cube.max);
-            while (itern < MAXPTS && dist > 0.) {
+            while (itern < config.bpath_maxpts && dist > 0.) {
 
                 getRiU(qi, matU, ri);
                 numCritical01Vec(qi, cube, param, matU, min0, val);
@@ -299,9 +299,9 @@ int bondPath(int bcp, dataCritP *bondCrit, int ncp, dataCritP *nnucCrit,
                 vec[1] = c1 * k1[1] + c3 * k3[1] + c4 * k4[1] + c6 * k6[1];
                 vec[2] = c1 * k1[2] + c3 * k3[2] + c4 * k4[2] + c6 * k6[2];
 
-                rn[0] = ri[0] + BPATH_EPS * vec[0];
-                rn[1] = ri[1] + BPATH_EPS * vec[1];
-                rn[2] = ri[2] + BPATH_EPS * vec[2];
+                rn[0] = ri[0] + config.bpath_eps * vec[0];
+                rn[1] = ri[1] + config.bpath_eps * vec[1];
+                rn[2] = ri[2] + config.bpath_eps * vec[2];
 
                 getRiU(rn, matT, qn);
 
@@ -327,7 +327,7 @@ int bondPath(int bcp, dataCritP *bondCrit, int ncp, dataCritP *nnucCrit,
                         difmin = rij;
                         nucleo2 = k;
                     }
-                    if (rij <= TOL_DIST_ATM) {
+                    if (rij <= config.bpath_tol_dist_atm) {
                         amico = 1;
                     }
 
@@ -337,7 +337,7 @@ int bondPath(int bcp, dataCritP *bondCrit, int ncp, dataCritP *nnucCrit,
                     itern++;
                     dist = 6.;
 
-                    if (step == NSTEP) {
+                    if (step == config.bpath_nstep) {
                         if (myIsNanInf_V3(qn) == 0) {
                             getRiU(qn, matU, rn);
                             dij = -distance(rn, rc);
@@ -1008,7 +1008,7 @@ void centraMess(char *mess, FILE *out) {
 
 int axesCrit(int bcp, int rcp, int ccp, int ncp, dataCritP *bondCrit,
              dataCritP *ringCrit, dataCritP *cageCrit, dataCritP *nnucCrit,
-             dataCube cube, dataRun param, double min0, const double *matU,
+             dataCube cube, dataRun param, dataRC config, double min0, const double *matU,
              char *name) {
 
     int i, j;
@@ -1043,7 +1043,7 @@ int axesCrit(int bcp, int rcp, int ccp, int ncp, dataCritP *bondCrit,
         matH[7] = val[9];
         matH[8] = val[6];
 
-        JacobiNxN(matH, eval, evec);
+        JacobiNxN(matH, eval, evec, config.jacobi_eps, config.jacobi_maxiter);
 
         r[0] = x0;
         r[1] = y0;
@@ -1143,7 +1143,7 @@ int axesCrit(int bcp, int rcp, int ccp, int ncp, dataCritP *bondCrit,
         matH[7] = val[9];
         matH[8] = val[6];
 
-        JacobiNxN(matH, eval, evec);
+        JacobiNxN(matH, eval, evec, config.jacobi_eps, config.jacobi_maxiter);
 
         r[0] = x0;
         r[1] = y0;
@@ -1243,7 +1243,7 @@ int axesCrit(int bcp, int rcp, int ccp, int ncp, dataCritP *bondCrit,
         matH[7] = val[9];
         matH[8] = val[6];
 
-        JacobiNxN(matH, eval, evec);
+        JacobiNxN(matH, eval, evec, config.jacobi_eps, config.jacobi_maxiter);
 
         r[0] = x0;
         r[1] = y0;
@@ -1343,7 +1343,7 @@ int axesCrit(int bcp, int rcp, int ccp, int ncp, dataCritP *bondCrit,
         matH[7] = val[9];
         matH[8] = val[6];
 
-        JacobiNxN(matH, eval, evec);
+        JacobiNxN(matH, eval, evec, config.jacobi_eps, config.jacobi_maxiter);
 
         r[0] = x0;
         r[1] = y0;
@@ -1429,7 +1429,7 @@ int axesCrit(int bcp, int rcp, int ccp, int ncp, dataCritP *bondCrit,
 }
 
 int logFileCSV(int ncp, dataCritP *crit, dataCube cube, dataRun param,
-               double min0, const double *matU, char *name, char *string) {
+               dataRC config, double min0, const double *matU, char *name, char *string) {
 
     int i;
     char nameOut[128];
@@ -1471,7 +1471,7 @@ int logFileCSV(int ncp, dataCritP *crit, dataCube cube, dataRun param,
         matH[7] = val[9];
         matH[8] = val[6];
 
-        JacobiNxN(matH, eval, evec);
+        JacobiNxN(matH, eval, evec, config.jacobi_eps, config.jacobi_maxiter);
         // valoresPropios3x3(matH,eval);
         l1 = eval[0];
         l2 = eval[1];

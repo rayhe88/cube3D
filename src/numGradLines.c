@@ -1,10 +1,10 @@
 #include "numGradLines.h"
 
 /**
- * @file   numBondPath.c
+ * @file   numGradLines.h
  * @brief
  * @author Raymundo Hernández-Esparza.
- * @date   August 2018.
+ * @date   June 2021.
  */
 
 #include "array.h"
@@ -25,8 +25,6 @@
 #include "numGradLines.h"
 
 #include <omp.h>
-
-#define ANG1 (10. * M_PI / 180.)
 
 void transVec(dataVec in, double out[3]) {
     out[0] = in.x;

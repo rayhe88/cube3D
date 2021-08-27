@@ -8,7 +8,7 @@
 #include "transU.h"
 #include "utils.h"
 
-int getFieldInLine(double min0, dataCube cube, dataRun param,
+int getFieldInLine(double min0, dataCube cube, dataRun param, dataRC config,
                    const double *matU, char *name) {
 
     printBanner("Field-line", stdout);
@@ -105,7 +105,7 @@ int getFieldInLine(double min0, dataCube cube, dataRun param,
     uy /= norm;
     uz /= norm;
 
-    n = ceil(dist * (NPUA0));
+    n = ceil(dist * (config.geom_npua0));
     h = dist / (double)(n - 1);
 
     double (*gfun)(double *);
@@ -189,7 +189,7 @@ int getFieldInLine(double min0, dataCube cube, dataRun param,
     return 0;
 }
 
-int getFieldInPlane(double min0, dataCube cube, dataRun param,
+int getFieldInPlane(double min0, dataCube cube, dataRun param, dataRC config,
                     const double *matU, char *name) {
 
     printBanner("Field-plane", stdout);
@@ -294,7 +294,7 @@ int getFieldInPlane(double min0, dataCube cube, dataRun param,
            r3[0] * B2A, r3[1] * B2A, r3[2] * B2A);
 
     dist = getVecLMN(r1, r2, r3, r0, rcg, vL, vM, vN);
-    n = ceil(dist * (NPUA1));
+    n = ceil(dist * (config.geom_npua1));
     h = dist / (double)(n - 1);
 
     printf("   Baricentre:  % 10.6lf % 10.6lf % 10.6lf [A]\n", rcg[0] * B2A,
@@ -591,6 +591,8 @@ void origin(double vecL[3], double vecM[3], double vecN[3], double minmax[2],
     r0[1] = ry / det;
     r0[2] = rz / det;
 }
+
+
 void reOrderAtoms(int *at1, int *at2, int *at3, dataCube cube,
                   const double *matU) {
     int i;
@@ -706,7 +708,7 @@ void getIncentre(double rA[3], double rB[3], double rC[3], double c0[3]) {
 }
 
 // New feature1
-int getGradLinesInPlane1(double min0, dataCube cube, dataRun param,
+int getGradLinesInPlane1(double min0, dataCube cube, dataRun param, dataRC config,
                          const double *matU, char *name) {
 
     printBanner("GradLines-plane", stdout);
@@ -821,7 +823,7 @@ int getGradLinesInPlane1(double min0, dataCube cube, dataRun param,
            r3[0] * B2A, r3[1] * B2A, r3[2] * B2A);
 
     dist = getVecLMN(r1, r2, r3, r0, rcg, vL, vM, vN);
-    n = ceil(dist * (NPUA2));
+    n = ceil(dist * (config.geom_npua2));
     h = dist / (double)(n - 1);
     ri[3][0] = rcg[0];
     ri[3][1] = rcg[1];
@@ -904,7 +906,7 @@ int getGradLinesInPlane1(double min0, dataCube cube, dataRun param,
     double gnorm;
 
     double eps = 0.2 * B2A;
-    double theta = 2 * M_PI / NANG;
+    double theta = 2 * M_PI / config.geom_nang;
     double rj[3], qi[3];
     int flag;
     int iter;
@@ -917,7 +919,7 @@ int getGradLinesInPlane1(double min0, dataCube cube, dataRun param,
         trans3Dto2D(rj, vL, vM, cgL, cgM, &ejeL, &ejeM);
         cM = ejeM * B2A;
         cL = ejeL * B2A;
-        for (j = 0; j < NANG; j++) {
+        for (j = 0; j < config.geom_nang; j++) {
             rj[0] = eps * vL[0] * sin(j * theta) +
                     eps * vM[0] * cos(j * theta) + ri[i][0];
             rj[1] = eps * vL[1] * sin(j * theta) +
@@ -984,7 +986,7 @@ int getGradLinesInPlane1(double min0, dataCube cube, dataRun param,
     return 0;
 }
 // New feature2
-int getGradVectorsInPlane(double min0, dataCube cube, dataRun param,
+int getGradVectorsInPlane(double min0, dataCube cube, dataRun param, dataRC config,
                           const double *matU, char *name) {
 
     printBanner("Gradient Vectorial - Plane", stdout);
@@ -1082,7 +1084,7 @@ int getGradVectorsInPlane(double min0, dataCube cube, dataRun param,
     getRiU(q3, matU, r3);
     // We get the baricentre and the vectors that made the plane
     dist = getVecLMN(r1, r2, r3, r0, rcg, vL, vM, vN);
-    n = ceil(dist * (NPUA2));
+    n = ceil(dist * (config.geom_npua2));
     h = dist / (double)(n - 1);
 
     printf("   Centre %3d:  % 10.6lf % 10.6lf % 10.6lf [A]\n", at1 + 1,
@@ -1247,7 +1249,7 @@ void printInfoCube1(dataCube cube) {
                cube.coor[3 * i + 1], cube.coor[3 * i + 2]);
 }
 
-int getStreamLinesInPlane(double min0, dataCube cube, dataRun param,
+int getStreamLinesInPlane(double min0, dataCube cube, dataRun param, dataRC config,
                           const double *matU, char *name) {
 
     printBanner("StreamLines plane", stdout);
@@ -1350,7 +1352,7 @@ int getStreamLinesInPlane(double min0, dataCube cube, dataRun param,
 
     // We get the baricentre and the vectors that conform the plane
     dist = getVecLMN(r1, r2, r3, r0, rcg, vL, vM, vN);
-    n = ceil(dist * (NPUA2));
+    n = ceil(dist * (config.geom_npua2));
     h = dist / (double)(n - 1);
 
     printf("   Centre %3d:  % 10.6lf % 10.6lf % 10.6lf [A]\n", at1 + 1,
@@ -1490,14 +1492,14 @@ int getStreamLinesInPlane(double min0, dataCube cube, dataRun param,
 
     nline = 1;
     id = firstSeed(n, matrix);
-    getStreamLine(id, n, nline, min0, cube, param, matU, matT, basisLMN, min2,
+    getStreamLine(id, n, nline, min0, cube, param, config, matU, matT, basisLMN, min2,
                   max2, matrix, out, vec);
 
     int full = checkFullMatrix(n, matrix);
     int jter = 0;
     while (full != 0 && jter < n * n) {
         id = findNeighbours(nline, n, matrix);
-        getStreamLine(id, n, nline, min0, cube, param, matU, matT, basisLMN,
+        getStreamLine(id, n, nline, min0, cube, param, config, matU, matT, basisLMN,
                       min2, max2, matrix, out, vec);
         full = checkFullMatrix(n, matrix);
         jter++;
@@ -1531,8 +1533,10 @@ int firstSeed(int n, dataSLine *matrix) {
 
     return id;
 }
+
+
 double EulerMethod(double rin[3], double rout[3], dataCube cube, dataRun param,
-                   const double *matU, const double *matT, double min0,
+                   const double *matU, const double *matT, double min0, double eps,
                    int sign) {
 
     int i;
@@ -1547,7 +1551,7 @@ double EulerMethod(double rin[3], double rout[3], dataCube cube, dataRun param,
     getKnRungeKuta(vec, val);
 
     for (i = 0; i < 3; i++) {
-        rout[i] = rin[i] + EPS * sign * vec[i];
+        rout[i] = rin[i] + eps * sign * vec[i];
     }
 
     getRiU(rout, matT, q);
@@ -1556,9 +1560,10 @@ double EulerMethod(double rin[3], double rout[3], dataCube cube, dataRun param,
     return val[0];
 }
 
+
 double RungeKutta4_fast(double rin[3], double rout[3], dataCube cube,
                         dataRun param, const double *matU, const double *matT,
-                        double min0, int sign) {
+                        double min0, double eps, int sign) {
 
     int i;
     double r0[3], r[3], q[3];
@@ -1575,26 +1580,26 @@ double RungeKutta4_fast(double rin[3], double rout[3], dataCube cube,
     getKnRungeKuta(k1, val);
 
     for (i = 0; i < 3; i++)
-        r[i] = r0[i] + sign * EPS / 2.;
+        r[i] = r0[i] + sign * eps / 2.;
     getRiU(r, matT, q);
     numCritical01Vec(q, cube, param, matU, min0, val);
     getKnRungeKuta(k2, val);
 
     for (i = 0; i < 3; i++)
-        r[i] = r0[i] + sign * EPS / 2.;
+        r[i] = r0[i] + sign * eps / 2.;
     getRiU(r, matT, q);
     numCritical01Vec(q, cube, param, matU, min0, val);
     getKnRungeKuta(k3, val);
 
     for (i = 0; i < 3; i++)
-        r[i] = r0[i] + sign * EPS;
+        r[i] = r0[i] + sign * eps;
     getRiU(r, matT, q);
     numCritical01Vec(q, cube, param, matU, min0, val);
     getKnRungeKuta(k4, val);
 
     for (i = 0; i < 3; i++) {
         vec[i] = (k1[i] + 2 * k2[i] + 2 * k3[i] + k4[i]) / 6.;
-        rout[i] = rin[i] + EPS * sign * vec[i];
+        rout[i] = rin[i] + eps * sign * vec[i];
     }
 
     getRiU(rout, matT, q);
@@ -1602,16 +1607,18 @@ double RungeKutta4_fast(double rin[3], double rout[3], dataCube cube,
 
     return val[0];
 }
+
+
 double RungeKutta4(double rin[3], double rout[3], dataCube cube, dataRun param,
-                   const double *matU, const double *matT, double min0,
+                   const double *matU, const double *matT, double min0, double eps,
                    int sign) {
 
     int i;
     double r0[3], r[3], q[3];
     double k1[3], k3[3], k4[3], k6[3];
-    double a3 = 0.300 * EPS;
-    double a4 = 0.600 * EPS;
-    double a6 = 0.875 * EPS;
+    double a3 = 0.300 * eps;
+    double a4 = 0.600 * eps;
+    double a6 = 0.875 * eps;
     double c1 = 0.097883598;
     double c3 = 0.40257649;
     double c4 = 0.21043771;
@@ -1647,7 +1654,7 @@ double RungeKutta4(double rin[3], double rout[3], dataCube cube, dataRun param,
 
     for (i = 0; i < 3; i++) {
         vec[i] = c1 * k1[i] + c3 * k3[i] + c4 * k4[i] + c6 * k6[i];
-        rout[i] = rin[i] + EPS * sign * vec[i];
+        rout[i] = rin[i] + eps * sign * vec[i];
     }
 
     getRiU(rout, matT, q);
@@ -1657,7 +1664,7 @@ double RungeKutta4(double rin[3], double rout[3], dataCube cube, dataRun param,
 }
 
 int getStreamLine(int id0, int n, int nline, double min0, dataCube cube,
-                  dataRun param, const double *matU, const double *matT,
+                  dataRun param, dataRC config, const double *matU, const double *matT,
                   double basisLMN[4][3], double min[2], double max[2],
                   dataSLine *matrix, FILE *out, FILE *vec) {
 
@@ -1670,7 +1677,7 @@ int getStreamLine(int id0, int n, int nline, double min0, dataCube cube,
     double fi, fj;
 
     double q[3], gvec[3], gnorm, gL, gM;
-    double h = 1. / (NPUA2);
+    double h = 1. / (config.geom_npua2);
 
     fi = matrix[id0].f;
     ri[0] = matrix[id0].r[0];
@@ -1683,9 +1690,9 @@ int getStreamLine(int id0, int n, int nline, double min0, dataCube cube,
 
     goon = 0;
     iter = 0;
-    while (goon == 0 && iter < MAXITER) {
+    while (goon == 0 && iter < config.geom_maxiter) {
 
-        fj = RungeKutta4(ri, rout, cube, param, matU, matT, min0, 1);
+        fj = RungeKutta4(ri, rout, cube, param, matU, matT, min0, config.geom_eps, 1);
 
         trans3Dto2D(rout, basisLMN[0], basisLMN[1], basisLMN[3][0],
                     basisLMN[3][1], &coorL, &coorM);
@@ -1694,7 +1701,7 @@ int getStreamLine(int id0, int n, int nline, double min0, dataCube cube,
             sign = (fj - fi) / fabs(fj - fi);
 
         if (iter > 2 && sign * (fj - fi) < 0) {
-            iter = 2 * MAXITER;
+            iter = 2 * config.geom_maxiter;
             break;
         }
         fi = fj;
@@ -1742,9 +1749,9 @@ int getStreamLine(int id0, int n, int nline, double min0, dataCube cube,
 
     goon = 0;
     iter = 0;
-    while (goon == 0 && iter < MAXITER) {
+    while (goon == 0 && iter < config.geom_maxiter) {
 
-        fj = RungeKutta4(ri, rout, cube, param, matU, matT, min0, -1);
+        fj = RungeKutta4(ri, rout, cube, param, matU, matT, min0, config.geom_eps, -1);
 
         trans3Dto2D(rout, basisLMN[0], basisLMN[1], basisLMN[3][0],
                     basisLMN[3][1], &coorL, &coorM);
@@ -1753,7 +1760,7 @@ int getStreamLine(int id0, int n, int nline, double min0, dataCube cube,
             sign = (fj - fi) / fabs(fj - fi);
 
         if (iter > 2 && sign * (fj - fi) < 0) {
-            iter = 2 * MAXITER;
+            iter = 2 * config.geom_maxiter;
             break;
         }
         fi = fj;

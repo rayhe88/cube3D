@@ -20,7 +20,7 @@ typedef struct {
     double z;
 } dataVoids;
 
-void selectExec(dataCube, dataRun, double *, char *);
+void selectExec(dataCube, dataRun, dataRC, double *, char *);
 int evalRGL(dataCube, dataRun, double *, char *);
 int evalNCI(dataCube, dataRun, double *, char *);
 int evalVoidVol(dataCube, dataRun, char *);

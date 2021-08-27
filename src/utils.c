@@ -1,5 +1,6 @@
 #include "utils.h"
 #include "version.h"
+#include "runCommands.h"
 
 void printSizeCube(dataCube cube) {
 
@@ -603,18 +604,22 @@ void checkBoundaryCond(dataCube cube, int *check) {
     }
 }
 
-void checkCommandLine(int argc, char *argv[]) {
+void checkCommandLine(int argc, char *argv[], dataRC config) {
 
     int i;
     int flags[4] = {0, 0, 0, 0};
     char nameCube[64];
     char nameInput[64];
+    char nameConf[64];
 
     if (argc == 1) {
         printf(" Try to run the program as:\n");
         printf(" %s  input.in \n\n", argv[0]);
-        printf(" or to create a example of input file\n");
+        printf(" To create a example of input file\n");
         printf(" %s -f [file.cube] -i [file.in]\n\n", argv[0]);
+        printf(" To export the config parameters try:\n");
+        printf(" %s -r [filerc]\n\n", argv[0] );
+
         exit(EXIT_FAILURE);
     }
 
@@ -626,6 +631,7 @@ void checkCommandLine(int argc, char *argv[]) {
 
     strcpy(nameCube, "foobar.cube");
     strcpy(nameInput, "input.in");
+    strcpy(nameConf, "config.log");
 
     for (i = 0; i < argc; i++) {
         if (argv[i][0] == '-' && argv[i][1] == 'f') {
@@ -641,6 +647,14 @@ void checkCommandLine(int argc, char *argv[]) {
                 flags[3] = 1;
                 strcpy(nameInput, argv[i + 1]);
             }
+        }
+        if (argv[i][0] == '-' && argv[i][1] == 'r') {
+            if( argv[i + 1] != NULL && argv[i + 1][0] != '-'){
+                strcpy(nameConf, argv[i + 1]);
+            }
+            printf("%s A file [%s] will be created!%s\n", TGBI, nameConf, TRST);
+            createFileRC(nameConf, config);
+            exit(EXIT_SUCCESS);
         }
     }
 

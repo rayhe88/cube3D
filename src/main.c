@@ -36,9 +36,7 @@
 #include "struct.h"
 #include "transU.h"
 #include "utils.h"
-
-double getDenInCube2(int i, int j, int k, int n1, int n2, double *field);
-void chargeOfSystem(dataCube cube);
+#include "runCommands.h"
 
 int main(int argc, char *argv[]) {
 
@@ -58,8 +56,11 @@ int main(int argc, char *argv[]) {
 
     dataCube cube;
     dataRun parameters;
+    dataRC config;
 
-    checkCommandLine(argc, argv);
+    checkFile(&config);
+
+    checkCommandLine(argc, argv, config);
 
     tmpFile(&aux, ".c3dInp", nametmp, "w+");
 
@@ -99,7 +100,7 @@ int main(int argc, char *argv[]) {
     // comienza la ejecución real
 
     // printTapas(cube);
-    selectExec(cube, parameters, matU, nameout);
+    selectExec(cube, parameters, config, matU, nameout);
 
     unloadData(&cube, &zatm1, &coor1, &field1);
 

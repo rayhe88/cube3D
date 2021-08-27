@@ -73,34 +73,32 @@ typedef struct {
 } dataRun; /**< Structure for run information.  */
 
 typedef struct {
-    double tolfun0;
-    double tolfun;
-    double tolgrd;
-    double tolnrm;
-    int maxiter1;
-    int maxiter2;
-    double percent;
-    double toldist1;
-    double toldist2;
-    double toldist3;
-    int npua0;
-    int npua1;
-    int npua2;
-    int nang;
-    int maxiter;
-    double eps;
-    int kindCenter;
-    char gnuplot_path;
-    char gnuplot_path_wx;
-    double jacobi_eps;
+
+    int crit_maxiter1;
+    int crit_maxiter2;
+    int geom_npua0;
+    int geom_npua1;
+    int geom_npua2;
+    int geom_nang;
+    int geom_maxiter;
     int jacobi_maxiter;
-    double math_tol;
-    int math_nmax;
-    double bpath_eps;
     int bpath_nstep;
+    int bpath_maxpts;
+
+    double crit_tolfun0;
+    double crit_tolfun;
+    double crit_tolgrd;
+    double crit_tolnrm;
+    double crit_percent;
+    double crit_toldist1;
+    double crit_toldist2;
+    double crit_toldist3;
+    double geom_eps;
+    double jacobi_eps;
+    double bpath_eps;
     double bpath_tol_dist_atm;
-    int maxpts;
     double gradlines_step;
-} RunCommands;
+
+} dataRC; /**< Structure for runCommands. */
 
 #endif

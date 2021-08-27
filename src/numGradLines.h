@@ -16,7 +16,7 @@
 #ifndef _NUMGRADLINES_H_
 #define _NUMGRADLINES_H_
 
-#define STEP_EPS 0.005
+//#define STEP_EPS 0.005
 
 int gradientLines(int, dataCritP *, dataCube, dataRun, double, const double *,
                   char *);

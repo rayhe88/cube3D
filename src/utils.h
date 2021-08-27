@@ -47,5 +47,5 @@ void getNameOut(char *name1, char *name2);
 
 void createInput(char *name1, char *name2);
 
-void checkCommandLine(int, char **);
+void checkCommandLine(int, char **, dataRC);
 #endif

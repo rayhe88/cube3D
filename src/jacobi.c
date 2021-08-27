@@ -1,6 +1,6 @@
 #include "jacobi.h"
 
-int JacobiNxN(double *matH, double *eval, double *evec) {
+int JacobiNxN(double *matH, double *eval, double *evec, double eps, int maxiter) {
 
     int i, j;
     int k, l, count;
@@ -36,7 +36,7 @@ int JacobiNxN(double *matH, double *eval, double *evec) {
         for (i = 0; i < N; i++)
             sumaq += (matA[IDX(N, i, i)] * matA[IDX(N, i, i)]);
 
-        tol = (EPS * sqrt(sumaq) / (double)N);
+        tol = (eps * sqrt(sumaq) / (double)N);
         if (max < tol)
             break;
 
@@ -69,7 +69,7 @@ int JacobiNxN(double *matH, double *eval, double *evec) {
 
         count++;
 
-    } while (count < MAXIT);
+    } while (count < maxiter);
 
     eval[0] = matA[0];
     eval[1] = matA[4];
