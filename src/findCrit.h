@@ -48,6 +48,9 @@ typedef struct {
     double fun;
 } dataCritP;
 
+int getDistancesRAY(int, double, dataCube, dataRun, dataRC, double *,
+                 const double *);
+
 int delRepCoor(int, double *, double *, dataRC);
 
 int delCoorAtomic(int, double *, const double *, dataCube, dataRC);

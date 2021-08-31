@@ -702,12 +702,114 @@ int refineCrit(int npc, double min0, dataCube cube, dataRun param,
     ncrit3 = delCoorPseudo(ncrit2, coorOut, min0, matU, cube, param, config);
     printf("  Critical points (delCoorPseudo) : %6d\n", ncrit3);
 
+
+    //getDistancesRAY(ncrit3, min0, cube, param, config, coorOut, matU);
+
     // Caraterizamos los puntos criticos
     describeCrit(ncrit3, min0, cube, param, config, coorOut, matU, name);
 
     free(coorOut);
 
     return 0;
+}
+
+int getDistancesRAY(int ncrit, double min0, dataCube cube, dataRun param,
+                    dataRC config, double *coor, const double *matU){
+
+    int i, mu, nu;
+
+    double ratm[3], rcrit[3];
+    double *dist;
+    double tmp;
+    FILE *inp;
+
+    openFile(&inp, "distance.txt", "w+");
+
+
+    createArrayDou(ncrit, &dist, "distances");
+/*
+    fprintf(inp,"====================================================\n");
+    for (i = 0; i < cube.natm; i++) {
+        ratm[0] = cube.coor[3 * i];
+        ratm[1] = cube.coor[3 * i + 1];
+        ratm[2] = cube.coor[3 * i + 2];
+        itrans00(ratm, matU);
+        fprintf(inp,"                Atom  %5d: Z = %2d\n", i+1, cube.zatm[i]);
+        fprintf(inp,"====================================================\n");
+
+        for(mu = 0; mu < ncrit; mu++){
+            rcrit[0] = coor[3 * mu];
+            rcrit[1] = coor[3 * mu + 1];
+            rcrit[2] = coor[3 * mu + 2];
+            itrans00(rcrit, matU);
+
+            dist[mu] =  distance(ratm, rcrit);
+
+        }
+
+        // order the distance
+        for(mu = 0; mu < ncrit; mu++){
+            for(nu = mu + 1; nu < ncrit; nu++){
+                if( dist[mu] > dist[nu]){
+                    tmp = dist[mu];
+                    dist[mu] = dist[nu];
+                    dist[nu] = tmp;
+                }
+            }
+        }
+        // print the distance
+
+
+        k = 0;
+        for(mu = 0; mu < ncrit; mu++){
+            k++;
+            fprintf(inp," % 10.6E", dist[mu]);
+            if( k == 6 || mu == ncrit - 1){
+                k = 0;
+                fprintf(inp,"\n");
+            }
+        }
+        fprintf(inp,"====================================================\n");
+
+    }
+*/
+     i = 0;
+     if( cube.zatm[i] == 83 ){
+        ratm[0] = cube.coor[3 * i];
+        ratm[1] = cube.coor[3 * i + 1];
+        ratm[2] = cube.coor[3 * i + 2];
+        itrans00(ratm, matU);
+
+        for(mu = 0; mu < ncrit; mu++){
+            rcrit[0] = coor[3 * mu];
+            rcrit[1] = coor[3 * mu + 1];
+            rcrit[2] = coor[3 * mu + 2];
+            itrans00(rcrit, matU);
+
+            dist[mu] =  distance(ratm, rcrit);
+        }
+
+        // order the distance
+        for(mu = 0; mu < ncrit; mu++){
+            for(nu = mu + 1; nu < ncrit; nu++){
+                if( dist[mu] > dist[nu]){
+                    tmp = dist[mu];
+                    dist[mu] = dist[nu];
+                    dist[nu] = tmp;
+                }
+            }
+        }
+        // print the distance
+
+
+        for(mu = 0; mu < ncrit; mu++)
+            fprintf(inp,"%10d % 10.6E\n", mu+1, dist[mu]);
+    }
+
+    free(dist);
+    fclose(inp);
+    return 0;
+
 }
 
 int describeCrit(int ncrit, double min0, dataCube cube, dataRun param,
@@ -1162,12 +1264,14 @@ int delCoorAtomic(int n, double *coor, const double *matU, dataCube cube,
         ri[0] = cube.coor[3 * i];
         ri[1] = cube.coor[3 * i + 1];
         ri[2] = cube.coor[3 * i + 2];
+        itrans00(ri, matU);
 
         for (j = 0; j < n; j++) {
             if (control[j] != 'D') {
                 rj[0] = tmp[3 * j];
                 rj[1] = tmp[3 * j + 1];
                 rj[2] = tmp[3 * j + 2];
+                itrans00(rj, matU);
 
                 dist = distance(ri, rj);
 
@@ -1204,11 +1308,14 @@ int delCoorPseudo(int n, double *coor1, double min0, const double *matU,
     // 'U' if the value is unique and not delete
     // 'D' if the value will be deleted
     int i, j;
+    int a, b, c;
     char control[n];
-    double ri[3], rj[3];
+    double ri[3], rj[3], rcell[3];
     double tmp[3 * n];
     double dist;
     double val[10], fun, lap;
+    double distA, distB, distC;
+    double vecA[3], vecB[3], vecC[3];
 
     for (i = 0; i < n; i++)
         control[i] = 'U';
@@ -1218,48 +1325,119 @@ int delCoorPseudo(int n, double *coor1, double min0, const double *matU,
         coor1[i] = 0.;
     }
 
-    for (i = 0; i < cube.natm; i++) {
-        ri[0] = cube.coor[3 * i];
-        ri[1] = cube.coor[3 * i + 1];
-        ri[2] = cube.coor[3 * i + 2];
+    if( param.pbc == NOT ){
+        for (i = 0; i < cube.natm; i++) {
+            ri[0] = cube.coor[3 * i];
+            ri[1] = cube.coor[3 * i + 1];
+            ri[2] = cube.coor[3 * i + 2];
 
-        numCritical02(ri[0], ri[1], ri[2], cube, param, matU, min0, val);
+            numCritical02(ri[0], ri[1], ri[2], cube, param, matU, min0, val);
 
-        fun = fabs(val[0]);
-        lap = getLap(val);
+            fun = fabs(val[0]);
+            lap = getLap(val);
 
-        if (fun < 0.5 && lap > 0.) { // If these condition is true, I have
-                                     // pseudopotential in the nuclei i;
-            for (j = 0; j < n; j++) {
-                if (control[j] != 'D') {
-                    rj[0] = tmp[3 * j];
-                    rj[1] = tmp[3 * j + 1];
-                    rj[2] = tmp[3 * j + 2];
+            if (fun < 0.5 && lap > 0.) { // If these condition is true, I have
+                                         // pseudopotential in the nuclei i;
+                for (j = 0; j < n; j++) {
+                    if (control[j] != 'D') {
+                        rj[0] = tmp[3 * j];
+                        rj[1] = tmp[3 * j + 1];
+                        rj[2] = tmp[3 * j + 2];
 
-                    dist = distance(ri, rj);
+                        itrans00(ri, matU);
+                        itrans00(rj, matU);
+                        dist = distance(ri, rj);
 
-                    if (dist <= config.crit_toldist3)
-                        control[j] = 'D';
-                    else
-                        control[j] = 'U';
+                        if (dist <= config.crit_toldist3)
+                            control[j] = 'D';
+                        else
+                            control[j] = 'U';
+                    }
                 }
             }
         }
+
+        int npc2 = 0;
+        for (i = 0; i < n; i++)
+            if (control[i] == 'U')
+                npc2++;
+
+        j = 0;
+        for (i = 0; i < n; i++)
+            if (control[i] == 'U') {
+                coor1[3 * j] = tmp[3 * i];
+                coor1[3 * j + 1] = tmp[3 * i + 1];
+                coor1[3 * j + 2] = tmp[3 * i + 2];
+                j++;
+            }
+
+        return npc2;
+    }else{
+        vecA[0] = cube.mvec[0]; vecA[1] = cube.mvec[1]; vecA[2] = cube.mvec[2];
+        vecB[0] = cube.mvec[3]; vecB[1] = cube.mvec[4]; vecB[2] = cube.mvec[5];
+        vecC[0] = cube.mvec[6]; vecC[1] = cube.mvec[7]; vecC[2] = cube.mvec[8];
+
+        distA = (cube.pts[0] - 1) * getNormVec(vecA);
+        distB = (cube.pts[1] - 1) * getNormVec(vecB);
+        distC = (cube.pts[2] - 1) * getNormVec(vecC);
+
+        for (i = 0; i < cube.natm; i++) {
+            ri[0] = cube.coor[3 * i];
+            ri[1] = cube.coor[3 * i + 1];
+            ri[2] = cube.coor[3 * i + 2];
+
+            numCritical02(ri[0], ri[1], ri[2], cube, param, matU, min0, val);
+
+            fun = fabs(val[0]);
+            lap = getLap(val);
+
+            if (fun < 0.5 && lap > 0.) { // If these condition is true, I have
+                                         // pseudopotential in the nuclei i;
+                for (a = -1; a <= 1; a++){
+                    rcell[0] = ri[0] + a * distA;
+
+                    for (b = -1; b <= 1; b++){
+                        rcell[1] = ri[1] + b * distB;
+
+                        for (c = -1; c <= 1; c++){
+                            rcell[2] = ri[2] + c * distC;
+
+                            itrans00(rcell, matU);
+                            for (j = 0; j < n; j++) {
+                                if (control[j] != 'D') {
+                                    rj[0] = tmp[3 * j];
+                                    rj[1] = tmp[3 * j + 1];
+                                    rj[2] = tmp[3 * j + 2];
+                                    itrans00(rj, matU);
+
+                                    dist = distance(rcell, rj);
+
+                                    if (dist <= config.crit_toldist3)
+                                        control[j] = 'D';
+                                    else
+                                        control[j] = 'U';
+                                } // if-else
+                            } // end for j
+                        } // end for c
+                    } // end for b
+                } // end for a
+            }// end if
+        }// end for i
+
+        int npc2 = 0;
+        for (i = 0; i < n; i++)
+            if (control[i] == 'U')
+                npc2++;
+
+        j = 0;
+        for (i = 0; i < n; i++)
+            if (control[i] == 'U') {
+                coor1[3 * j] = tmp[3 * i];
+                coor1[3 * j + 1] = tmp[3 * i + 1];
+                coor1[3 * j + 2] = tmp[3 * i + 2];
+                j++;
+            }
+
+        return npc2;
     }
-
-    int npc2 = 0;
-    for (i = 0; i < n; i++)
-        if (control[i] == 'U')
-            npc2++;
-
-    j = 0;
-    for (i = 0; i < n; i++)
-        if (control[i] == 'U') {
-            coor1[3 * j] = tmp[3 * i];
-            coor1[3 * j + 1] = tmp[3 * i + 1];
-            coor1[3 * j + 2] = tmp[3 * i + 2];
-            j++;
-        }
-
-    return npc2;
 }
