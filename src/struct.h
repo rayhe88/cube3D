@@ -46,6 +46,7 @@ typedef struct {
     double max[3];       /**< Array for \f$ \vec{r}_{n-1} \f$.*/
     double hvec[3];      /**< Array for steps in hx,hy,hz.    */
     double mvec[9];      /**< Matrix of transformation.       */
+    double theta[3];     /**< Rotation angles.                */
     int *zatm;           /**< Pointer to atomic numbers.      */
     double *field;       /**< Pointer to field data           */
     double *coor;        /**< Pointer to coordinates          */
