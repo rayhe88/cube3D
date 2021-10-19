@@ -12,6 +12,7 @@
 #include "replicate.h"
 #include "utils.h"
 #include "version.h"
+#include "rotation.h"
 
 /**
  * @brief
@@ -270,6 +271,7 @@ int evalVoidVol(dataCube cube, dataRun param, char *name) {
     double tmp[3], vol0, volt;
     double den, volvac;
     double x, y, z;
+    double rrot[3], rin[3];
 
     printBanner("Void volume", stdout);
 
@@ -389,9 +391,15 @@ int evalVoidVol(dataCube cube, dataRun param, char *name) {
     fprintf(out, " VOIDS for Cube3D-%s project\n", VERSION);
 
     for (idxcube = 0; idxcube < nct; idxcube++) {
-        if (dvoi[idxcube].stat == 2)
-            fprintf(out, " Voi % 10.6lf % 10.6lf % 10.6lf\n", dvoi[idxcube].x,
-                    dvoi[idxcube].y, dvoi[idxcube].z);
+        if (dvoi[idxcube].stat == 2){
+
+            rin[0] = dvoi[idxcube].x;
+            rin[1] = dvoi[idxcube].y;
+            rin[2] = dvoi[idxcube].z;
+            transform(rin, cube.theta, rrot);
+            fprintf(out, " Voi % 10.6lf % 10.6lf % 10.6lf\n", rrot[0],
+                    rrot[1], rrot[2]);
+        }
     }
 
     printBar(stdout);
