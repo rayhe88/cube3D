@@ -34,6 +34,10 @@ void rotationCube(double *mvec, dataCube *cube) {
     printf("   Rotation on the Z axis : %8.2lf deg\n", angles[2] * 180. / M_PI);
     printBar(stdout);
 
+    cube->theta[0] = angles[0];
+    cube->theta[1] = angles[1];
+    cube->theta[2] = angles[2];
+
     r[0] = mvec[0];
     r[1] = mvec[1];
     r[2] = mvec[2];
