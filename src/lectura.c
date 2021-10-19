@@ -80,6 +80,10 @@ int loadData(dataCube *data, int **zatm, double **coor, double **field,
     data->hvec[1] = sqrt(vec[3] * vec[3] + vec[4] * vec[4] + vec[5] * vec[5]);
     data->hvec[2] = sqrt(vec[6] * vec[6] + vec[7] * vec[7] + vec[8] * vec[8]);
 
+    data->theta[0] = (double) 0.;
+    data->theta[1] = (double) 0.;
+    data->theta[2] = (double) 0.;
+
     data->max[0] = min[0] + (points[0] - 1) * (data->hvec[0]);
     data->max[1] = min[1] + (points[1] - 1) * (data->hvec[1]);
     data->max[2] = min[2] + (points[2] - 1) * (data->hvec[2]);
