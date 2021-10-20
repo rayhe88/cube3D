@@ -45,6 +45,8 @@ double dotProduct(double vecA[3], double vecB[3]);
 void crossProduct(double vecA[3], double vecB[3], double vecOut[3]);
 void matVecProduct(double v[3], double m[9], double vecOut[3]);
 
+void scalarVector(double, double[3]);
+
 ////void transform(dataCube cube1,dataCube *cube2,double *coor,double
 ///*coor2,double matTinv[9]);
 

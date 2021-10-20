@@ -6,6 +6,12 @@
  */
 #include "mathTools.h"
 
+void scalarVector(double a, double r[3]){
+    r[0] *= a;
+    r[1] *= a;
+    r[2] *= a;
+}
+
 double distance(double r1[3], double r2[3]) {
 
     double ret = (r2[0] - r1[0]) * (r2[0] - r1[0]);
