@@ -13,6 +13,13 @@
 #include "utils.h"
 #include "version.h"
 #include "rotation.h"
+#include "numBondPath.h"
+
+void scalarVector(double a, double vec[3]){
+    vec[0] *= a;
+    vec[1] *= a;
+    vec[2] *= a;
+}
 
 /**
  * @brief
@@ -73,7 +80,7 @@ void selectExec(dataCube cube, dataRun param, dataRC config, double *matU,
             critPoints(cube, param, config, matU, min, name);
             break;
         case VOI:
-            evalVoidVol(cube, param, name);
+            evalVoidVol(cube, param, matU, name);
             break;
         case REP:
             evalRepCube(cube, param, name);
@@ -261,7 +268,7 @@ int evalRepCube(dataCube cube, dataRun param, char *name) {
     return 0;
 }
 
-int evalVoidVol(dataCube cube, dataRun param, char *name) {
+int evalVoidVol(dataCube cube, dataRun param, const double *matU, char *name) {
 
     unsigned int i, j, k;
     unsigned int n1, n2;
@@ -380,6 +387,10 @@ int evalVoidVol(dataCube cube, dataRun param, char *name) {
     printf("   Percentaje of the void : % 12.3lf %c\n", (volvac * 100.0) / volt,
            '%');
 
+    printf(" Angles theta_x : % 12.6lf degrees\n",cube.theta[0] * 180. / M_PI);
+    printf(" Angles theta_y : % 12.6lf degrees\n",cube.theta[1] * 180. / M_PI);
+    printf(" Angles theta_z : % 12.6lf degrees\n",cube.theta[2] * 180. / M_PI);
+
     char nameout[128];
     FILE *out;
 
@@ -396,7 +407,10 @@ int evalVoidVol(dataCube cube, dataRun param, char *name) {
             rin[0] = dvoi[idxcube].x;
             rin[1] = dvoi[idxcube].y;
             rin[2] = dvoi[idxcube].z;
-            transform(rin, cube.theta, rrot);
+            scalarVector(1./B2A, rin);
+            //transformInv(rin, cube.theta, rrot);
+            getRiU(rin, matU, rrot);
+            scalarVector(B2A, rrot);
             fprintf(out, " Voi % 10.6lf % 10.6lf % 10.6lf\n", rrot[0],
                     rrot[1], rrot[2]);
         }
