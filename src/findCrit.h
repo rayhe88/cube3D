@@ -49,7 +49,7 @@ typedef struct {
 } dataCritP;
 
 int getDistancesRAY(int, double, dataCube, dataRun, dataRC, double *,
-                 const double *);
+                    const double *);
 
 int delRepCoor(int, double *, double *, dataRC);
 
