@@ -9,10 +9,10 @@
 #include "geomData.h"
 #include "graph.h"
 #include "mathTools.h"
+#include "numBondPath.h"
 #include "replicate.h"
 #include "utils.h"
 #include "version.h"
-#include "numBondPath.h"
 
 /**
  * @brief
@@ -391,14 +391,15 @@ int evalVoidVol(dataCube cube, dataRun param, const double *matU, char *name) {
     fprintf(out, " VOIDS for Cube3D-%s project\n", VERSION);
 
     for (idxcube = 0; idxcube < nct; idxcube++) {
-        if (dvoi[idxcube].stat == 2){
+        if (dvoi[idxcube].stat == 2) {
             qi[0] = dvoi[idxcube].x;
             qi[1] = dvoi[idxcube].y;
             qi[2] = dvoi[idxcube].z;
-            scalarVector(1./B2A, qi);
+            scalarVector(1. / B2A, qi);
             getRiU(qi, matU, ri);
             scalarVector(B2A, ri);
-            fprintf(out, " Voi % 10.6lf % 10.6lf % 10.6lf\n", ri[0], ri[1], ri[2]);
+            fprintf(out, " Voi % 10.6lf % 10.6lf % 10.6lf\n", ri[0], ri[1],
+                    ri[2]);
         }
     }
 

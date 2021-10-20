@@ -6,7 +6,7 @@
  */
 #include "mathTools.h"
 
-void scalarVector(double a, double r[3]){
+void scalarVector(double a, double r[3]) {
     r[0] *= a;
     r[1] *= a;
     r[2] *= a;
