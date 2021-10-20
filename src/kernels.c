@@ -391,7 +391,7 @@ int evalVoidVol(dataCube cube, dataRun param, const double *matU, char *name) {
     fprintf(out, " VOIDS for Cube3D-%s project\n", VERSION);
 
     for (idxcube = 0; idxcube < nct; idxcube++) {
-        if (dvoi[idxcube].stat == 2)
+        if (dvoi[idxcube].stat == 2){
             qi[0] = dvoi[idxcube].x;
             qi[1] = dvoi[idxcube].y;
             qi[2] = dvoi[idxcube].z;
@@ -399,6 +399,7 @@ int evalVoidVol(dataCube cube, dataRun param, const double *matU, char *name) {
             getRiU(qi, matU, ri);
             scalarVector(B2A, ri);
             fprintf(out, " Voi % 10.6lf % 10.6lf % 10.6lf\n", ri[0], ri[1], ri[2]);
+        }
     }
 
     printBar(stdout);
