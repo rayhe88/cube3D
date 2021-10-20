@@ -23,7 +23,7 @@ typedef struct {
 void selectExec(dataCube, dataRun, dataRC, double *, char *);
 int evalRGL(dataCube, dataRun, double *, char *);
 int evalNCI(dataCube, dataRun, double *, char *);
-int evalVoidVol(dataCube, dataRun, char *);
+int evalVoidVol(dataCube, dataRun, const double *, char *);
 int evalRepCube(dataCube, dataRun, char *);
 
 double getDenInCube(int, int, int, int, int, double *);

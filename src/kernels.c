@@ -12,6 +12,7 @@
 #include "replicate.h"
 #include "utils.h"
 #include "version.h"
+#include "numBondPath.h"
 
 /**
  * @brief
@@ -72,7 +73,7 @@ void selectExec(dataCube cube, dataRun param, dataRC config, double *matU,
             critPoints(cube, param, config, matU, min, name);
             break;
         case VOI:
-            evalVoidVol(cube, param, name);
+            evalVoidVol(cube, param, matU, name);
             break;
         case REP:
             evalRepCube(cube, param, name);
@@ -260,13 +261,14 @@ int evalRepCube(dataCube cube, dataRun param, char *name) {
     return 0;
 }
 
-int evalVoidVol(dataCube cube, dataRun param, char *name) {
+int evalVoidVol(dataCube cube, dataRun param, const double *matU, char *name) {
 
     unsigned int i, j, k;
     unsigned int n1, n2;
     unsigned int ncx, ncy, ncz, nct;
     unsigned int cbs;
     double vecA[3], vecB[3], vecC[3];
+    double qi[3], ri[3];
     double tmp[3], vol0, volt;
     double den, volvac;
     double x, y, z;
@@ -390,8 +392,13 @@ int evalVoidVol(dataCube cube, dataRun param, char *name) {
 
     for (idxcube = 0; idxcube < nct; idxcube++) {
         if (dvoi[idxcube].stat == 2)
-            fprintf(out, " Voi % 10.6lf % 10.6lf % 10.6lf\n", dvoi[idxcube].x,
-                    dvoi[idxcube].y, dvoi[idxcube].z);
+            qi[0] = dvoi[idxcube].x;
+            qi[1] = dvoi[idxcube].y;
+            qi[2] = dvoi[idxcube].z;
+            scalarVector(1./B2A, qi);
+            getRiU(qi, matU, ri);
+            scalarVector(B2A, ri);
+            fprintf(out, " Voi % 10.6lf % 10.6lf % 10.6lf\n", ri[0], ri[1], ri[2]);
     }
 
     printBar(stdout);
