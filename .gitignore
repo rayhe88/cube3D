@@ -22,3 +22,8 @@
 garbage*
 input*
 *.x
+
+# new add
+.vscode/
+file.in
+*.sh
