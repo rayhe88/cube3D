@@ -100,11 +100,18 @@ double getKin(double *val) {
 }
 
 double getKEW(double *val) {
-    double grad;
+    double grad,rho,kew;
     grad = val[1] * val[1] + val[2] * val[2] + val[3] * val[3];
     grad = sqrt(grad);
+    rho = sqrt(fabs(val[0]));
 
-    return grad / val[0];
+    kew = (double) 0.;
+    // In the limit when rho^1/2 and grad go to zero, the value is zero too
+    // this is a principal diference with reduced gradient the value goes to infinity.
+    if( rho > 1.E-10 && grad > 1.E-10) 
+        kew = grad / rho;
+
+    return kew;
 }
 
 double getVir(double *val) {
