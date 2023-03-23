@@ -1,3 +1,6 @@
+![GitHub tag (latest by date)](https://img.shields.io/github/v/tag/rayhe88/cube3D?label=version)
+![GitHub last commit](https://img.shields.io/github/last-commit/rayhe88/cube3D?label=last%20modified)
+![GitHub top language](https://img.shields.io/github/languages/top/rayhe88/cube3D?color=green)
 -----------------------------------------------------------------------
              ______      __        _____ ____ 
             / ____/_  __/ /_  ___ |__  // __ \
