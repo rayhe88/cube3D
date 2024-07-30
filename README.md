@@ -11,7 +11,7 @@
           \____/\__,_/_.___/\___/____/_____/
 
                  README file for Cube3D
-                     February, 2018
+                     February, 2024
 
 ---
 
@@ -22,10 +22,9 @@ points of scalar fields that are used in computational/quantum chemistry
 such as electron density. This search is carried out completely numerically
 and takes as input a file in the Gaussian "cube" format.
 
-This code has been developed at the UAM-I (Metropolitan Autonomous University
-
-- Iztapalapa) in the area of Theoretical Physical Chemistry and updated during
-  my postdoctoral stays at McMaster University and Argonne National Lab.
+This code has been developed at the UAM-I (Universidad Autónoma 
+Metropolitana-Iztapalapa) in the area of Theoretical Physical Chemistry and updated during
+my postdoctoral stays at McMaster University and Argonne National Lab.
 
 Perform a completely numerical search using 3-dimensional Lagrange interpolators.
 
@@ -60,7 +59,6 @@ gcc -c -Wunused  -Wno-unused-result -O2 cubeIndex.c
 gcc -c -Wunused  -Wno-unused-result -O2 lagrange2.c
 gcc -c -Wunused  -Wno-unused-result -O2 replicate.c
 gcc -c -Wunused  -Wno-unused-result -O2 mathTools.c
-gcc -c -Wunused  -Wno-unused-result -O2 refinement.c
 gcc -c -Wunused  -Wno-unused-result -O2 numBondPath.c -fopenmp
 gcc -c -Wunused  -Wno-unused-result -O2 runCommands.c -fopenmp
 gcc -c -Wunused  -Wno-unused-result -O2 utils.c
@@ -84,6 +82,7 @@ $ export PATH= $PATH:/home/USER/bin/cube3d.x
 ## First steps
 
 Once the binary is installed and the location of the binary is exported in the path, you can go to `proof` subdir. There is an example cube file, called `ureaII.cube` which corresponds to a urea crystal. To generate an input file type the following.
+
 
 ```bash
 cube3d.x -f ureaII.cube -i input.in
