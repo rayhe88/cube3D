@@ -11,7 +11,7 @@
           \____/\__,_/_.___/\___/____/_____/
 
                  README file for Cube3D
-                     February, 2018
+                     February, 2024
 
 ---
 
@@ -60,7 +60,6 @@ gcc -c -Wunused  -Wno-unused-result -O2 cubeIndex.c
 gcc -c -Wunused  -Wno-unused-result -O2 lagrange2.c
 gcc -c -Wunused  -Wno-unused-result -O2 replicate.c
 gcc -c -Wunused  -Wno-unused-result -O2 mathTools.c
-gcc -c -Wunused  -Wno-unused-result -O2 refinement.c
 gcc -c -Wunused  -Wno-unused-result -O2 numBondPath.c -fopenmp
 gcc -c -Wunused  -Wno-unused-result -O2 runCommands.c -fopenmp
 gcc -c -Wunused  -Wno-unused-result -O2 utils.c
